@@ -13,7 +13,7 @@ export class AghmNwpStack extends cdk.Stack {
     // ==========================================
     const myLambda = new lambda.Function(this, 'MyApiFunction', {
       runtime: lambda.Runtime.NODEJS_20_X,
-      code: lambda.Code.fromAsset(path.join(__dirname, '../../backend')),
+      code: lambda.Code.fromAsset(path.join(__dirname, '../backend')),
       handler: 'hello-world.handler',
     });
 
