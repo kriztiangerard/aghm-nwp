@@ -71,21 +71,22 @@ Do not commit directly to `main` or `development`. All changes must be made on a
 ### Branch Naming Convention
 Every branch must follow this format:
 
-- `<type>/NWP-<story-id>-<short-description>`
+- `<type>/[<story-id>-]<short-description>`
 
 The NWP Story ID should identify the specific story or task being worked on.
 
-| Type       | Purpose                   | Example                                 |
-| ---------- | ------------------------- | --------------------------------------- |
-| `feature/` | New functionality         | `feature/NWP-001-device-recommendation` |
-| `fix/`     | Bug fixes                 | `fix/NWP-002-pricing-calculation`       |
-| `style/`   | UI/design changes         | `style/NWP-003-results-page`            |
-| `test/`    | Tests                     | `test/NWP-004-bom-validation`           |
-| `docs/`    | Documentation             | `docs/NWP-005-update-readme`            |
-| `chore/`   | Maintenance/configuration | `chore/NWP-006-update-dependencies`     |
+| Type       | Purpose                   | Example                                   |
+| ---------- | ------------------------- | ----------------------------------------- |
+| `feature/` | New functionality         | `feature/ENGINE-12-device-recommendation` |
+| `fix/`     | Bug fixes                 | `fix/BOM-01-pricing-calculation`          |
+| `style/`   | UI/design changes         | `style/UI-03-results-page`                |
+| `test/`    | Tests                     | `test/BOM-10-validation`                  |
+| `docs/`    | Documentation             | `docs/OTHER-26-update-readme`             |
+| `chore/`   | Maintenance/configuration | `chore/INFRA-04-update-dependencies`      |
  
 ### Branch Naming Rules
-- Always include the applicable NWP Story ID.
+- Always include the applicable NWP Story ID (see Notion board for appropriate prefix to use). Remove the NWP prefix.
+- If there is no associated story for the branch, do not make your own. Just write the short description instead.
 - Use lowercase for the description.
 - Use hyphens (-) to separate words.
 - Keep the description short and descriptive.
