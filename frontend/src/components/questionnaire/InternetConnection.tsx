@@ -1,4 +1,11 @@
+import { useFormContext } from 'react-hook-form'
+
 function InternetConnection() {
+  const {
+    register,
+    formState: { errors },
+  } = useFormContext()
+
   return (
     <section>
       <h2>Section D — Internet Connection</h2>
@@ -7,31 +14,49 @@ function InternetConnection() {
         <label htmlFor="internetSpeed">
           Current internet speed (Mbps)
         </label>
+
         <input
           id="internetSpeed"
           type="number"
           min="1"
           placeholder="Enter Mbps"
+          {...register('internetSpeed')}
         />
+
+        {errors.internetSpeed && (
+          <p>{errors.internetSpeed.message as string}</p>
+        )}
       </div>
 
       <div>
         <label htmlFor="connectionType">
           Internet connection type
         </label>
-        <select id="connectionType">
+
+        <select
+          id="connectionType"
+          {...register('connectionType')}
+        >
           <option value="fiber">Fiber</option>
           <option value="dsl">DSL</option>
           <option value="wireless">Wireless/Cellular</option>
           <option value="not-checked">Not checked</option>
         </select>
+
+        {errors.connectionType && (
+          <p>{errors.connectionType.message as string}</p>
+        )}
       </div>
 
       <div>
         <label htmlFor="downtime">
           How much does internet downtime matter?
         </label>
-        <select id="downtime">
+
+        <select
+          id="downtime"
+          {...register('downtime')}
+        >
           <option value="wait">
             We can wait it out
           </option>
@@ -42,6 +67,10 @@ function InternetConnection() {
             Every minute matters
           </option>
         </select>
+
+        {errors.downtime && (
+          <p>{errors.downtime.message as string}</p>
+        )}
       </div>
     </section>
   )
