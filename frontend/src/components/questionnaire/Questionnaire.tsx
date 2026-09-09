@@ -36,6 +36,7 @@ function Questionnaire() {
   const form = useForm<FormInput, unknown, FormOutput>({
     resolver: zodResolver(fullSchema),
     mode: 'onSubmit',
+    shouldUnregister: false,
   })
 
   const CurrentSection = steps[currentStep]
