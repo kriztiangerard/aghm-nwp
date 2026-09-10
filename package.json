@@ -12,6 +12,7 @@
     "@swc/jest": "^0.2.39",
     "@types/jest": "^30",
     "@types/node": "^24.13.3",
+    "@types/pg": "^8.23.1",
     "aws-cdk": "2.1138.0",
     "jest": "^30",
     "tsx": "^4.23.0",
@@ -21,6 +22,7 @@
     "@tailwindcss/vite": "^4.3.3",
     "aws-cdk-lib": "^2.265.0",
     "constructs": "^10.5.0",
+    "pg": "^8.23.0",
     "tailwindcss": "^4.3.3"
   }
 }
