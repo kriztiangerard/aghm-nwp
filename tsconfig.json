@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "jsx": "preserve",
     "target": "ES2022",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
@@ -40,4 +41,5 @@
     "node_modules",
     "cdk.out"
   ]
+  
 }
