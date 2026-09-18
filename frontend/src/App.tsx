@@ -1,7 +1,7 @@
-import Questionnaire from './components/questionnaire/Questionnaire'
+import SplashPage from './SplashPage'
 
 function App() {
-  return <Questionnaire />
+  return <SplashPage />
 }
 
 export default App
