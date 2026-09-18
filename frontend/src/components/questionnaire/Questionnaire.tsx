@@ -7,7 +7,6 @@ import { z } from 'zod'
 import { Progress } from "@/components/ui/progress"
 import { Button } from "@/components/ui/button"
 
-
 import ProjectBasics from './ProjectBasics'
 import PhysicalSpace from './PhysicalSpace'
 import ExistingEnvironment from './ExistingEnvironment'
@@ -121,11 +120,50 @@ function Questionnaire() {
     }
   }
 
-  const onSubmit = (data: FormOutput) => {
-  // send `data` to your Engine/BOM Lambda here, e.g.:
-  // fetch('/api/generate', { method: 'POST', body: JSON.stringify(data) })
-  console.log(data)
-}
+  /* const onSubmit = async (data: FormOutput) => {
+  const response = await fetch(`${import.meta.env.VITE_API_URL}/generate`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to submit questionnaire');
+    }
+
+    const result = await response.json();
+    console.log('Recommendation result:', result);
+  }; */
+
+  const onSubmit = async (data: FormOutput) => {
+  const apiUrl = import.meta.env.VITE_API_URL?.trim();
+
+  if (!apiUrl) {
+    console.warn(
+      'VITE_API_URL is not configured. Submission is using placeholder mode.',
+      data,
+    );
+
+    return;
+  }
+
+  const response = await fetch(`${apiUrl}/generate`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Submission failed with status ${response.status}`);
+    }
+
+    const result = await response.json();
+    console.log('Recommendation result:', result);
+  };
 
   return (
     <FormProvider {...form}>

@@ -20,7 +20,7 @@ export class AghmNwpStack extends cdk.Stack {
     // pointing at folders that don't exist yet. Uncomment once both
     // subfolders have at least a placeholder index.handler.
 
-    const engineLambda = new lambda.Function(this, 'EngineFunction', {
+    /*const engineLambda = new lambda.Function(this, 'EngineFunction', {
       runtime: lambda.Runtime.NODEJS_20_X,
       code: lambda.Code.fromAsset(path.join(__dirname, '../backend/src/recommendation')),
       handler: 'index.handler',
@@ -30,6 +30,38 @@ export class AghmNwpStack extends cdk.Stack {
       runtime: lambda.Runtime.NODEJS_20_X,
       code: lambda.Code.fromAsset(path.join(__dirname, '../backend/src/pricing')),
       handler: 'index.handler',
+    }); */
+
+    //PLACEHOLDER LAMBDA
+    const engineLambda = new lambda.Function(this, 'EngineFunction', {
+      runtime: lambda.Runtime.NODEJS_20_X,
+      handler: 'index.handler',
+      code: lambda.Code.fromInline(`
+        exports.handler = async (event) => {
+          let payload = {};
+
+          try {
+            payload = event.body ? JSON.parse(event.body) : {};
+          } catch {
+            return {
+              statusCode: 400,
+              headers: { 'content-type': 'application/json' },
+              body: JSON.stringify({ message: 'Invalid JSON payload' })
+            };
+          }
+
+          console.log('Received questionnaire payload:', payload);
+
+          return {
+            statusCode: 501,
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({
+              message: 'Placeholder endpoint. Recommendation processing is not implemented yet.',
+              received: payload
+            })
+          };
+        };
+      `),
     });
 
 
@@ -136,9 +168,9 @@ applications:
       value: engineLambda.functionName,
     });
 
-    new cdk.CfnOutput(this, 'PricingUpdateFunctionName', {
+    /* new cdk.CfnOutput(this, 'PricingUpdateFunctionName', {
       value: pricingUpdateLambda.functionName,
-    });
+    }); */
 
     // Re-enable alongside the API Gateway above once it's active.
     new cdk.CfnOutput(this, 'ApiUrl', {
