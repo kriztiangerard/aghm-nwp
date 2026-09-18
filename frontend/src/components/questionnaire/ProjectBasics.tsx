@@ -1,70 +1,91 @@
-import { useFormContext } from 'react-hook-form'
+import { Controller, useFormContext } from 'react-hook-form'
+
+import {
+  FieldSet, FieldLegend, FieldGroup,
+  Field, FieldLabel, FieldError,
+  Input,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/form-ui"
 
 function ProjectBasics() {
-  const {
-    register,
-    formState: { errors },
-  } = useFormContext()
+  const { control } = useFormContext()
+
+  const locationOptions = [
+    { label: "One site", value: "one" },
+    { label: "Two or more sites", value: "multiple" },
+  ]
 
   return (
-    <section>
-      <h2>Section A – Project Basics</h2>
+    <FieldSet>
+      <FieldLegend>Project Basics</FieldLegend>
 
-      <div>
-        <label htmlFor="companyName">
-          Project or company name
-        </label>
-
-        <input
-          id="companyName"
-          type="text"
-          placeholder="Enter project or company name"
-          {...register('companyName')}
+      <FieldGroup>
+        <Controller
+          name="companyName"
+          control={control}
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}>
+              <FieldLabel htmlFor={field.name}>Project or company name</FieldLabel>
+              <Input
+                {...field}
+                id={field.name}
+                type="text"
+                placeholder="Enter project or company name"
+                aria-invalid={fieldState.invalid}
+              />
+              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+            </Field>
+          )}
         />
 
-        {errors.companyName && (
-          <p>{errors.companyName.message as string}</p>
-        )}
-      </div>
-
-      <div>
-        <label htmlFor="locations">
-          Number of business locations
-        </label>
-
-        <select
-          id="locations"
-          {...register('locations')}
-        >
-          <option value="one">One site</option>
-          <option value="multiple">Two or more sites</option>
-        </select>
-
-        {errors.locations && (
-          <p>{errors.locations.message as string}</p>
-        )}
-      </div>
-
-      <div>
-        <label htmlFor="headcount">
-          Total number of people who will use this network
-        </label>
-
-        <input
-          id="headcount"
-          type="number"
-          min="1"
-          max="200"
-          placeholder="1–200"
-          {...register('headcount')}
+        <Controller
+          name="locations"
+          control={control}
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}>
+              <FieldLabel htmlFor={field.name}>Number of business locations</FieldLabel>
+              <Select name={field.name} value={field.value} onValueChange={field.onChange}>
+                <SelectTrigger id={field.name} className="w-[180px]" aria-invalid={fieldState.invalid}>
+                  <SelectValue placeholder="Select an answer" />
+                </SelectTrigger>
+                <SelectContent>
+                  {locationOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+            </Field>
+          )}
         />
 
-        {errors.headcount && (
-          <p>{errors.headcount.message as string}</p>
-        )}
-      </div>
-    </section>
+        <Controller
+          name="headcount"
+          control={control}
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}>
+              <FieldLabel htmlFor={field.name}>
+                Total number of people who will use this network
+              </FieldLabel>
+              <Input
+                {...field}
+                id={field.name}
+                type="number"
+                min="1"
+                max="200"
+                placeholder="1–200"
+                aria-invalid={fieldState.invalid}
+                onChange={(e) => field.onChange(e.target.valueAsNumber)}
+              />
+              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+            </Field>
+          )}
+        />
+      </FieldGroup>
+    </FieldSet>
   )
 }
 
-export default ProjectBasics
+export default ProjectBasics 

@@ -129,3 +129,15 @@
     @apply font-sans;
     }
 }
+
+@layer base {
+  h1 {
+    @apply font-heading text-2xl font-semibold tracking-tight;
+  }
+  h2 {
+    @apply font-heading text-lg font-medium tracking-tight;
+  }
+  p {
+    @apply font-sans text-sm text-muted-foreground;
+  }
+}
