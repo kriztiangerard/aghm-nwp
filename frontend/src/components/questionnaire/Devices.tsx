@@ -1,104 +1,37 @@
-import { useFormContext } from 'react-hook-form'
+import { Controller, useFormContext } from 'react-hook-form'
+
+import {
+  FieldSet, FieldLegend, FieldGroup,
+  Field, FieldLabel, FieldError,
+  Input,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/form-ui"
 
 function Devices() {
-  const {
-    register,
-    formState: { errors },
-  } = useFormContext()
+  const { control } = useFormContext()
 
   return (
-    <section>
-      <h2>Section E — Devices</h2>
+    <FieldSet>
+      <FieldLegend>Devices</FieldLegend>
 
-      <div>
-        <label htmlFor="wiredDevices">
-          Number of wired desktops/laptops
-        </label>
-
-        <input
-          id="wiredDevices"
-          type="number"
-          min="0"
-          placeholder="Enter number"
-          {...register('wiredDevices')}
-        />
-
-        {errors.wiredDevices && (
-          <p>{errors.wiredDevices.message as string}</p>
-        )}
-      </div>
-
-      <div>
-        <label htmlFor="wifiDevices">
-          Number of Wi-Fi devices
-        </label>
-
-        <input
-          id="wifiDevices"
-          type="number"
-          min="0"
-          placeholder="Enter number"
-          {...register('wifiDevices')}
-        />
-
-        {errors.wifiDevices && (
-          <p>{errors.wifiDevices.message as string}</p>
-        )}
-      </div>
-
-      <div>
-        <label htmlFor="voip">
-          Do you use VoIP phones?
-        </label>
-
-        <select
-          id="voip"
-          {...register('voip')}
-        >
-          <option value="no">No</option>
-          <option value="yes">Yes</option>
-        </select>
-
-        {errors.voip && (
-          <p>{errors.voip.message as string}</p>
-        )}
-      </div>
-
-      <div>
-        <label htmlFor="cameras">
-          Do you use IP cameras?
-        </label>
-
-        <select
-          id="cameras"
-          {...register('cameras')}
-        >
-          <option value="no">No</option>
-          <option value="yes">Yes</option>
-        </select>
-
-        {errors.cameras && (
-          <p>{errors.cameras.message as string}</p>
-        )}
-      </div>
-
-      <div>
-        <label htmlFor="otherDevices">
-          Other network-connected devices
-        </label>
-
-        <input
-          id="otherDevices"
-          type="text"
-          placeholder="Enter other devices"
-          {...register('otherDevices')}
-        />
-
-        {errors.otherDevices && (
-          <p>{errors.otherDevices.message as string}</p>
-        )}
-      </div>
-    </section>
+      <FieldGroup>
+        <Controller name="wiredDevices" control={control} render={({ field, fieldState }) => (
+          <Field data-invalid={fieldState.invalid}><FieldLabel htmlFor={field.name}>Number of wired desktops/laptops</FieldLabel><Input {...field} id={field.name} type="number" min="0" placeholder="Enter number" aria-invalid={fieldState.invalid} onChange={(event) => field.onChange(event.target.valueAsNumber)} />{fieldState.invalid && <FieldError errors={[fieldState.error]} />}</Field>
+        )} />
+        <Controller name="wifiDevices" control={control} render={({ field, fieldState }) => (
+          <Field data-invalid={fieldState.invalid}><FieldLabel htmlFor={field.name}>Number of Wi-Fi devices</FieldLabel><Input {...field} id={field.name} type="number" min="0" placeholder="Enter number" aria-invalid={fieldState.invalid} onChange={(event) => field.onChange(event.target.valueAsNumber)} />{fieldState.invalid && <FieldError errors={[fieldState.error]} />}</Field>
+        )} />
+        <Controller name="voip" control={control} render={({ field, fieldState }) => (
+          <Field data-invalid={fieldState.invalid}><FieldLabel htmlFor={field.name}>Do you use VoIP phones?</FieldLabel><Select value={field.value} onValueChange={field.onChange}><SelectTrigger id={field.name} aria-invalid={fieldState.invalid}><SelectValue placeholder="Select an answer" /></SelectTrigger><SelectContent><SelectItem value="no">No</SelectItem><SelectItem value="yes">Yes</SelectItem></SelectContent></Select>{fieldState.invalid && <FieldError errors={[fieldState.error]} />}</Field>
+        )} />
+        <Controller name="cameras" control={control} render={({ field, fieldState }) => (
+          <Field data-invalid={fieldState.invalid}><FieldLabel htmlFor={field.name}>Do you use IP cameras?</FieldLabel><Select value={field.value} onValueChange={field.onChange}><SelectTrigger id={field.name} aria-invalid={fieldState.invalid}><SelectValue placeholder="Select an answer" /></SelectTrigger><SelectContent><SelectItem value="no">No</SelectItem><SelectItem value="yes">Yes</SelectItem></SelectContent></Select>{fieldState.invalid && <FieldError errors={[fieldState.error]} />}</Field>
+        )} />
+        <Controller name="otherDevices" control={control} render={({ field, fieldState }) => (
+          <Field data-invalid={fieldState.invalid}><FieldLabel htmlFor={field.name}>Other network-connected devices</FieldLabel><Input {...field} id={field.name} type="text" placeholder="Enter other devices" aria-invalid={fieldState.invalid} />{fieldState.invalid && <FieldError errors={[fieldState.error]} />}</Field>
+        )} />
+      </FieldGroup>
+    </FieldSet>
   )
 }
 

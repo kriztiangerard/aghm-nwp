@@ -1,154 +1,35 @@
-import { useFormContext } from 'react-hook-form'
+import { Controller, useFormContext } from 'react-hook-form'
+
+import {
+  FieldSet, FieldLegend, FieldGroup,
+  Field, FieldLabel, FieldError,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/form-ui"
 
 function BudgetBusinessContext() {
-  const {
-    register,
-    formState: { errors },
-  } = useFormContext()
+  const { control } = useFormContext()
+
+  const fields = [
+    { name: 'itSupport', label: 'IT support', options: [['none', 'No dedicated IT support'], ['outside', 'Outside person/company'], ['in-house', 'In-house IT']] },
+    { name: 'electricity', label: 'Electricity reliability', options: [['stable', 'Stable'], ['outages', 'Frequent brownouts/outages']] },
+    { name: 'growth', label: 'Do you expect business growth in the next 1–2 years?', options: [['no', 'No'], ['yes', 'Yes']] },
+    { name: 'growthRate', label: 'Expected headcount growth', options: [['0-10', '0–10%'], ['11-30', '11–30%'], ['31-plus', '31%+']] },
+    { name: 'additionalSites', label: 'Expected additional sites', options: [['none', 'None'], ['one', '1'], ['two-plus', '2+']] },
+    { name: 'management', label: 'Preferred network management', options: [['simple', 'Simple app/web dashboard'], ['technical', 'Traditional CLI/technical'], ['not-sure', 'Not sure']] },
+  ] as const
 
   return (
-    <section>
-      <h2>Section G — Budget & Business Context</h2>
+    <FieldSet>
+      <FieldLegend>Budget &amp; Business Context</FieldLegend>
 
-      <div>
-        <label htmlFor="budget">
-          Monthly IT spending budget
-        </label>
-
-        <select
-          id="budget"
-          {...register('budget')}
-        >
-          <option value="under-15k">Under ₱15,000</option>
-          <option value="15k-40k">₱15,000–₱40,000</option>
-          <option value="over-40k">Over ₱40,000</option>
-        </select>
-
-        {errors.budget && (
-          <p>{errors.budget.message as string}</p>
-        )}
-      </div>
-
-      <div>
-        <label htmlFor="itSupport">
-          IT support
-        </label>
-
-        <select
-          id="itSupport"
-          {...register('itSupport')}
-        >
-          <option value="none">No dedicated IT support</option>
-          <option value="outside">Outside person/company</option>
-          <option value="in-house">In-house IT</option>
-        </select>
-
-        {errors.itSupport && (
-          <p>{errors.itSupport.message as string}</p>
-        )}
-      </div>
-
-      <div>
-        <label htmlFor="electricity">
-          Electricity reliability
-        </label>
-
-        <select
-          id="electricity"
-          {...register('electricity')}
-        >
-          <option value="stable">Stable</option>
-          <option value="outages">
-            Frequent brownouts/outages
-          </option>
-        </select>
-
-        {errors.electricity && (
-          <p>{errors.electricity.message as string}</p>
-        )}
-      </div>
-
-      <div>
-        <label htmlFor="growth">
-          Do you expect business growth in the next 1–2 years?
-        </label>
-
-        <select
-          id="growth"
-          {...register('growth')}
-        >
-          <option value="no">No</option>
-          <option value="yes">Yes</option>
-        </select>
-
-        {errors.growth && (
-          <p>{errors.growth.message as string}</p>
-        )}
-      </div>
-
-      <div>
-        <label htmlFor="growthRate">
-          Expected headcount growth
-        </label>
-
-        <select
-          id="growthRate"
-          {...register('growthRate')}
-        >
-          <option value="0-10">0–10%</option>
-          <option value="11-30">11–30%</option>
-          <option value="31-plus">31%+</option>
-        </select>
-
-        {errors.growthRate && (
-          <p>{errors.growthRate.message as string}</p>
-        )}
-      </div>
-
-      <div>
-        <label htmlFor="additionalSites">
-          Expected additional sites
-        </label>
-
-        <select
-          id="additionalSites"
-          {...register('additionalSites')}
-        >
-          <option value="none">None</option>
-          <option value="one">1</option>
-          <option value="two-plus">2+</option>
-        </select>
-
-        {errors.additionalSites && (
-          <p>{errors.additionalSites.message as string}</p>
-        )}
-      </div>
-
-      <div>
-        <label htmlFor="management">
-          Preferred network management
-        </label>
-
-        <select
-          id="management"
-          {...register('management')}
-        >
-          <option value="simple">
-            Simple app/web dashboard
-          </option>
-          <option value="technical">
-            Traditional CLI/technical
-          </option>
-          <option value="not-sure">
-            Not sure
-          </option>
-        </select>
-
-        {errors.management && (
-          <p>{errors.management.message as string}</p>
-        )}
-      </div>
-    </section>
+      <FieldGroup>
+        {fields.map(({ name, label, options }) => (
+          <Controller key={name} name={name} control={control} render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}><FieldLabel htmlFor={field.name}>{label}</FieldLabel><Select value={field.value} onValueChange={field.onChange}><SelectTrigger id={field.name} aria-invalid={fieldState.invalid}><SelectValue placeholder="Select an option" /></SelectTrigger><SelectContent>{options.map(([value, optionLabel]) => <SelectItem key={value} value={value}>{optionLabel}</SelectItem>)}</SelectContent></Select>{fieldState.invalid && <FieldError errors={[fieldState.error]} />}</Field>
+          )} />
+        ))}
+      </FieldGroup>
+    </FieldSet>
   )
 }
 

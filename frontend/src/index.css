@@ -1,3 +1,6 @@
+/* Tailwind base styles
+   Preset: --preset b6TqM6Gdsm */
+
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";

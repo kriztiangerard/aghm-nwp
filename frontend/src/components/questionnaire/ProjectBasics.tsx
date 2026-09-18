@@ -37,7 +37,9 @@ function ProjectBasics() {
             </Field>
           )}
         />
+      </FieldGroup>
 
+      <FieldGroup>
         <Controller
           name="locations"
           control={control}
