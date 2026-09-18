@@ -80,3 +80,46 @@ describe('activation', () => {
     expect(result).toBeNull();
   });
 });
+
+import { getActiveDistributorSources } from '../backend/src/pricing/distributor-sources/get-active-sources';
+
+describe('getActiveDistributorSources', () => {
+  it('returns active configured distributor sources', async () => {
+    const pool = mockPool((sql) => {
+      expect(sql).toContain('WHERE ps.is_active = TRUE');
+
+      return {
+        rowCount: 1,
+        rows: [
+          {
+            source_id: 10,
+            vendor_id: 1,
+            distributor_id: 2,
+            source_url: 'https://example.com/product/1',
+            is_active: true,
+            last_updated: '2026-09-18',
+            vendor_name: 'TP-Link',
+            distributor_name: 'DynaQuest PC',
+          },
+        ],
+      };
+    });
+
+    const sources = await getActiveDistributorSources(pool);
+
+    expect(sources).toHaveLength(1);
+    expect(sources[0].is_active).toBe(true);
+    expect(sources[0].distributor_name).toBe('DynaQuest PC');
+  });
+
+  it('returns no deactivated sources', async () => {
+    const pool = mockPool(() => ({
+      rowCount: 0,
+      rows: [],
+    }));
+
+    const sources = await getActiveDistributorSources(pool);
+
+    expect(sources).toEqual([]);
+  });
+});
