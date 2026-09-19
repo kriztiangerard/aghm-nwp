@@ -1,3 +1,4 @@
+
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as amplify from 'aws-cdk-lib/aws-amplify';
@@ -23,12 +24,15 @@ export class AghmNwpStack extends cdk.Stack {
     */
 
     // 2. FRONTEND: Amplify Hosting
-    
-    // .unsafeUnwrap() safely converts the CDK SecretValue object into a plain string
-    // that CloudFormation can resolve during deployment.
-    const githubToken = cdk.SecretValue.secretsManager('github-oauth-token').unsafeUnwrap();
 
-    // For L1 constructs, we define the buildSpec as a raw multi-line YAML string
+    // .unsafeUnwrap() safely converts the CDK SecretValue object
+    // into a plain string that CloudFormation can resolve during deployment.
+    const githubToken = cdk
+      .SecretValue
+      .secretsManager('github-oauth-token')
+      .unsafeUnwrap();
+
+    // Amplify build configuration for the Vite React frontend.
     const buildSpecYaml = `
 version: 1.0
 applications:
@@ -42,7 +46,7 @@ applications:
           commands:
             - npm run build
       artifacts:
-        baseDirectory: build
+        baseDirectory: dist
         files:
           - '**/*'
       cache:
@@ -52,18 +56,19 @@ applications:
 
     const amplifyApp = new amplify.CfnApp(this, 'MonorepoAmplifyApp', {
       name: 'Capstone Project',
-      repository: 'https://github.com/kriztiangerard/aghm-nwp', 
+      repository: 'https://github.com/kriztiangerard/aghm-nwp',
       oauthToken: githubToken,
       buildSpec: buildSpecYaml,
-      
+
       // For fixing client-side routing
       customRules: [
         {
-          source: '</^[^.]+$|\\.(?!(css|gif|ico|jpg|js|png|txt|svg|woff|woff2|ttf|map|json)$)([^.]+$)/>',
+          source:
+            '</^[^.]+$|\\.(?!(css|gif|ico|jpg|js|png|txt|svg|woff|woff2|ttf|map|json)$)([^.]+$)/>',
           target: '/index.html',
-          status: '200'
-        }
-      ]
+          status: '200',
+        },
+      ],
     });
 
     // Connect the main branch so it triggers builds on push
@@ -74,12 +79,12 @@ applications:
     });
 
     // 3. OUTPUTS
-    
+
     new cdk.CfnOutput(this, 'AmplifyAppUrl', {
-      // .attrDefaultDomain fetches the auto-generated amplifyapp.com URL
+      // .attrDefaultDomain fetches the auto-generated Amplify URL
       value: `https://${mainBranch.branchName}.${amplifyApp.attrDefaultDomain}`,
     });
-    
+
     new cdk.CfnOutput(this, 'LambdaFunctionName', {
       value: engineLambda.functionName,
     });
