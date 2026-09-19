@@ -138,7 +138,6 @@ applications:
     const amplifyApp = new amplify.CfnApp(this, 'MonorepoAmplifyApp', {
       name: 'Capstone Project',
       repository: 'https://github.com/kriztiangerard/aghm-nwp',
-      repository: 'https://github.com/kriztiangerard/aghm-nwp',
       oauthToken: githubToken,
       buildSpec: buildSpecYaml,
 
@@ -152,15 +151,18 @@ applications:
           status: '200',
         },
       ],
-          status: '200',
-        },
-      ],
     });
 
     // Connect the main branch so it triggers builds on push
     const mainBranch = new amplify.CfnBranch(this, 'MainBranch', {
       appId: amplifyApp.attrAppId,
       branchName: 'main',
+      enableAutoBuild: true,
+    });
+
+    const developmentBranch = new amplify.CfnBranch(this, 'DevelopmentBranch', {
+      appId: amplifyApp.attrAppId,
+      branchName: 'development',
       enableAutoBuild: true,
     });
 
