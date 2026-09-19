@@ -138,7 +138,6 @@ applications:
     const amplifyApp = new amplify.CfnApp(this, 'MonorepoAmplifyApp', {
       name: 'Capstone Project',
       repository: 'https://github.com/kriztiangerard/aghm-nwp',
-      iamServiceRole: amplifyServiceRole.roleArn,
       oauthToken: githubToken,
       buildSpec: buildSpecYaml,
 
