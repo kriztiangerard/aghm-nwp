@@ -8,10 +8,20 @@ import * as apigwv2 from 'aws-cdk-lib/aws-apigatewayv2';
 import { HttpLambdaIntegration } from 'aws-cdk-lib/aws-apigatewayv2-integrations';
 import * as events from 'aws-cdk-lib/aws-events';
 import * as targets from 'aws-cdk-lib/aws-events-targets';
+import * as iam from 'aws-cdk-lib/aws-iam';
 
 export class AghmNwpStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
+
+    const amplifyRole = new iam.Role(this, 'AmplifyServiceRole', {
+      assumedBy: new iam.ServicePrincipal('amplify.amazonaws.com'),
+      description: 'Service role used by AWS Amplify to run builds',
+    });
+
+    amplifyRole.addManagedPolicy(
+      iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess-Amplify')
+    );
 
 
     // 1. BACKEND: AWS Lambda Functions
@@ -140,6 +150,7 @@ applications:
       repository: 'https://github.com/kriztiangerard/aghm-nwp',
       oauthToken: githubToken,
       buildSpec: buildSpecYaml,
+      iamServiceRole: amplifyRole.roleArn,
 
 
       // For fixing client-side routing
