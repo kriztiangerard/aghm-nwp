@@ -38,8 +38,8 @@
     "test"
   ],
   "exclude": [
-    "node_modules",
-    "cdk.out"
-  ]
-  
+  "node_modules",
+  "cdk.out",
+  "frontend"
+]
 }

@@ -1,4 +1,9 @@
+import { useNavigate } from 'react-router-dom'
+import { Button } from '@/components/ui/button'
+
 function SplashPage() {
+  const navigate = useNavigate()
+
   return (
     <main className="min-h-screen bg-black flex items-center px-8 sm:px-12 lg:px-20">
       <section className="w-full max-w-2xl">
@@ -16,16 +21,16 @@ function SplashPage() {
         </p>
 
         <div className="mt-8">
-          <button
+          <Button
             type="button"
-            className="rounded-full bg-purple-600 px-10 py-3 font-medium text-white"
+            onClick={() => navigate('/questionnaire')}
           >
-            Start
-          </button>
+            Start Network Generation
+          </Button>
         </div>
       </section>
     </main>
-  );
+  )
 }
 
-export default SplashPage;
+export default SplashPage
