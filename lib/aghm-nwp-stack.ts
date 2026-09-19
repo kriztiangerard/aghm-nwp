@@ -116,7 +116,10 @@ export class AghmNwpStack extends cdk.Stack {
 
     // Amplify IAM service role for the app, allowing it to access the GitHub repo and other AWS resources.
     const amplifyServiceRole = new iam.Role(this, 'AmplifyServiceRole', {
-      assumedBy: new iam.ServicePrincipal('amplify.amazonaws.com'),
+      assumedBy: new iam.CompositePrincipal(
+        new iam.ServicePrincipal('amplify.amazonaws.com'),
+        new iam.ServicePrincipal('amplify.ap-southeast-1.amazonaws.com'),
+      ),
     });
 
     // Amplify build configuration for the Vite React frontend.
