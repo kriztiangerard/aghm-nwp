@@ -10,10 +10,6 @@ import * as events from 'aws-cdk-lib/aws-events';
 import * as targets from 'aws-cdk-lib/aws-events-targets';
 import * as iam from 'aws-cdk-lib/aws-iam';
 
-const amplifyServiceRole = new iam.Role(this, 'AmplifyServiceRole', {
-  assumedBy: new iam.ServicePrincipal('amplify.amazonaws.com'),
-});
-
 export class AghmNwpStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
@@ -117,6 +113,11 @@ export class AghmNwpStack extends cdk.Stack {
       .SecretValue
       .secretsManager('github-oauth-token')
       .unsafeUnwrap();
+
+    // Amplify IAM service role for the app, allowing it to access the GitHub repo and other AWS resources.
+    const amplifyServiceRole = new iam.Role(this, 'AmplifyServiceRole', {
+      assumedBy: new iam.ServicePrincipal('amplify.amazonaws.com'),
+    });
 
     // Amplify build configuration for the Vite React frontend.
     const buildSpecYaml = `
