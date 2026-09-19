@@ -15,7 +15,7 @@ export class AghmNwpStack extends cdk.Stack {
 
     // 1. BACKEND: AWS Lambda Functions
 
-    // Disabled until backend/engine-bom/ and backend/pricing-update/ exist
+    // Disabled until backend/engine-bom/ and backend/pricing-update exist
     // with real handler code — cdk deploy will fail on Code.fromAsset()
     // pointing at folders that don't exist yet. Uncomment once both
     // subfolders have at least a placeholder index.handler.
