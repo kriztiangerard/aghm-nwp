@@ -8,6 +8,11 @@ import * as apigwv2 from 'aws-cdk-lib/aws-apigatewayv2';
 import { HttpLambdaIntegration } from 'aws-cdk-lib/aws-apigatewayv2-integrations';
 import * as events from 'aws-cdk-lib/aws-events';
 import * as targets from 'aws-cdk-lib/aws-events-targets';
+import * as iam from 'aws-cdk-lib/aws-iam';
+
+const amplifyServiceRole = new iam.Role(this, 'AmplifyServiceRole', {
+  assumedBy: new iam.ServicePrincipal('amplify.amazonaws.com'),
+});
 
 export class AghmNwpStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -138,6 +143,7 @@ applications:
     const amplifyApp = new amplify.CfnApp(this, 'MonorepoAmplifyApp', {
       name: 'Capstone Project',
       repository: 'https://github.com/kriztiangerard/aghm-nwp',
+      iamServiceRole: amplifyServiceRole.roleArn,
       oauthToken: githubToken,
       buildSpec: buildSpecYaml,
 
