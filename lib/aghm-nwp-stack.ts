@@ -140,9 +140,6 @@ applications:
         baseDirectory: dist
         files:
           - '**/*'
-      cache:
-        paths:
-          - node_modules/**/*
 `;
 
     const amplifyApp = new amplify.CfnApp(this, 'MonorepoAmplifyApp', {
