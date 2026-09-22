@@ -22,5 +22,11 @@
     "aws-cdk-lib": "^2.265.0",
     "constructs": "^10.5.0",
     "tailwindcss": "^4.3.3"
+  },
+  "allowScripts": {
+    "@parcel/watcher@2.6.0": true,
+    "@swc/core@1.16.2": true,
+    "esbuild@0.28.2": true,
+    "unrs-resolver@1.12.2": true
   }
 }
