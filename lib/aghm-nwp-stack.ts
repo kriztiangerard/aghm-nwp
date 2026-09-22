@@ -1,19 +1,20 @@
 
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import * as amplify from 'aws-cdk-lib/aws-amplify';
+// import * as amplify from 'aws-cdk-lib/aws-amplify';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as path from 'path';
 import * as apigwv2 from 'aws-cdk-lib/aws-apigatewayv2';
 import { HttpLambdaIntegration } from 'aws-cdk-lib/aws-apigatewayv2-integrations';
 import * as events from 'aws-cdk-lib/aws-events';
 import * as targets from 'aws-cdk-lib/aws-events-targets';
-import * as iam from 'aws-cdk-lib/aws-iam';
+// import * as iam from 'aws-cdk-lib/aws-iam';
 
 export class AghmNwpStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
+    /*
     const amplifyRole = new iam.Role(this, 'AmplifyServiceRole', {
       assumedBy: new iam.ServicePrincipal('amplify.amazonaws.com'),
       description: 'Service role used by AWS Amplify to run builds',
@@ -22,7 +23,7 @@ export class AghmNwpStack extends cdk.Stack {
     amplifyRole.addManagedPolicy(
       iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess-Amplify')
     );
-
+    */
 
     // 1. BACKEND: AWS Lambda Functions
 
@@ -114,7 +115,12 @@ export class AghmNwpStack extends cdk.Stack {
     // pricingUpdateRule.addTarget(new targets.LambdaFunction(pricingUpdateLambda));
 
 
+    /*
     // 2. FRONTEND: Amplify Hosting
+    // Disabled — Amplify app created manually via console instead, due to an
+    // unresolved "Unable to assume specified IAM Role" error during CDK-managed
+    // builds (no service role attached). Revisit once resolved; re-enabling means deleting
+    // the manually-created app first to avoid a duplicate.
 
     // .unsafeUnwrap() safely converts the CDK SecretValue object
     // into a plain string that CloudFormation can resolve during deployment.
@@ -139,10 +145,10 @@ applications:
       artifacts:
         baseDirectory: dist
         files:
-          - '**/*'
+          - '***' // If uncommenting, re-add slash after second asterisk.
       cache:
         paths:
-          - node_modules/**/*
+          - node_modules/*** // If uncommenting, re-add slash after second asterisk.
 `;
 
     const amplifyApp = new amplify.CfnApp(this, 'MonorepoAmplifyApp', {
@@ -184,6 +190,7 @@ applications:
       // .attrDefaultDomain fetches the auto-generated Amplify URL
       value: `https://${mainBranch.branchName}.${amplifyApp.attrDefaultDomain}`,
     });
+    */
 
     new cdk.CfnOutput(this, 'LambdaFunctionName', {
       value: engineLambda.functionName,
