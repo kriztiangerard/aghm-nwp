@@ -1,0 +1,24 @@
+[
+  {
+    "vendor_id": 1,
+    "sku": "ER605",
+    "price": 3499.00,
+    "price_updated_at": "",
+    "name": "TP-Link Omada ER605 (TL-R605)",
+    "description": "Multi-WAN VPN router, gigabit ports, entry-tier Omada gateway.",
+    "image_key": "omada/er605.png",
+    "is_rack_mountable": false,
+    "u_height": 0,
+    "lifecycle_status": "active",
+    "eos_date": null,
+    "eol_date": null,
+    "category": "gateway_router",
+    "gateway_router_specs": {
+      "wan_ports": 2,
+      "lan_ports": 3,
+      "max_throughput_mbps": 940,
+      "max_power_draw_w": 12,
+      "vpn_supported": true
+    }
+  }
+]
