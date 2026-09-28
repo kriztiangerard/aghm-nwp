@@ -86,7 +86,7 @@ See policy here: https://privacy.tp-link.com/web/website/policy/. The August 202
 
 ## Switches
 
-Out of scope for the initial list are unmanaged switches.
+Out of scope for the initial list are unmanaged switches. Older models have TL-SG while newer only has SG. Make sure that model is SG as much as possible.
 
 ### Naming scheme
 
@@ -124,10 +124,16 @@ Suffixes
 * SG2210P v5.3 – https://support.omadanetworks.com/ph/document/128552/
 * SG2428P v5.33 - https://www.omadanetworks.com/ph/business-networking/omada-switch-access/sg2428p/#specifications [NOTE: EOS 10/15/2026, EOL 10/15/2029]
 * SG3452P v3.4 - https://support.omadanetworks.com/ph/document/113341/
-* SG3210 - 
-* SG3428 -
+* SG3210 v3.6- https://support.omadanetworks.com/ph/document/2167/ [NOTE: EOS 7/14/2025, EOL 7/14/2028]
+* SG3428 v2.3 - https://support.omadanetworks.com/ph/document/4019/ [NOTE: EOS 10/15/2026, EOL 10/15/2029]
 * SG3452 - 
 
+### Controllers
+
+* OC200 v2.6 - https://support.omadanetworks.com/ph/document/2040/ 
+* OC220 v2.6 - https://www.omadanetworks.com/ph/business-networking/omada-controller-hardware/oc220/#specifications 
+* OC300 v1.6 - https://support.omadanetworks.com/ph/document/2400/ [NOTE: EOS 10/15/2026, EOL 10/15/2029]
+* OC400 - https://support.omadanetworks.com/ph/document/4419/
 
 ## Reference points for Omada deployments
 * EAP FAQs - https://support.omadanetworks.com/ph/document/12902/
