@@ -2,9 +2,9 @@
 
 All datasheets can be found at: https://support.omadanetworks.com/ph/document/?documentResourceTypeIdList=1130
 
-Stick with international versions. Do not use EU/US marked datasheets. If a point model (vX.2+) version of specifications. If a v2+ exists, list as a separate device. Only included in the dataset are the latest and currently sold models for indoors.
+Stick with international versions; PH uses EU/UN regional specifications by default. Do not use US marked datasheets. Only included in the dataset are the latest and currently sold models for indoors.
 
-Prioritize those separated at the top as they are confirmed to be sold in the Philippines. PH uses EU/UN regional specifications by default.
+If no datasheet is available, website entry is listed instead.
 
 ## Possible distributors list
 * DynaQuest - https://dynaquestpc.com/collections/access-point-range-extender?sort_by=best-selling&filter.p.vendor=TPLink
@@ -16,7 +16,7 @@ Lazada/Shopee-based
 
 ## EOL Policy
 
-See policy here: https://privacy.tp-link.com/web/website/policy/. The September 2026 EOL list is at https://static.tp-link.com/upload/manual/2026/202608/20260827/EOL%20List_Business-V8.pdf. 
+See policy here: https://privacy.tp-link.com/web/website/policy/. The August 2026 EOL list is at https://static.tp-link.com/upload/manual/2026/202608/20260827/EOL%20List_Business-V8.pdf. 
 
 * End of Sale (EOS) - listed on website
 * End of Life (EOL) - Omada uses End of Maintenance; 3 years after EOS
@@ -25,21 +25,20 @@ See policy here: https://privacy.tp-link.com/web/website/policy/. The September 
 
 ## Access Points
 
-### Naming scheme notes
+### Naming scheme
 
-Wi-Fi Generation Number — The first digit after the hyphen indicates the highest supported wireless standard:
-* 7 = Wi-Fi 7 (802.11be)
-* 6 = Wi-Fi 6 / 6E (802.11ax)
-* 2 = Wi-Fi 5 (802.11ac)
-* 1 = Wi-Fi 4 (802.11n)
-
-Suffix Designations — Letters at the end specify special hardware features or physical form factors:
-* HD = High Density
-* Wall / Wall Plate = Designed to mount over standard in-wall Ethernet faceplates (often featuring built-in switch ports).
-* LR = Long Range 
-* UR = Ultra Range
-* Outdoor = Weather-resistant casing for exterior deployments. Out of scope.
-* Bridge Kit = Out of scope.
+| Part | Designation | Meaning |
+| --- | --- | --- |
+| Generation number | 7 | Wi-Fi 7 (802.11be) |
+| Generation number | 6 | Wi-Fi 6 / 6E (802.11ax) |
+| Generation number | 2 | Wi-Fi 5 (802.11ac) |
+| Generation number | 1 | Wi-Fi 4 (802.11n) |
+| Suffix | HD | High Density |
+| Suffix | Wall / Wall Plate | Designed to mount over standard in-wall Ethernet faceplates, often with built-in switch ports |
+| Suffix | LR | Long Range |
+| Suffix | UR | Ultra Range |
+| Suffix | Outdoor | Weather-resistant casing for exterior deployments; out of scope |
+| Suffix | Bridge Kit | Out of scope |
 
 ### EAP7XX (WiFi 7)
 
@@ -49,45 +48,86 @@ Suffix Designations — Letters at the end specify special hardware features or 
 * EAP773 - https://support.omadanetworks.com/ph/document/3721/
 
 
-* EAP770 (US v2) - https://support.omadanetworks.com/ph/document/3722/
+<!--* EAP770 (US v2) - https://support.omadanetworks.com/ph/document/3722/
 * EAP723 - https://support.omadanetworks.com/ph/document/6134/
 * EAP725 Wall (v1.2) - https://support.omadanetworks.com/ph/document/107602/ 
 * EAP727 - https://support.omadanetworks.com/ph/document/113992/
 * EAP775 - https://support.omadanetworks.com/ph/document/108443/
 * EAP783 - https://support.omadanetworks.com/ph/document/3862/
-* EAP787 - https://www.omadanetworks.com/ph/business-networking/omada-wifi-ceiling-mount/eap787/#specifications
+* EAP787 - https://www.omadanetworks.com/ph/business-networking/omada-wifi-ceiling-mount/eap787/#specifications -->
 
 
 ### EAP6XX (WiFi 6)
 
 * EAP620 HD (v3.20) - https://support.omadanetworks.com/ph/document/3709/
-* EAP650 - 
-* EAP670 - 
-* EAP650-Wall - 
+* EAP650 (v4) - https://support.omadanetworks.com/ph/document/126975/
+* EAP670 - https://support.omadanetworks.com/ph/document/3744/
+* EAP650-Wall - https://support.omadanetworks.com/ph/document/25530/
 
-
-* EAP610
+<!-- * EAP610
 * EAP653
-* EAP660 HD - https://support.omadanetworks.com/ph/document/112475/
+* EAP660 HD - https://support.omadanetworks.com/ph/document/112475/ -->
 
 ### EAP2XX (WiFi 5)
 
-* EAP225 - 
+* EAP225 - https://support.omadanetworks.com/ph/document/3613/ OR https://www.omadanetworks.com/ph/business-networking/omada-wifi-ceiling-mount/eap225/#specifications
 * EAP235 - 
-* EAP235-Wall - 
-* EAP245 - 
+* EAP235-Wall - https://support.omadanetworks.com/ph/document/2302/
+* EAP245 - https://support.omadanetworks.com/ph/document/3613/
 
 
 ### EAP1XX (WiFi 4)
 
-* EAP110 - 
-* EAP115 - 
-
+* EAP110 - https://support.omadanetworks.com/ph/document/3613/
+* EAP115 - https://support.omadanetworks.com/ph/document/3613/
 
 
 ## Routers
 
 ## Switches
+
+Out of scope for the initial list are unmanaged switches.
+
+### Naming scheme
+
+| Switch Level | Naming Format | Example   |
+| ------------ | ------------- | --------- |
+| L3           | Sx6xxx        | SG6428XHP |
+| L2+          | Sx3xxx        | SG3428MP  |
+| Smart        | Sx2xxx        | SG2428P   |
+| Easy Managed | ES2xxx        | ES205G    |
+
+Suffixes
+* SG - Speed gigabit
+* SX - Speed 10-gigabit
+* Last two digits - port count
+* P - PoE enabled
+* MP - Max power; high-budget PoE
+* PP - PoE++ enabled
+* X - with 10-gig SFP+
+* F - fiber
+* M2 - base RJ45 ports run at 2.5 Gbps instead of standard 1 Gbps
+
+### Access Max
+
+* SX3832 v1.26 - https://support.omadanetworks.com/ph/document/113334/ [NOTE: v1 is EOS 10/15/2026, EOL 10/15/2029]
+* SX3832MPP v1.26 - https://support.omadanetworks.com/ph/document/116407/ [NOTE: v1 is EOS 1/6/2027, EOL 1/6/2030]
+* SX3206HPP v1 - https://www.omadanetworks.com/ph/business-networking/omada-switch-access-max/tl-sx3206hpp/#specifications [NOTE: EOS 2/5/2025, EOL 2/5/2028]
+
+### Access Pro
+
+* SG3210X-M2 - 
+* SG3428X-M2 -
+* SG3210XHP-M2 - https://support.omadanetworks.com/ph/document/2174/ [NOTE: v2.6 (latest) EOS 5/21/2026, EOL 5/21/2029]
+
+### Access
+* SG2210P –
+* SG2428P - 
+* SG3452P - 
+* SG3210 - 
+* SG3428 -
+* SG3452 - 
+
 
 ## Reference points for Omada deployments
 * EAP FAQs - https://support.omadanetworks.com/ph/document/12902/
