@@ -4,7 +4,7 @@ All datasheets can be found at: https://support.omadanetworks.com/ph/document/?d
 
 Stick with international versions; PH uses EU/UN regional specifications by default. Do not use US marked datasheets. Only included in the dataset are the latest and currently sold models for indoors.
 
-If no datasheet is available, website entry is listed instead.
+If no datasheet is available, website entry is listed instead. Unless listed otherwise, model is the latest version with no EOS/EOL.
 
 ## Possible distributors list
 * DynaQuest - https://dynaquestpc.com/collections/access-point-range-extender?sort_by=best-selling&filter.p.vendor=TPLink
@@ -121,9 +121,9 @@ Suffixes
 * SG3210XHP-M2 - https://support.omadanetworks.com/ph/document/2174/ [NOTE: v2.6 (latest) EOS 5/21/2026, EOL 5/21/2029]
 
 ### Access
-* SG2210P –
-* SG2428P - 
-* SG3452P - 
+* SG2210P v5.3 – https://support.omadanetworks.com/ph/document/128552/
+* SG2428P v5.33 - https://www.omadanetworks.com/ph/business-networking/omada-switch-access/sg2428p/#specifications [NOTE: EOS 10/15/2026, EOL 10/15/2029]
+* SG3452P v3.4 - https://support.omadanetworks.com/ph/document/113341/
 * SG3210 - 
 * SG3428 -
 * SG3452 - 
