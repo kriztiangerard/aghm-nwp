@@ -84,6 +84,33 @@ See policy here: https://privacy.tp-link.com/web/website/policy/. The August 202
 
 ## Routers
 
+Excluded are outdoor variants.
+
+### Fusion
+
+* Fusion 2.5G -  https://support.omadanetworks.com/ph/document/123311/
+* Fusion G+ - https://support.omadanetworks.com/ph/document/126031/
+* Fusion 2.5G PoE - https://support.omadanetworks.com/ph/document/126644/
+
+### Wired
+
+* ER706WP-4G v1.2 - https://support.omadanetworks.com/ph/document/53112/
+* ER7412-M2 v1.36 - https://support.omadanetworks.com/ph/document/117706/
+* ER605W v2 - https://support.omadanetworks.com/ph/document/32903/ 
+* ER707-M2 v1.36 [NOTE: v1.6 is EOS 11/16/2025, EOL 11/16/2028] - https://support.omadanetworks.com/ph/document/119999/
+* ER8411 v1.6 - https://support.omadanetworks.com/ph/document/121692/ [NOTE: EOS 10/15/2026, EOL 10/15/2029]
+* ER7406 v1.6 - https://www.omadanetworks.com/ph/business-networking/omada-router-wired-router/er7406/#specifications  [NOTE: EOS 6/29/2026, EOL 6/29/2029]
+* ER605 v2.6 - https://support.omadanetworks.com/ph/document/2122/ [NOTE: EOS 10/15/2026, EOL 10/15/2029]
+* ER7206 V2.3 - https://support.omadanetworks.com/ph/document/126039/
+
+### WiFi
+
+
+### Integrated
+
+Note: Integrated Controller, Router (Gateway), and PoE switch; must have specs on each table.
+* ER7212PC v2.26 - https://support.omadanetworks.com/ph/document/116729/
+
 ## Switches
 
 Out of scope for the initial list are unmanaged switches. Older models have TL-SG while newer only has SG. Make sure that model is SG as much as possible.
