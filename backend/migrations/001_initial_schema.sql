@@ -196,7 +196,10 @@ CREATE TABLE IF NOT EXISTS pricing_source (
 
     CONSTRAINT fk_pricing_source_distributor
         FOREIGN KEY (distributor_id)
-        REFERENCES distributor(distributor_id)
+        REFERENCES distributor(distributor_id),
+
+    CONSTRAINT uq_pricing_source_vendor_distributor_url
+        UNIQUE (vendor_id, distributor_id, source_url)
 );
 
 -- ============================================================
