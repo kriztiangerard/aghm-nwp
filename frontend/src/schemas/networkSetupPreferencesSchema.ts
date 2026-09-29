@@ -1,28 +1,47 @@
 import { z } from 'zod'
 
 export const networkSetupPreferencesSchema = z.object({
-  guestWifi: z.enum(['no', 'yes']),
+  preferences: z.object({
+    guestWifi: z.boolean(),
 
-  sensitiveData: z.enum(['no', 'yes', 'not-sure']),
+    sensitiveData: z.enum([
+      'no',
+      'yes',
+      'not_sure',
+    ]),
 
-  usage: z.array(
-    z.enum([
-      'video-conferencing',
-      'voip',
-      'pos',
-      'cloud',
-      'erp',
-      'streaming',
-      'security',
-      'basic',
-    ])
-  ),
+    applications: z.object({
+      videoConferencing: z.boolean(),
 
-  equipmentHousing: z.enum([
-    'rack',
-    'wall-cabinet',
-    'not-sure',
-  ]),
+      voipCalls: z.boolean(),
+
+      posPayment: z.boolean(),
+
+      cloudStorage: z.boolean(),
+
+      businessSoftware: z.boolean(),
+
+      videoStreaming: z.boolean(),
+
+      securityCameraViewing: z.boolean(),
+
+      basicBrowsingEmail: z.boolean(),
+
+      other: z.string().optional(),
+    }),
+
+    equipmentLocation: z.enum([
+      'full_size_rack',
+      'wall_cabinet',
+      'not_sure',
+    ]),
+
+    managementPreference: z.enum([
+      'dashboard',
+      'command_line',
+      'not_sure',
+    ]),
+  }),
 })
 
 export type NetworkSetupPreferencesData = z.infer<

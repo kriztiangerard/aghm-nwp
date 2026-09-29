@@ -1,11 +1,21 @@
+
 import { Controller, useFormContext } from 'react-hook-form'
 
 import {
-  FieldSet, FieldLegend, FieldGroup,
-  Field, FieldLabel, FieldError,
+  FieldSet,
+  FieldLegend,
+  FieldGroup,
+  Field,
+  FieldLabel,
+  FieldDescription,
+  FieldError,
   Input,
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/form-ui"
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/form-ui'
 
 function InternetConnection() {
   const { control } = useFormContext()
@@ -15,15 +25,143 @@ function InternetConnection() {
       <FieldLegend>Internet Connection</FieldLegend>
 
       <FieldGroup>
-        <Controller name="internetSpeed" control={control} render={({ field, fieldState }) => (
-          <Field data-invalid={fieldState.invalid}><FieldLabel htmlFor={field.name}>Current internet speed (Mbps)</FieldLabel><Input {...field} id={field.name} type="number" min="1" placeholder="Enter Mbps" aria-invalid={fieldState.invalid} onChange={(event) => field.onChange(event.target.valueAsNumber)} />{fieldState.invalid && <FieldError errors={[fieldState.error]} />}</Field>
-        )} />
-        <Controller name="connectionType" control={control} render={({ field, fieldState }) => (
-          <Field data-invalid={fieldState.invalid}><FieldLabel htmlFor={field.name}>Internet connection type</FieldLabel><Select value={field.value} onValueChange={field.onChange}><SelectTrigger id={field.name} aria-invalid={fieldState.invalid}><SelectValue placeholder="Select connection type" /></SelectTrigger><SelectContent><SelectItem value="fiber">Fiber</SelectItem><SelectItem value="dsl">DSL</SelectItem><SelectItem value="wireless">Wireless/Cellular</SelectItem><SelectItem value="not-checked">Not checked</SelectItem></SelectContent></Select>{fieldState.invalid && <FieldError errors={[fieldState.error]} />}</Field>
-        )} />
-        <Controller name="downtime" control={control} render={({ field, fieldState }) => (
-          <Field data-invalid={fieldState.invalid}><FieldLabel htmlFor={field.name}>How much does internet downtime matter?</FieldLabel><Select value={field.value} onValueChange={field.onChange}><SelectTrigger id={field.name} aria-invalid={fieldState.invalid}><SelectValue placeholder="Select an answer" /></SelectTrigger><SelectContent><SelectItem value="wait">We can wait it out</SelectItem><SelectItem value="same-day">It matters if it lasts the whole day</SelectItem><SelectItem value="critical">Every minute matters</SelectItem></SelectContent></Select>{fieldState.invalid && <FieldError errors={[fieldState.error]} />}</Field>
-        )} />
+        <Controller
+          name="internet.connectionType"
+          control={control}
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}>
+              <FieldLabel htmlFor={field.name}>
+                What type of internet connection do you currently have?
+              </FieldLabel>
+
+              <FieldDescription>
+                If you're not sure what type of connection you have,
+                choose "Not checked / Not sure."
+              </FieldDescription>
+
+              <Select
+                value={field.value}
+                onValueChange={field.onChange}
+              >
+                <SelectTrigger
+                  id={field.name}
+                  aria-invalid={fieldState.invalid}
+                >
+                  <SelectValue placeholder="Select an answer" />
+                </SelectTrigger>
+
+                <SelectContent>
+                  <SelectItem value="fiber">
+                    Fiber
+                  </SelectItem>
+
+                  <SelectItem value="dsl_or_cellular">
+                    DSL / Cellular
+                  </SelectItem>
+
+                  <SelectItem value="not_checked">
+                    Not checked / Not sure
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+
+              {fieldState.invalid && (
+                <FieldError errors={[fieldState.error]} />
+              )}
+            </Field>
+          )}
+        />
+
+        <Controller
+          name="internet.currentSpeedMbps"
+          control={control}
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}>
+              <FieldLabel htmlFor={field.name}>
+                What is your current internet speed?
+              </FieldLabel>
+
+              <FieldDescription>
+                Enter the speed shown by your internet provider or
+                speed test, in Mbps. You can leave this blank if you
+                don't know it.
+              </FieldDescription>
+
+              <Input
+                {...field}
+                id={field.name}
+                type="number"
+                min="1"
+                placeholder="Enter a number in Mbps"
+                aria-invalid={fieldState.invalid}
+                value={field.value ?? ''}
+                onChange={(event) => {
+                  const value = event.target.value
+
+                  field.onChange(
+                    value === ''
+                      ? undefined
+                      : event.target.valueAsNumber,
+                  )
+                }}
+              />
+
+              {fieldState.invalid && (
+                <FieldError errors={[fieldState.error]} />
+              )}
+            </Field>
+          )}
+        />
+
+        <Controller
+          name="internet.downtimeImpact"
+          control={control}
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}>
+              <FieldLabel htmlFor={field.name}>
+                How important is it for your internet connection to
+                stay available?
+              </FieldLabel>
+
+              <FieldDescription>
+                Think about what would happen to your business if the
+                internet stopped working. Choose the option that best
+                describes how quickly you would need it working again.
+              </FieldDescription>
+
+              <Select
+                value={field.value}
+                onValueChange={field.onChange}
+              >
+                <SelectTrigger
+                  id={field.name}
+                  aria-invalid={fieldState.invalid}
+                >
+                  <SelectValue placeholder="Select an answer" />
+                </SelectTrigger>
+
+                <SelectContent>
+                  <SelectItem value="can_wait">
+                    We can wait for it to be fixed
+                  </SelectItem>
+
+                  <SelectItem value="same_day_matters">
+                    It should be fixed within the same day
+                  </SelectItem>
+
+                  <SelectItem value="every_minute_matters">
+                    We need the internet available with very little
+                    downtime
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+
+              {fieldState.invalid && (
+                <FieldError errors={[fieldState.error]} />
+              )}
+            </Field>
+          )}
+        />
       </FieldGroup>
     </FieldSet>
   )

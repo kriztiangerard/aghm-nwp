@@ -7,27 +7,129 @@ import {
 } from "@/components/ui/form-ui"
 
 function BudgetBusinessContext() {
-  const { control } = useFormContext()
+  const { control, watch } = useFormContext()
 
-  const fields = [
-    { name: 'itSupport', label: 'IT support', options: [['none', 'No dedicated IT support'], ['outside', 'Outside person/company'], ['in-house', 'In-house IT']] },
-    { name: 'electricity', label: 'Electricity reliability', options: [['stable', 'Stable'], ['outages', 'Frequent brownouts/outages']] },
-    { name: 'growth', label: 'Do you expect business growth in the next 1–2 years?', options: [['no', 'No'], ['yes', 'Yes']] },
-    { name: 'growthRate', label: 'Expected headcount growth', options: [['0-10', '0–10%'], ['11-30', '11–30%'], ['31-plus', '31%+']] },
-    { name: 'additionalSites', label: 'Expected additional sites', options: [['none', 'None'], ['one', '1'], ['two-plus', '2+']] },
-    { name: 'management', label: 'Preferred network management', options: [['simple', 'Simple app/web dashboard'], ['technical', 'Traditional CLI/technical'], ['not-sure', 'Not sure']] },
-  ] as const
+  const expectedGrowth = watch('budget.expectedGrowth')
 
   return (
     <FieldSet>
       <FieldLegend>Budget &amp; Business Context</FieldLegend>
 
       <FieldGroup>
-        {fields.map(({ name, label, options }) => (
-          <Controller key={name} name={name} control={control} render={({ field, fieldState }) => (
-            <Field data-invalid={fieldState.invalid}><FieldLabel htmlFor={field.name}>{label}</FieldLabel><Select value={field.value} onValueChange={field.onChange}><SelectTrigger id={field.name} aria-invalid={fieldState.invalid}><SelectValue placeholder="Select an option" /></SelectTrigger><SelectContent>{options.map(([value, optionLabel]) => <SelectItem key={value} value={value}>{optionLabel}</SelectItem>)}</SelectContent></Select>{fieldState.invalid && <FieldError errors={[fieldState.error]} />}</Field>
-          )} />
-        ))}
+        {/* Dedicated IT Support */}
+        <Controller
+          name="budget.dedicatedItSupport"
+          control={control}
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}>
+              <FieldLabel htmlFor={field.name}>IT support</FieldLabel>
+              <Select value={field.value} onValueChange={field.onChange}>
+                <SelectTrigger id={field.name} aria-invalid={fieldState.invalid}>
+                  <SelectValue placeholder="Select an option" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No dedicated IT support</SelectItem>
+                  <SelectItem value="outside">Outside person/company</SelectItem>
+                  <SelectItem value="in_house">In-house IT</SelectItem>
+                </SelectContent>
+              </Select>
+              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+            </Field>
+          )}
+        />
+
+        {/* Electricity Reliability */}
+        <Controller
+          name="budget.electricityReliability"
+          control={control}
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}>
+              <FieldLabel htmlFor={field.name}>Electricity reliability</FieldLabel>
+              <Select value={field.value} onValueChange={field.onChange}>
+                <SelectTrigger id={field.name} aria-invalid={fieldState.invalid}>
+                  <SelectValue placeholder="Select an option" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="stable">Stable</SelectItem>
+                  <SelectItem value="frequent_outages">Frequent brownouts/outages</SelectItem>
+                </SelectContent>
+              </Select>
+              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+            </Field>
+          )}
+        />
+
+        {/* Expected Growth */}
+        <Controller
+          name="budget.expectedGrowth"
+          control={control}
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}>
+              <FieldLabel htmlFor={field.name}>
+                Do you expect business growth in the next 1–2 years?
+              </FieldLabel>
+              <Select
+                value={field.value ? 'yes' : 'no'}
+                onValueChange={(val) => field.onChange(val === 'yes')}
+              >
+                <SelectTrigger id={field.name} aria-invalid={fieldState.invalid}>
+                  <SelectValue placeholder="Select an option" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="no">No</SelectItem>
+                  <SelectItem value="yes">Yes</SelectItem>
+                </SelectContent>
+              </Select>
+              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+            </Field>
+          )}
+        />
+
+        {/* Expected Headcount Growth (Conditional) */}
+        {expectedGrowth && (
+          <Controller
+            name="budget.expectedHeadcountGrowth"
+            control={control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor={field.name}>Expected headcount growth</FieldLabel>
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <SelectTrigger id={field.name} aria-invalid={fieldState.invalid}>
+                    <SelectValue placeholder="Select an option" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="0_10">0–10%</SelectItem>
+                    <SelectItem value="11_30">11–30%</SelectItem>
+                    <SelectItem value="31_plus">31%+</SelectItem>
+                  </SelectContent>
+                </Select>
+                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              </Field>
+            )}
+          />
+        )}
+
+        {/* Additional Sites */}
+        <Controller
+          name="budget.additionalSites"
+          control={control}
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}>
+              <FieldLabel htmlFor={field.name}>Expected additional sites</FieldLabel>
+              <Select value={field.value} onValueChange={field.onChange}>
+                <SelectTrigger id={field.name} aria-invalid={fieldState.invalid}>
+                  <SelectValue placeholder="Select an option" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">None</SelectItem>
+                  <SelectItem value="one">1</SelectItem>
+                  <SelectItem value="two_plus">2+</SelectItem>
+                </SelectContent>
+              </Select>
+              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+            </Field>
+          )}
+        />
       </FieldGroup>
     </FieldSet>
   )
