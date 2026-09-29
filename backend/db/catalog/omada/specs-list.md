@@ -103,9 +103,6 @@ Excluded are outdoor variants.
 * ER605 v2.6 - https://support.omadanetworks.com/ph/document/2122/ [NOTE: EOS 10/15/2026, EOL 10/15/2029]
 * ER7206 V2.3 - https://support.omadanetworks.com/ph/document/126039/
 
-### WiFi
-
-
 ### Integrated
 
 Note: Integrated Controller, Router (Gateway), and PoE switch; must have specs on each table.
@@ -143,9 +140,9 @@ Suffixes
 
 ### Access Pro
 
-* SG3210X-M2 - 
-* SG3428X-M2 -
-* SG3210XHP-M2 - https://support.omadanetworks.com/ph/document/2174/ [NOTE: v2.6 (latest) EOS 5/21/2026, EOL 5/21/2029]
+* SG3210X-M2 - https://support.omadanetworks.com/ph/document/118259/
+* SG3428XPP-M2 - https://support.omadanetworks.com/ph/document/115757/
+* SG3210XHP-M2 v2.6 - https://support.omadanetworks.com/ph/document/2174/ [NOTE: EOS 5/21/2026, EOL 5/21/2029]
 
 ### Access
 * SG2210P v5.3 – https://support.omadanetworks.com/ph/document/128552/
@@ -153,7 +150,7 @@ Suffixes
 * SG3452P v3.4 - https://support.omadanetworks.com/ph/document/113341/
 * SG3210 v3.6- https://support.omadanetworks.com/ph/document/2167/ [NOTE: EOS 7/14/2025, EOL 7/14/2028]
 * SG3428 v2.3 - https://support.omadanetworks.com/ph/document/4019/ [NOTE: EOS 10/15/2026, EOL 10/15/2029]
-* SG3452 - 
+* SG3452 - https://support.omadanetworks.com/ph/document/4022/
 
 ### Controllers
 
