@@ -1,19 +1,23 @@
+
 import { Controller, useFormContext } from 'react-hook-form'
 
 import {
-  FieldSet, FieldLegend, FieldGroup,
-  Field, FieldLabel, FieldError,
+  FieldSet,
+  FieldLegend,
+  FieldGroup,
+  Field,
+  FieldLabel,
+  FieldError,
   Input,
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/form-ui"
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/form-ui'
 
 function ProjectBasics() {
   const { control } = useFormContext()
-
-  const locationOptions = [
-    { label: "One site", value: "one" },
-    { label: "Two or more sites", value: "multiple" },
-  ]
 
   return (
     <FieldSet>
@@ -21,11 +25,14 @@ function ProjectBasics() {
 
       <FieldGroup>
         <Controller
-          name="companyName"
+          name="project.name"
           control={control}
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name}>Project or company name</FieldLabel>
+              <FieldLabel htmlFor={field.name}>
+                Project or company name
+              </FieldLabel>
+
               <Input
                 {...field}
                 id={field.name}
@@ -33,7 +40,10 @@ function ProjectBasics() {
                 placeholder="Enter project or company name"
                 aria-invalid={fieldState.invalid}
               />
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+
+              {fieldState.invalid && (
+                <FieldError errors={[fieldState.error]} />
+              )}
             </Field>
           )}
         />
@@ -41,47 +51,103 @@ function ProjectBasics() {
 
       <FieldGroup>
         <Controller
-          name="locations"
+          name="project.numberOfSites"
           control={control}
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name}>Number of business locations</FieldLabel>
-              <Select name={field.name} value={field.value} onValueChange={field.onChange}>
-                <SelectTrigger id={field.name} className="w-[180px]" aria-invalid={fieldState.invalid}>
-                  <SelectValue placeholder="Select an answer" />
-                </SelectTrigger>
-                <SelectContent>
-                  {locationOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              <FieldLabel htmlFor={field.name}>
+                Number of business locations
+              </FieldLabel>
+
+              <Input
+                {...field}
+                id={field.name}
+                type="number"
+                min="1"
+                placeholder="Enter number of locations"
+                aria-invalid={fieldState.invalid}
+                onChange={(event) =>
+                  field.onChange(event.target.valueAsNumber)
+                }
+              />
+
+              {fieldState.invalid && (
+                <FieldError errors={[fieldState.error]} />
+              )}
             </Field>
           )}
         />
+      </FieldGroup>
 
+      <FieldGroup>
         <Controller
-          name="headcount"
+          name="project.siteRelationship"
+          control={control}
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}>
+              <FieldLabel htmlFor={field.name}>
+                How are the business locations related?
+              </FieldLabel>
+
+              <Select
+                value={field.value ?? ''}
+                onValueChange={field.onChange}
+              >
+                <SelectTrigger
+                  id={field.name}
+                  aria-invalid={fieldState.invalid}
+                >
+                  <SelectValue placeholder="Select an answer" />
+                </SelectTrigger>
+
+                <SelectContent>
+                  <SelectItem value="same_city">
+                    Same city
+                  </SelectItem>
+
+                  <SelectItem value="same_country">
+                    Same country
+                  </SelectItem>
+
+                  <SelectItem value="different_countries">
+                    Different countries
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+
+              {fieldState.invalid && (
+                <FieldError errors={[fieldState.error]} />
+              )}
+            </Field>
+          )}
+        />
+      </FieldGroup>
+
+      <FieldGroup>
+        <Controller
+          name="project.totalUsers"
           control={control}
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
               <FieldLabel htmlFor={field.name}>
                 Total number of people who will use this network
               </FieldLabel>
+
               <Input
                 {...field}
                 id={field.name}
                 type="number"
                 min="1"
-                max="200"
-                placeholder="1–200"
+                placeholder="Enter number of users"
                 aria-invalid={fieldState.invalid}
-                onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                onChange={(event) =>
+                  field.onChange(event.target.valueAsNumber)
+                }
               />
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+
+              {fieldState.invalid && (
+                <FieldError errors={[fieldState.error]} />
+              )}
             </Field>
           )}
         />
@@ -90,4 +156,4 @@ function ProjectBasics() {
   )
 }
 
-export default ProjectBasics 
+export default ProjectBasics

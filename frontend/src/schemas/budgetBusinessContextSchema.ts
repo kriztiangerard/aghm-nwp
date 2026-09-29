@@ -1,45 +1,42 @@
 import { z } from 'zod'
 
 export const budgetBusinessContextSchema = z.object({
-  budget: z.enum([
-    'under-15k',
-    '15k-40k',
-    'over-40k',
-  ]),
+  businessContext: z.object({
+    monthlyITBudget: z.enum([
+      'under_15000',
+      '15000_40000',
+      'over_40000',
+    ]),
 
-  itSupport: z.enum([
-    'none',
-    'outside',
-    'in-house',
-  ]),
+    ITSupport: z.enum([
+      'none',
+      'external',
+      'in_house',
+    ]),
 
-  electricity: z.enum([
-    'stable',
-    'outages',
-  ]),
+    electricityReliability: z.enum([
+      'stable',
+      'frequent_outages',
+    ]),
 
-  growth: z.enum([
-    'no',
-    'yes',
-  ]),
+    expectedGrowth: z.boolean(),
 
-  growthRate: z.enum([
-    '0-10',
-    '11-30',
-    '31-plus',
-  ]),
+    growth: z
+      .object({
+        headcountGrowth: z.enum([
+          '0_10',
+          '11_30',
+          '31_plus',
+        ]),
 
-  additionalSites: z.enum([
-    'none',
-    'one',
-    'two-plus',
-  ]),
-
-  management: z.enum([
-    'simple',
-    'technical',
-    'not-sure',
-  ]),
+        newSites: z.enum([
+          'none',
+          'one',
+          'two_or_more',
+        ]),
+      })
+      .optional(),
+  }),
 })
 
 export type BudgetBusinessContextData = z.infer<

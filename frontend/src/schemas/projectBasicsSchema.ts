@@ -1,17 +1,31 @@
 import { z } from 'zod'
 
 export const projectBasicsSchema = z.object({
-  companyName: z
-    .string()
-    .min(1, 'Project or company name is required'),
+  project: z.object({
+    name: z
+      .string()
+      .min(1, 'Project or company name is required'),
 
-  locations: z.enum(['one', 'multiple']),
+    numberOfSites: z
+      .coerce
+      .number()
+      .min(1, 'There must be at least 1 site'),
 
-  headcount: z
-    .coerce
-    .number()
-    .min(1, 'There must be at least 1 user')
-    .max(200, 'Maximum of 200 users'),
+    siteRelationship: z
+      .enum([
+        'same_city',
+        'same_country',
+        'different_countries',
+      ])
+      .optional(),
+
+    totalUsers: z
+      .coerce
+      .number()
+      .min(1, 'There must be at least 1 user'),
+  }),
 })
 
-export type ProjectBasicsData = z.infer<typeof projectBasicsSchema>
+export type ProjectBasicsData = z.infer<
+  typeof projectBasicsSchema
+>

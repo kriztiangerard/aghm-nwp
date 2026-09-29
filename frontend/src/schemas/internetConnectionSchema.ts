@@ -1,22 +1,24 @@
 import { z } from 'zod'
 
 export const internetConnectionSchema = z.object({
-  internetSpeed: z.coerce
-    .number()
-    .min(1, 'Internet speed must be at least 1 Mbps'),
+  internet: z.object({
+    currentSpeedMbps: z.coerce
+      .number()
+      .min(1, 'Internet speed must be at least 1 Mbps')
+      .optional(),
 
-  connectionType: z.enum([
-    'fiber',
-    'dsl',
-    'wireless',
-    'not-checked',
-  ]),
+    connectionType: z.enum([
+      'fiber',
+      'dsl_or_cellular',
+      'not_checked',
+    ]),
 
-  downtime: z.enum([
-    'wait',
-    'same-day',
-    'critical',
-  ]),
+    downtimeImpact: z.enum([
+      'can_wait',
+      'same_day_matters',
+      'every_minute_matters',
+    ]),
+  }),
 })
 
 export type InternetConnectionData = z.infer<
