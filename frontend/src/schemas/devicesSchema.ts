@@ -4,18 +4,18 @@ export const devicesSchema = z.object({
   devices: z.object({
     wiredComputers: z.coerce
       .number()
-      .min(0, 'Number of wired computers cannot be negative'),
+      .min(0, 'Wired computer count cannot be negative'),
 
     wifiDevices: z.coerce
       .number()
-      .min(0, 'Number of Wi-Fi devices cannot be negative'),
+      .min(0, 'Wi-Fi device count cannot be negative'),
 
     voip: z.object({
       enabled: z.boolean(),
 
       phoneCount: z.coerce
         .number()
-        .min(0, 'Number of VoIP phones cannot be negative')
+        .min(0, 'Voice over internet protocol phone count cannot be negative')
         .optional(),
     }),
 
@@ -24,7 +24,7 @@ export const devicesSchema = z.object({
 
       cameraCount: z.coerce
         .number()
-        .min(0, 'Number of IP cameras cannot be negative')
+        .min(0, 'Internet protocol camera count cannot be negative')
         .optional(),
     }),
 

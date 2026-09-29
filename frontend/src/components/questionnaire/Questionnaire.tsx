@@ -1,4 +1,3 @@
-
 import { useState } from 'react'
 import {
   FormProvider,
@@ -48,13 +47,34 @@ type FormField = FieldPath<FormInput>
 
 function Questionnaire() {
   const [currentStep, setCurrentStep] = useState(0)
+  const [submitError, setSubmitError] = useState<string | null>(null)
 
   const form = useForm<FormInput, unknown, FormOutput>({
     resolver: zodResolver(fullSchema),
     mode: 'onSubmit',
+    reValidateMode: 'onChange',
     shouldUnregister: false,
+    defaultValues: {
+      preferences: {
+        applications: {
+          videoConferencing: false,
+          voipCalls: false,
+          posPayment: false,
+          cloudStorage: false,
+          businessSoftware: false,
+          videoStreaming: false,
+          securityCameraViewing: false,
+          basicBrowsingEmail: false,
+          other: '',
+        },
+      },
+      businessContext: {
+        expectedGrowth: false,
+      },
+    },
   })
 
+  const { isSubmitting } = form.formState
   const CurrentSection = steps[currentStep]
 
   const fieldsByStep: FormField[][] = [
@@ -68,6 +88,7 @@ function Questionnaire() {
   ]
 
   const handleNext = async () => {
+    setSubmitError(null)
     const currentFields = fieldsByStep[currentStep]
 
     if (currentFields) {
@@ -84,40 +105,50 @@ function Questionnaire() {
   }
 
   const handleBack = () => {
+    setSubmitError(null)
     if (currentStep > 0) {
       setCurrentStep((step) => step - 1)
     }
   }
 
   const onSubmit = async (data: FormOutput) => {
+    setSubmitError(null)
     const apiUrl = import.meta.env.VITE_API_URL?.trim()
 
     if (!apiUrl) {
+      const missingApiMessage =
+        'No API endpoint is configured yet. Add VITE_API_URL in your environment to submit the questionnaire.'
+
       console.warn(
         'VITE_API_URL is not configured. Submission is using placeholder mode.',
         data,
       )
-
+      setSubmitError(missingApiMessage)
       return
     }
 
-    const response = await fetch(`${apiUrl}/generate`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    })
+    try {
+      const response = await fetch(`${apiUrl}/generate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      })
 
-    if (!response.ok) {
-      throw new Error(
-        `Submission failed with status ${response.status}`,
-      )
+      if (!response.ok) {
+        throw new Error(
+          `Submission failed with status ${response.status}`,
+        )
+      }
+
+      const result = await response.json()
+      console.log('Recommendation result:', result)
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : 'An unexpected error occurred.'
+      setSubmitError(errorMessage)
     }
-
-    const result = await response.json()
-
-    console.log('Recommendation result:', result)
   }
 
   return (
@@ -130,15 +161,20 @@ function Questionnaire() {
             <form
               onSubmit={form.handleSubmit(onSubmit)}
               className="flex min-h-0 flex-1 flex-col lg:h-full"
+              aria-labelledby="questionnaire-title"
             >
               <CardHeader className="shrink-0">
-                <h1 id="questionnaire-title">
+                <h1
+                  id="questionnaire-title"
+                  className="text-2xl font-bold tracking-tight"
+                >
                   Tell us more about your project.
                 </h1>
 
                 <div className="space-y-2 pt-2">
                   <Progress
                     value={((currentStep + 1) / steps.length) * 100}
+                    aria-label={`Step ${currentStep + 1} of ${steps.length}`}
                   />
 
                   <p className="text-sm text-muted-foreground">
@@ -150,7 +186,16 @@ function Questionnaire() {
               <Separator />
 
               <ScrollArea className="min-h-0 lg:h-0 lg:flex-1">
-                <CardContent className="space-y-6">
+                <CardContent className="space-y-6 pt-6">
+                  {submitError && (
+                    <div
+                      role="alert"
+                      className="rounded-md bg-destructive/15 p-3 text-sm text-destructive"
+                    >
+                      {submitError}
+                    </div>
+                  )}
+
                   <CurrentSection />
                 </CardContent>
               </ScrollArea>
@@ -162,7 +207,7 @@ function Questionnaire() {
                   type="button"
                   variant="outline"
                   onClick={handleBack}
-                  disabled={currentStep === 0}
+                  disabled={currentStep === 0 || isSubmitting}
                 >
                   Back
                 </Button>
@@ -175,8 +220,11 @@ function Questionnaire() {
                     Next
                   </Button>
                 ) : (
-                  <Button type="submit">
-                    Submit
+                  <Button
+                    type="submit"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? 'Submitting...' : 'Submit'}
                   </Button>
                 )}
               </CardContent>

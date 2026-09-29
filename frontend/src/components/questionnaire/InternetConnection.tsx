@@ -1,4 +1,3 @@
-
 import { Controller, useFormContext } from 'react-hook-form'
 
 import {
@@ -14,8 +13,8 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
 } from '@/components/ui/form-ui'
+import { formatSelectLabel } from '@/lib/formatters'
 
 function InternetConnection() {
   const { control } = useFormContext()
@@ -40,14 +39,22 @@ function InternetConnection() {
               </FieldDescription>
 
               <Select
-                value={field.value}
+                value={field.value ?? ''}
                 onValueChange={field.onChange}
               >
                 <SelectTrigger
                   id={field.name}
                   aria-invalid={fieldState.invalid}
                 >
-                  <SelectValue placeholder="Select an answer" />
+                  {field.value ? (
+                    <span className="flex-1 text-left">
+                      {formatSelectLabel(field.value)}
+                    </span>
+                  ) : (
+                    <span className="text-muted-foreground">
+                      Select an answer
+                    </span>
+                  )}
                 </SelectTrigger>
 
                 <SelectContent>
@@ -130,14 +137,22 @@ function InternetConnection() {
               </FieldDescription>
 
               <Select
-                value={field.value}
+                value={field.value ?? ''}
                 onValueChange={field.onChange}
               >
                 <SelectTrigger
                   id={field.name}
                   aria-invalid={fieldState.invalid}
                 >
-                  <SelectValue placeholder="Select an answer" />
+                  {field.value ? (
+                    <span className="flex-1 text-left">
+                      {formatSelectLabel(field.value)}
+                    </span>
+                  ) : (
+                    <span className="text-muted-foreground">
+                      Select an answer
+                    </span>
+                  )}
                 </SelectTrigger>
 
                 <SelectContent>

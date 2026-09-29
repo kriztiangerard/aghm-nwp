@@ -1,4 +1,4 @@
-import { Controller, useFieldArray, useFormContext } from 'react-hook-form'
+import { Controller, useFieldArray, useFormContext, useWatch } from 'react-hook-form'
 
 import {
   FieldSet,
@@ -16,15 +16,19 @@ import {
   SelectValue,
   Button,
 } from '@/components/ui/form-ui'
+import { formatSelectLabel } from '@/lib/formatters'
 
 function PhysicalSpace() {
-  const { control, watch } = useFormContext()
+  const { control } = useFormContext()
 
-  const largeRoomsAnswer = watch(
-    'physicalSpace.largeGroupRooms.hasLargeGroupRooms',
-  )
-
-  const floorsCount = watch('physicalSpace.numberOfFloors')
+  // Optimize state tracking with useWatch instead of watch
+  const [largeRoomsAnswer, floorsCount] = useWatch({
+    control,
+    name: [
+      'physicalSpace.largeGroupRooms.hasLargeGroupRooms',
+      'physicalSpace.numberOfFloors',
+    ],
+  })
 
   const { fields, append, remove } = useFieldArray({
     control,
@@ -43,10 +47,11 @@ function PhysicalSpace() {
       <FieldLegend>Physical Space</FieldLegend>
 
       <FieldGroup>
+        {/* Number of Floors */}
         <Controller
           name="physicalSpace.numberOfFloors"
           control={control}
-          render={({ field, fieldState }) => (
+          render={({ field: { value, onChange, ...field }, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
               <FieldLabel htmlFor={field.name}>
                 Number of floors
@@ -54,14 +59,16 @@ function PhysicalSpace() {
 
               <Input
                 {...field}
+                value={value ?? ''}
                 id={field.name}
                 type="number"
                 min="1"
                 placeholder="Enter number of floors"
                 aria-invalid={fieldState.invalid}
-                onChange={(event) =>
-                  field.onChange(event.target.valueAsNumber)
-                }
+                onChange={(event) => {
+                  const val = event.target.value
+                  onChange(val === '' ? undefined : event.target.valueAsNumber)
+                }}
               />
 
               {fieldState.invalid && (
@@ -71,10 +78,11 @@ function PhysicalSpace() {
           )}
         />
 
+        {/* Floor Area Per Floor */}
         <Controller
           name="physicalSpace.floorAreaPerFloor"
           control={control}
-          render={({ field, fieldState }) => (
+          render={({ field: { value, onChange, ...field }, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
               <FieldLabel htmlFor={field.name}>
                 Approximate floor area per floor (sqm)
@@ -86,17 +94,15 @@ function PhysicalSpace() {
 
               <Input
                 {...field}
+                value={value ?? ''}
                 id={field.name}
                 type="number"
                 min="1"
                 placeholder="Enter area in square meters"
                 aria-invalid={fieldState.invalid}
-                value={field.value ?? ''}
                 onChange={(event) => {
-                  const value = event.target.value
-                  field.onChange(
-                    value === '' ? undefined : event.target.valueAsNumber,
-                  )
+                  const val = event.target.value
+                  onChange(val === '' ? undefined : event.target.valueAsNumber)
                 }}
               />
 
@@ -107,10 +113,11 @@ function PhysicalSpace() {
           )}
         />
 
+        {/* Rooms Per Floor */}
         <Controller
           name="physicalSpace.roomsPerFloor"
           control={control}
-          render={({ field, fieldState }) => (
+          render={({ field: { value, onChange, ...field }, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
               <FieldLabel htmlFor={field.name}>
                 Number of rooms/work areas per floor
@@ -118,14 +125,16 @@ function PhysicalSpace() {
 
               <Input
                 {...field}
+                value={value ?? ''}
                 id={field.name}
                 type="number"
                 min="1"
                 placeholder="Enter number of rooms"
                 aria-invalid={fieldState.invalid}
-                onChange={(event) =>
-                  field.onChange(event.target.valueAsNumber)
-                }
+                onChange={(event) => {
+                  const val = event.target.value
+                  onChange(val === '' ? undefined : event.target.valueAsNumber)
+                }}
               />
 
               {fieldState.invalid && (
@@ -135,6 +144,7 @@ function PhysicalSpace() {
           )}
         />
 
+        {/* Large Group Rooms Enabled */}
         <Controller
           name="physicalSpace.largeGroupRooms.hasLargeGroupRooms"
           control={control}
@@ -150,7 +160,7 @@ function PhysicalSpace() {
               </FieldDescription>
 
               <Select
-                value={field.value ? 'yes' : 'no'}
+                value={field.value === undefined ? '' : field.value ? 'yes' : 'no'}
                 onValueChange={(value) =>
                   field.onChange(value === 'yes')
                 }
@@ -159,7 +169,15 @@ function PhysicalSpace() {
                   id={field.name}
                   aria-invalid={fieldState.invalid}
                 >
-                  <SelectValue placeholder="Select an answer" />
+                  {field.value !== undefined ? (
+                    <span className="flex-1 text-left">
+                      {formatSelectLabel(field.value)}
+                    </span>
+                  ) : (
+                    <span className="text-muted-foreground">
+                      Select an answer
+                    </span>
+                  )}
                 </SelectTrigger>
 
                 <SelectContent>
@@ -175,6 +193,7 @@ function PhysicalSpace() {
           )}
         />
 
+        {/* Large Group Rooms List */}
         {largeRoomsAnswer && (
           <FieldSet>
             <FieldLegend variant="label">
@@ -200,12 +219,12 @@ function PhysicalSpace() {
 
                         <Select
                           value={
-                            field.value
+                            field.value !== undefined && field.value !== null
                               ? String(field.value)
-                              : undefined
+                              : ''
                           }
                           onValueChange={(value) =>
-                            field.onChange(Number(value))
+                            field.onChange(value === '' ? undefined : Number(value))
                           }
                           disabled={floorOptions.length === 0}
                         >
@@ -219,7 +238,9 @@ function PhysicalSpace() {
                                   ? 'Enter floors above first'
                                   : 'Select floor'
                               }
-                            />
+                            >
+                              {field.value ? `Floor ${field.value}` : undefined}
+                            </SelectValue>
                           </SelectTrigger>
 
                           <SelectContent>
@@ -244,7 +265,7 @@ function PhysicalSpace() {
                   <Controller
                     name={`physicalSpace.largeGroupRooms.rooms.${index}.capacity`}
                     control={control}
-                    render={({ field, fieldState }) => (
+                    render={({ field: { value, onChange, ...field }, fieldState }) => (
                       <Field data-invalid={fieldState.invalid}>
                         <FieldLabel htmlFor={field.name}>
                           Capacity (people)
@@ -252,19 +273,18 @@ function PhysicalSpace() {
 
                         <Input
                           {...field}
+                          value={value ?? ''}
                           id={field.name}
                           type="number"
                           min="1"
                           placeholder="Enter capacity"
                           aria-invalid={fieldState.invalid}
-                          value={field.value ?? ''}
-                          onChange={(event) =>
-                            field.onChange(
-                              event.target.value === ''
-                                ? undefined
-                                : event.target.valueAsNumber,
+                          onChange={(event) => {
+                            const val = event.target.value
+                            onChange(
+                              val === '' ? undefined : event.target.valueAsNumber,
                             )
-                          }
+                          }}
                         />
 
                         {fieldState.invalid && (

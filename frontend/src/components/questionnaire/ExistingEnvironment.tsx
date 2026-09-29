@@ -1,4 +1,3 @@
-
 import { Controller, useFormContext } from 'react-hook-form'
 
 import {
@@ -13,15 +12,15 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
 } from '@/components/ui/form-ui'
+import { formatSelectLabel } from '@/lib/formatters'
 
 function ExistingEnvironment() {
   const { control } = useFormContext()
 
   return (
     <FieldSet>
-      <FieldLegend>What's Already There</FieldLegend>
+      <FieldLegend>Existing Network</FieldLegend>
 
       <FieldGroup>
         <Controller
@@ -39,14 +38,22 @@ function ExistingEnvironment() {
               </FieldDescription>
 
               <Select
-                value={field.value}
+                value={field.value ?? ''}
                 onValueChange={field.onChange}
               >
                 <SelectTrigger
                   id={field.name}
                   aria-invalid={fieldState.invalid}
                 >
-                  <SelectValue placeholder="Select an answer" />
+                  {field.value ? (
+                    <span className="flex-1 text-left">
+                      {formatSelectLabel(field.value)}
+                    </span>
+                  ) : (
+                    <span className="text-muted-foreground">
+                      Select an answer
+                    </span>
+                  )}
                 </SelectTrigger>
 
                 <SelectContent>
@@ -69,11 +76,16 @@ function ExistingEnvironment() {
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
               <FieldLabel htmlFor={field.name}>
-                Do you have an existing router or modem?
+                Do you already have a router or modem?
               </FieldLabel>
 
+              <FieldDescription>
+                This refers to the main equipment that connects your
+                site to the internet.
+              </FieldDescription>
+
               <Select
-                value={field.value ? 'yes' : 'no'}
+                value={field.value === undefined ? '' : field.value ? 'yes' : 'no'}
                 onValueChange={(value) =>
                   field.onChange(value === 'yes')
                 }
@@ -82,7 +94,15 @@ function ExistingEnvironment() {
                   id={field.name}
                   aria-invalid={fieldState.invalid}
                 >
-                  <SelectValue placeholder="Select an answer" />
+                  {field.value !== undefined ? (
+                    <span className="flex-1 text-left">
+                      {formatSelectLabel(field.value)}
+                    </span>
+                  ) : (
+                    <span className="text-muted-foreground">
+                      Select an answer
+                    </span>
+                  )}
                 </SelectTrigger>
 
                 <SelectContent>
@@ -107,6 +127,11 @@ function ExistingEnvironment() {
                 How many network switches do you already have?
               </FieldLabel>
 
+              <FieldDescription>
+                Switches connect devices within your network and help
+                route traffic between them.
+              </FieldDescription>
+
               <Select
                 value={field.value ?? ''}
                 onValueChange={field.onChange}
@@ -115,7 +140,15 @@ function ExistingEnvironment() {
                   id={field.name}
                   aria-invalid={fieldState.invalid}
                 >
-                  <SelectValue placeholder="Select a quantity" />
+                  {field.value ? (
+                    <span className="flex-1 text-left">
+                      {formatSelectLabel(field.value)}
+                    </span>
+                  ) : (
+                    <span className="text-muted-foreground">
+                      Select a quantity
+                    </span>
+                  )}
                 </SelectTrigger>
 
                 <SelectContent>
@@ -147,8 +180,8 @@ function ExistingEnvironment() {
               </FieldLabel>
 
               <FieldDescription>
-                Wi-Fi access points provide wireless network coverage
-                for phones, laptops, tablets, and other devices.
+                These are the wireless devices that extend Wi-Fi
+                coverage across your space.
               </FieldDescription>
 
               <Select
@@ -159,7 +192,15 @@ function ExistingEnvironment() {
                   id={field.name}
                   aria-invalid={fieldState.invalid}
                 >
-                  <SelectValue placeholder="Select a quantity" />
+                  {field.value ? (
+                    <span className="flex-1 text-left">
+                      {formatSelectLabel(field.value)}
+                    </span>
+                  ) : (
+                    <span className="text-muted-foreground">
+                      Select a quantity
+                    </span>
+                  )}
                 </SelectTrigger>
 
                 <SelectContent>
@@ -191,7 +232,7 @@ function ExistingEnvironment() {
               </FieldLabel>
 
               <Select
-                value={field.value ? 'yes' : 'no'}
+                value={field.value === undefined ? '' : field.value ? 'yes' : 'no'}
                 onValueChange={(value) =>
                   field.onChange(value === 'yes')
                 }
@@ -200,7 +241,15 @@ function ExistingEnvironment() {
                   id={field.name}
                   aria-invalid={fieldState.invalid}
                 >
-                  <SelectValue placeholder="Select an answer" />
+                  {field.value !== undefined ? (
+                    <span className="flex-1 text-left">
+                      {formatSelectLabel(field.value)}
+                    </span>
+                  ) : (
+                    <span className="text-muted-foreground">
+                      Select an answer
+                    </span>
+                  )}
                 </SelectTrigger>
 
                 <SelectContent>
@@ -231,7 +280,7 @@ function ExistingEnvironment() {
               </FieldDescription>
 
               <Select
-                value={field.value ? 'yes' : 'no'}
+                value={field.value === undefined ? '' : field.value ? 'yes' : 'no'}
                 onValueChange={(value) =>
                   field.onChange(value === 'yes')
                 }
@@ -240,7 +289,15 @@ function ExistingEnvironment() {
                   id={field.name}
                   aria-invalid={fieldState.invalid}
                 >
-                  <SelectValue placeholder="Select an answer" />
+                  {field.value !== undefined ? (
+                    <span className="flex-1 text-left">
+                      {formatSelectLabel(field.value)}
+                    </span>
+                  ) : (
+                    <span className="text-muted-foreground">
+                      Select an answer
+                    </span>
+                  )}
                 </SelectTrigger>
 
                 <SelectContent>
@@ -266,14 +323,22 @@ function ExistingEnvironment() {
               </FieldLabel>
 
               <Select
-                value={field.value}
+                value={field.value ?? ''}
                 onValueChange={field.onChange}
               >
                 <SelectTrigger
                   id={field.name}
                   aria-invalid={fieldState.invalid}
                 >
-                  <SelectValue placeholder="Select an answer" />
+                  {field.value ? (
+                    <span className="flex-1 text-left">
+                      {formatSelectLabel(field.value)}
+                    </span>
+                  ) : (
+                    <span className="text-muted-foreground">
+                      Select an answer
+                    </span>
+                  )}
                 </SelectTrigger>
 
                 <SelectContent>

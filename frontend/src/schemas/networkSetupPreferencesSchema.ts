@@ -11,21 +11,21 @@ export const networkSetupPreferencesSchema = z.object({
     ]),
 
     applications: z.object({
-      videoConferencing: z.boolean(),
+      videoConferencing: z.boolean().optional().default(false),
 
-      voipCalls: z.boolean(),
+      voipCalls: z.boolean().optional().default(false),
 
-      posPayment: z.boolean(),
+      posPayment: z.boolean().optional().default(false),
 
-      cloudStorage: z.boolean(),
+      cloudStorage: z.boolean().optional().default(false),
 
-      businessSoftware: z.boolean(),
+      businessSoftware: z.boolean().optional().default(false),
 
-      videoStreaming: z.boolean(),
+      videoStreaming: z.boolean().optional().default(false),
 
-      securityCameraViewing: z.boolean(),
+      securityCameraViewing: z.boolean().optional().default(false),
 
-      basicBrowsingEmail: z.boolean(),
+      basicBrowsingEmail: z.boolean().optional().default(false),
 
       other: z.string().optional(),
     }),
