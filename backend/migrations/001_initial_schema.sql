@@ -18,7 +18,7 @@ BEGIN;
 -- 1. VENDOR
 -- ============================================================
 
-CREATE TABLE vendor (
+CREATE TABLE IF NOT EXISTS vendor (
     vendor_id INT PRIMARY KEY,
     name TEXT NOT NULL,
     need_controller BOOLEAN NOT NULL
@@ -28,7 +28,7 @@ CREATE TABLE vendor (
 -- 2. DISTRIBUTOR
 -- ============================================================
 
-CREATE TABLE distributor (
+CREATE TABLE IF NOT EXISTS distributor (
     distributor_id INT PRIMARY KEY,
     name TEXT NOT NULL
 );
@@ -179,7 +179,7 @@ CREATE TABLE rack_specifications (
 -- 11. PRICING SOURCE
 -- ============================================================
 
-CREATE TABLE pricing_source (
+CREATE TABLE IF NOT EXISTS pricing_source (
     source_id INT PRIMARY KEY,
     vendor_id INT NOT NULL,
     distributor_id INT NOT NULL,
