@@ -95,7 +95,7 @@
     "vendor_id": 1,
     "sku": "SoftwareController",
     "price": 0,
-    "name": "Omada Software Controller v1.6",
+    "name": "Omada Software Controller",
     "description": "Cloud-capable free software controller for centralized management of Omada APs, switches and gateways. Needs a client device.",
     "is_rack_mountable": true,
     "u_height": 1,
