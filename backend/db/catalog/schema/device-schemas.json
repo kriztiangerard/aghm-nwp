@@ -1,0 +1,233 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://nwp.local/schemas/device.schema.json",
+  "title": "NWP Device Schemas",
+  "description": "Per-category device schemas matching the ERD's class-table-inheritance structure: a shared Device core plus one subtype block per hardware category. Composed via allOf so each category schema is core Device fields + its own specs.",
+
+  "$defs": {
+    "coreDevice": {
+      "type": "object",
+      "description": "Fields common to every device row, regardless of category — matches the Device table.",
+      "properties": {
+        "device_id": { "type": "integer" },
+        "vendor_id": { "type": "integer" },
+        "sku": { "type": "string" },
+        "price": { "type": "number", "minimum": 0 },
+        "price_updated_at": { "type": "string", "format": "date-time" },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "image_key": { "type": "string" },
+        "is_rack_mountable": { "type": "boolean" },
+        "u_height": { "type": "integer", "minimum": 0 },
+        "lifecycle_status": {
+          "type": "string",
+          "enum": ["active", "sunsetting", "discontinued"]
+        },
+        "eos_date": { "type": ["string", "null"], "format": "date" },
+        "eol_date": { "type": ["string", "null"], "format": "date" }
+      },
+      "required": [
+        "vendor_id",
+        "sku",
+        "price",
+        "name",
+        "is_rack_mountable",
+        "u_height",
+        "lifecycle_status"
+      ]
+    },
+
+    "gatewayRouterSpecs": {
+      "type": "object",
+      "description": "Gateway/router specifications table.",
+      "properties": {
+        "wan_ports": { "type": "integer", "minimum": 0 },
+        "lan_ports": { "type": "integer", "minimum": 0 },
+        "max_throughput_mbps": { "type": "integer", "minimum": 0 },
+        "max_power_draw_w": { "type": "integer", "minimum": 0 },
+        "vpn_supported": { "type": "boolean" }
+      },
+      "required": ["wan_ports", "lan_ports", "vpn_supported"]
+    },
+
+    "switchSpecs": {
+      "type": "object",
+      "description": "Switch specifications table.",
+      "properties": {
+        "port_count": { "type": "integer", "minimum": 0 },
+        "poe_ports": { "type": "integer", "minimum": 0 },
+        "poe_budget_w": { "type": "integer", "minimum": 0 },
+        "switching_capacity_gbps": { "type": "number", "minimum": 0 },
+        "layer": { "type": "integer", "enum": [2, 3] },
+        "max_power_draw_w": { "type": "integer", "minimum": 0 }
+      },
+      "required": ["port_count", "layer"]
+    },
+
+    "apSpecs": {
+      "type": "object",
+      "description": "AP specifications table.",
+      "properties": {
+        "wifi_standard": { "type": "integer", "description": "e.g. 6 for Wi-Fi 6, 7 for Wi-Fi 7" },
+        "max_concurrent_clients": { "type": "integer", "minimum": 0 },
+        "max_data_rate_mbps": { "type": "integer", "minimum": 0 },
+        "supported_24ghz": { "type": "boolean" },
+        "supported_5ghz": { "type": "boolean" },
+        "supported_6ghz": { "type": "boolean" },
+        "max_power_draw_w": { "type": "integer", "minimum": 0 },
+        "power_method": { "type": "string", "description": "e.g. PoE+, PoE++, DC adapter" }
+      },
+      "required": ["wifi_standard", "supported_24ghz", "supported_5ghz", "supported_6ghz"]
+    },
+
+    "firewallSpecs": {
+      "type": "object",
+      "description": "Firewall specifications table. Used standalone for dedicated firewall devices, and optionally nested under a gateway/router entry when that device is also capability-tagged as a firewall (see DeviceCapability junction, e.g. UDM-Pro).",
+      "properties": {
+        "firewall_throughputs_mbps": { "type": "integer", "minimum": 0 },
+        "vpn_throughput_mbps": { "type": "integer", "minimum": 0 },
+        "max_concurrent_sessions": { "type": "integer", "minimum": 0 },
+        "wan_ports": { "type": "integer", "minimum": 0 },
+        "lan_ports": { "type": "integer", "minimum": 0 },
+        "max_power_draw_w": { "type": "integer", "minimum": 0 }
+      },
+      "required": ["firewall_throughputs_mbps"]
+    },
+
+    "rackSpecs": {
+      "type": "object",
+      "description": "Rack specifications table.",
+      "properties": {
+        "form_factor": { "type": "string" },
+        "u_capacity": { "type": "integer", "minimum": 0 },
+        "load_capacity_kg": { "type": "integer", "minimum": 0 },
+        "mount_type": { "type": "string" },
+        "has_ventilation": { "type": "boolean" }
+      },
+      "required": ["form_factor", "u_capacity"]
+    },
+
+    "controllerSpecs": {
+      "type": "object",
+      "description": "Controller specifications table. A purchasable hardware controller appliance (e.g. Omada OC200/OC300-style) or a licensed cloud/software controller line item. Selected by the engine when the chosen vendor has need_controller = true; sizing is checked per device type: planned AP, switch and gateway counts must each fit within max_managed_aps / max_managed_switches / max_managed_gateways.",
+      "properties": {
+        "controller_type": {
+          "type": "string",
+          "enum": ["hardware", "software", "cloud"],
+          "description": "hardware = physical appliance; software = self-hosted install; cloud = vendor-hosted (typically licensed)."
+        },
+        "max_managed_aps": { "type": "integer", "minimum": 0, "description": "Max access points this controller can manage." },
+        "max_managed_switches": { "type": "integer", "minimum": 0, "description": "Max switches this controller can manage." },
+        "max_managed_gateways": { "type": "integer", "minimum": 0, "description": "Max gateways/routers this controller can manage." },
+        "max_managed_clients": { "type": "integer", "minimum": 0 },
+        "lan_ports": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Ethernet ports on the appliance. Use 0 or omit for software/cloud controllers."
+        },
+        "power_method": { "type": "string", "description": "e.g. PoE 802.3af, DC adapter" },
+        "max_power_draw_w": { "type": "number", "minimum": 0 }
+      },
+      "required": ["controller_type", "max_managed_aps", "max_managed_switches", "max_managed_gateways"]
+    },
+
+    "gatewayRouterDevice": {
+      "allOf": [
+        { "$ref": "#/$defs/coreDevice" },
+        {
+          "type": "object",
+          "properties": {
+            "category": { "const": "gateway_router" },
+            "gateway_router_specs": { "$ref": "#/$defs/gatewayRouterSpecs" },
+            "firewall_specs": {
+              "description": "Present only when this gateway/router is ALSO capability-tagged as a firewall (dual-role device, e.g. UniFi UDM-Pro). Omit entirely for a plain gateway with no firewall role — don't send null, just leave the key out.",
+              "$ref": "#/$defs/firewallSpecs"
+            }
+          },
+          "required": ["category", "gateway_router_specs"]
+        }
+      ]
+    },
+
+    "switchDevice": {
+      "allOf": [
+        { "$ref": "#/$defs/coreDevice" },
+        {
+          "type": "object",
+          "properties": {
+            "category": { "const": "switch" },
+            "switch_specs": { "$ref": "#/$defs/switchSpecs" }
+          },
+          "required": ["category", "switch_specs"]
+        }
+      ]
+    },
+
+    "apDevice": {
+      "allOf": [
+        { "$ref": "#/$defs/coreDevice" },
+        {
+          "type": "object",
+          "properties": {
+            "category": { "const": "ap" },
+            "ap_specs": { "$ref": "#/$defs/apSpecs" }
+          },
+          "required": ["category", "ap_specs"]
+        }
+      ]
+    },
+
+    "firewallDevice": {
+      "description": "A dedicated, standalone firewall device (e.g. a Reyee RG-WALL 1600-equivalent) — not a gateway with firewall capability layered on. Multi-role devices belong under gatewayRouterDevice instead, with firewall_specs nested there.",
+      "allOf": [
+        { "$ref": "#/$defs/coreDevice" },
+        {
+          "type": "object",
+          "properties": {
+            "category": { "const": "firewall" },
+            "firewall_specs": { "$ref": "#/$defs/firewallSpecs" }
+          },
+          "required": ["category", "firewall_specs"]
+        }
+      ]
+    },
+
+    "rackDevice": {
+      "allOf": [
+        { "$ref": "#/$defs/coreDevice" },
+        {
+          "type": "object",
+          "properties": {
+            "category": { "const": "rack" },
+            "rack_specs": { "$ref": "#/$defs/rackSpecs" }
+          },
+          "required": ["category", "rack_specs"]
+        }
+      ]
+    },
+
+    "controllerDevice": {
+      "description": "A network controller (hardware appliance, self-hosted software, or cloud license). Only relevant for vendors with need_controller = true.",
+      "allOf": [
+        { "$ref": "#/$defs/coreDevice" },
+        {
+          "type": "object",
+          "properties": {
+            "category": { "const": "controller" },
+            "controller_specs": { "$ref": "#/$defs/controllerSpecs" }
+          },
+          "required": ["category", "controller_specs"]
+        }
+      ]
+    }
+  },
+
+  "oneOf": [
+    { "$ref": "#/$defs/gatewayRouterDevice" },
+    { "$ref": "#/$defs/switchDevice" },
+    { "$ref": "#/$defs/apDevice" },
+    { "$ref": "#/$defs/firewallDevice" },
+    { "$ref": "#/$defs/rackDevice" },
+    { "$ref": "#/$defs/controllerDevice" }
+  ]
+}
