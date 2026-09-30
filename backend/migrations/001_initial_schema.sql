@@ -181,7 +181,8 @@ CREATE TABLE IF NOT EXISTS rack_specifications (
 -- ============================================================
 -- 11. CONTROLLER SPECIFICATIONS
 -- ============================================================
--- controller_type: 'hardware' | 'software' | 'cloud'
+-- controller_type: 'hardware' | 'software' | 'cloud' | 'integrated'
+-- ('integrated' = built into another device, e.g. a router; not separately purchasable)
 -- max_managed_*: per-device-type management limits. For controllers with
 -- a single shared cap (e.g. software controller), the shared figure is
 -- stored in each per-type column.
