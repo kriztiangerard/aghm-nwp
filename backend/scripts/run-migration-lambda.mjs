@@ -1,6 +1,8 @@
-import fs from 'node:fs';
-import path from 'node:path';
+// REQUIRES BUNDLING WITH ESBUILD BEFORE DEPLOYMENT TO LAMBDA
+// NOT INCLUDED IN CDK STACK, DEPLOY MANUALLY VIA CONSOLE
 import pg from 'pg';
+// esbuild can import the .sql file directly as a raw string
+import migrationSql from '../migrations/001_initial_schema.sql';
 
 const { Client } = pg;
 
@@ -13,10 +15,6 @@ export const handler = async () => {
   try {
     console.log('Connecting to PostgreSQL database...');
     await client.connect();
-
-    // Resolves to /var/task/migrations/001_initial_schema.sql in the Lambda environment
-    const sqlFilePath = path.join(process.cwd(), 'migrations', '001_initial_schema.sql');
-    const migrationSql = fs.readFileSync(sqlFilePath, 'utf8');
 
     console.log('Running 001_initial_schema.sql...');
     await client.query('BEGIN');
