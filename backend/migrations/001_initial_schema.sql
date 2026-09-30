@@ -99,6 +99,8 @@ CREATE TABLE IF NOT EXISTS gateway_router_specifications (
     max_throughput_mbps INT NULL,
     max_power_draw_w DECIMAL NULL,
     vpn_supported BOOLEAN NULL,
+    sfp_ports INT NULL,
+    sfp_form_factor TEXT NULL,
 
     CONSTRAINT fk_gateway_router_device
         FOREIGN KEY (device_id)
@@ -117,6 +119,8 @@ CREATE TABLE IF NOT EXISTS switch_specifications (
     switching_capacity_gbps DECIMAL NULL,
     layer INT NULL,
     max_power_draw_w DECIMAL NULL,
+    sfp_ports INT NULL,
+    sfp_form_factor TEXT NULL,
 
     CONSTRAINT fk_switch_device
         FOREIGN KEY (device_id)
@@ -183,9 +187,10 @@ CREATE TABLE IF NOT EXISTS rack_specifications (
 -- ============================================================
 -- controller_type: 'hardware' | 'software' | 'cloud' | 'integrated'
 -- ('integrated' = built into another device, e.g. a router; not separately purchasable)
--- max_managed_*: per-device-type management limits. For controllers with
--- a single shared cap (e.g. software controller), the shared figure is
--- stored in each per-type column.
+-- max_managed_*: per-device-type management limits.
+-- max_managed_aps_and_switches: optional combined cap shared by APs and
+-- switches, for controllers whose vendor states one (checked in addition
+-- to the per-type limits).
 
 CREATE TABLE IF NOT EXISTS controller_specifications (
     device_id INT PRIMARY KEY,
@@ -193,6 +198,7 @@ CREATE TABLE IF NOT EXISTS controller_specifications (
     max_managed_aps INT NULL,
     max_managed_switches INT NULL,
     max_managed_gateways INT NULL,
+    max_managed_aps_and_switches INT NULL,
     max_managed_clients INT NULL,
     lan_ports INT NULL,
     power_method TEXT NULL,
