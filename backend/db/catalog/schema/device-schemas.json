@@ -107,6 +107,30 @@
       "required": ["form_factor", "u_capacity"]
     },
 
+    "controllerSpecs": {
+      "type": "object",
+      "description": "Controller specifications table. A purchasable hardware controller appliance (e.g. Omada OC200/OC300-style) or a licensed cloud/software controller line item. Selected by the engine when the chosen vendor has need_controller = true; sizing is checked per device type: planned AP, switch and gateway counts must each fit within max_managed_aps / max_managed_switches / max_managed_gateways.",
+      "properties": {
+        "controller_type": {
+          "type": "string",
+          "enum": ["hardware", "software", "cloud"],
+          "description": "hardware = physical appliance; software = self-hosted install; cloud = vendor-hosted (typically licensed)."
+        },
+        "max_managed_aps": { "type": "integer", "minimum": 0, "description": "Max access points this controller can manage." },
+        "max_managed_switches": { "type": "integer", "minimum": 0, "description": "Max switches this controller can manage." },
+        "max_managed_gateways": { "type": "integer", "minimum": 0, "description": "Max gateways/routers this controller can manage." },
+        "max_managed_clients": { "type": "integer", "minimum": 0 },
+        "lan_ports": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Ethernet ports on the appliance. Use 0 or omit for software/cloud controllers."
+        },
+        "power_method": { "type": "string", "description": "e.g. PoE 802.3af, DC adapter" },
+        "max_power_draw_w": { "type": "number", "minimum": 0 }
+      },
+      "required": ["controller_type", "max_managed_aps", "max_managed_switches", "max_managed_gateways"]
+    },
+
     "gatewayRouterDevice": {
       "allOf": [
         { "$ref": "#/$defs/coreDevice" },
@@ -180,6 +204,21 @@
           "required": ["category", "rack_specs"]
         }
       ]
+    },
+
+    "controllerDevice": {
+      "description": "A network controller (hardware appliance, self-hosted software, or cloud license). Only relevant for vendors with need_controller = true.",
+      "allOf": [
+        { "$ref": "#/$defs/coreDevice" },
+        {
+          "type": "object",
+          "properties": {
+            "category": { "const": "controller" },
+            "controller_specs": { "$ref": "#/$defs/controllerSpecs" }
+          },
+          "required": ["category", "controller_specs"]
+        }
+      ]
     }
   },
 
@@ -188,6 +227,7 @@
     { "$ref": "#/$defs/switchDevice" },
     { "$ref": "#/$defs/apDevice" },
     { "$ref": "#/$defs/firewallDevice" },
-    { "$ref": "#/$defs/rackDevice" }
+    { "$ref": "#/$defs/rackDevice" },
+    { "$ref": "#/$defs/controllerDevice" }
   ]
 }

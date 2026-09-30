@@ -1,0 +1,117 @@
+[
+  {
+    "vendor_id": 1,
+    "sku": "OC200",
+    "price": 0,
+    "name": "Omada Hardware Controller OC200 v2.6",
+    "description": "Cloud-capable hardware controller for centralized management of Omada APs, switches and gateways.",
+    "is_rack_mountable": false,
+    "u_height": 0,
+    "lifecycle_status": "sunsetting",
+    "eos_date": "2026-10-15",
+    "eol_date": "2029-10-15",
+    "category": "controller",
+    "controller_specs": {
+      "controller_type": "hardware",
+      "max_managed_aps": 100,
+      "max_managed_switches": 20,
+      "max_managed_gateways": 10,
+      "max_managed_clients": 1000,
+      "lan_ports": 2,
+      "power_method": "PoE 802.3af/at, Micro-USB (DC 5 V, min 1 A)",
+      "max_power_draw_w": 12
+        }
+    },
+  {
+    "vendor_id": 1,
+    "sku": "OC220",
+    "price": 0,
+    "name": "Omada Hardware Controller OC220",
+    "description": "Cloud-capable hardware controller for centralized management of Omada APs, switches and gateways. Faster",
+    "is_rack_mountable": false,
+    "u_height": 0,
+    "lifecycle_status": "active",
+    "eos_date": null,
+    "eol_date": null,
+    "category": "controller",
+    "controller_specs": {
+      "controller_type": "hardware",
+      "max_managed_aps": 100,
+      "max_managed_switches": 20,
+      "max_managed_gateways": 10,
+      "max_managed_clients": 1000,
+      "lan_ports": 2,
+      "power_method": "PoE 802.3af/at, Micro-USB (DC 5 V, min 1 A)",
+      "max_power_draw_w": 12
+        }
+    },
+    {
+    "vendor_id": 1,
+    "sku": "OC300",
+    "price": 0,
+    "name": "Omada Hardware Controller OC300 v1.6",
+    "description": "Cloud-capable hardware controller for centralized management of Omada APs, switches and gateways.",
+    "is_rack_mountable": true,
+    "u_height": 1,
+    "lifecycle_status": "sunsetting",
+    "eos_date": "2026-10-15",
+    "eol_date": "2029-10-15",
+    "category": "controller",
+    "controller_specs": {
+        "controller_type": "hardware",
+        "max_managed_aps": 500,
+        "max_managed_switches": 100,
+        "max_managed_gateways": 100,
+        "max_managed_clients": 15000,
+        "lan_ports": 2,
+        "power_method": "100-240 V ~ 50/60 Hz AC",
+        "max_power_draw_w": 14.8
+        }
+    },
+    {
+    "vendor_id": 1,
+    "sku": "OC400",
+    "price": 0,
+    "name": "Omada Hardware Controller OC400 v1.6",
+    "description": "Cloud-capable hardware controller for centralized management of Omada APs, switches and gateways.",
+    "is_rack_mountable": true,
+    "u_height": 1,
+    "lifecycle_status": "active",
+    "eos_date": null,
+    "eol_date": null,
+    "category": "controller",
+    "controller_specs": {
+        "controller_type": "hardware",
+        "max_managed_aps": 1000,
+        "max_managed_switches": 200,
+        "max_managed_gateways": 100,
+        "max_managed_clients": 15000,
+        "lan_ports": 4,
+        "power_method": "100-240 V ~ 50/60 Hz AC",
+        "max_power_draw_w": 33.1
+        }
+    },
+    {
+    "vendor_id": 1,
+    "sku": "SoftwareController",
+    "price": 0,
+    "name": "Omada Software Controller v1.6",
+    "description": "Cloud-capable free software controller for centralized management of Omada APs, switches and gateways. Needs a client device.",
+    "is_rack_mountable": true,
+    "u_height": 1,
+    "lifecycle_status": "active",
+    "eos_date": null,
+    "eol_date": null,
+    "category": "controller",
+    "controller_specs": {
+        "controller_type": "software",
+        "max_managed_aps": 1500,
+        "max_managed_switches": 1500,
+        "max_managed_gateways": 1500,
+        "max_managed_clients": 1500,
+        "lan_ports": null,
+        "power_method": null,
+        "max_power_draw_w": null
+        }
+    }
+]

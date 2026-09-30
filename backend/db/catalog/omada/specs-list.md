@@ -154,7 +154,7 @@ Suffixes
 
 ### Controllers
 
-* OC200 v2.6 - https://support.omadanetworks.com/ph/document/2040/ 
+* OC200 v2.6 - https://support.omadanetworks.com/ph/document/2040/ [NOTE: EOS 10/15/2026, EOL 10/15/2029]
 * OC220 v2.6 - https://www.omadanetworks.com/ph/business-networking/omada-controller-hardware/oc220/#specifications 
 * OC300 v1.6 - https://support.omadanetworks.com/ph/document/2400/ [NOTE: EOS 10/15/2026, EOL 10/15/2029]
 * OC400 - https://support.omadanetworks.com/ph/document/4419/
