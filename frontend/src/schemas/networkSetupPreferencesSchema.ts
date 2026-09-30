@@ -1,14 +1,38 @@
 import { z } from 'zod'
 
+const requiredEnum = <T extends readonly [string, ...string[]]>(
+  values: T,
+  message: string
+) =>
+  z.preprocess(
+    (value) =>
+      value === undefined || value === null || value === ''
+        ? '__MISSING__'
+        : value,
+    z
+      .union([z.enum(values), z.literal('__MISSING__')])
+      .refine((value) => value !== '__MISSING__', { message })
+  )
+
+const requiredBoolean = (message: string) =>
+  z.preprocess(
+    (value) =>
+      value === undefined || value === null || value === ''
+        ? '__MISSING__'
+        : value,
+    z
+      .union([z.boolean(), z.literal('__MISSING__')])
+      .refine((value) => value !== '__MISSING__', { message })
+  )
+
 export const networkSetupPreferencesSchema = z.object({
   preferences: z.object({
-    guestWifi: z.boolean(),
+    guestWifi: requiredBoolean('Guest Wi-Fi preference is required.'),
 
-    sensitiveData: z.enum([
-      'no',
-      'yes',
-      'not_sure',
-    ]),
+    sensitiveData: requiredEnum(
+      ['no', 'yes', 'not_sure'],
+      'Sensitive data handling preference is required.'
+    ),
 
     applications: z.object({
       videoConferencing: z.boolean().optional().default(false),
@@ -27,20 +51,28 @@ export const networkSetupPreferencesSchema = z.object({
 
       basicBrowsingEmail: z.boolean().optional().default(false),
 
+      otherEnabled: z.boolean().optional().default(false),
+
       other: z.string().optional(),
+    }).superRefine((value, ctx) => {
+      if (value.otherEnabled && (!value.other || value.other.trim() === '')) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['other'],
+          message: 'Other network usage is required.',
+        })
+      }
     }),
 
-    equipmentLocation: z.enum([
-      'full_size_rack',
-      'wall_cabinet',
-      'not_sure',
-    ]),
+    equipmentLocation: requiredEnum(
+      ['full_size_rack', 'wall_cabinet', 'not_sure'],
+      'Equipment location is required.'
+    ),
 
-    managementPreference: z.enum([
-      'dashboard',
-      'command_line',
-      'not_sure',
-    ]),
+    managementPreference: requiredEnum(
+      ['dashboard', 'command_line', 'not_sure'],
+      'Management preference is required.'
+    ),
   }),
 })
 

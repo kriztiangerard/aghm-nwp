@@ -1,4 +1,4 @@
-import { Controller, useFormContext } from 'react-hook-form'
+import { Controller, useFormContext, useWatch } from 'react-hook-form'
 
 import {
   FieldSet,
@@ -14,10 +14,13 @@ import {
   SelectTrigger,
 } from '@/components/ui/form-ui'
 import { Checkbox } from '@/components/ui/checkbox'
-import { formatSelectLabel } from '@/lib/formatters'
 
 function NetworkSetupPreferences() {
   const { control } = useFormContext()
+  const otherUsageEnabled = useWatch({
+    control,
+    name: 'preferences.applications.otherEnabled',
+  })
 
   const equipmentLocationLabels: Record<string, string> = {
     full_size_rack: 'Full-size rack in a dedicated closet/room',
@@ -62,7 +65,7 @@ function NetworkSetupPreferences() {
                 <SelectTrigger id={field.name} aria-invalid={fieldState.invalid}>
                   {field.value !== undefined ? (
                     <span className="flex-1 text-left">
-                      {formatSelectLabel(field.value)}
+                      {field.value ? 'Yes' : 'No'}
                     </span>
                   ) : (
                     <span className="text-muted-foreground">Select an answer</span>
@@ -92,7 +95,7 @@ function NetworkSetupPreferences() {
                 <SelectTrigger id={field.name} aria-invalid={fieldState.invalid}>
                   {field.value ? (
                     <span className="flex-1 text-left">
-                      {formatSelectLabel(field.value)}
+                      {field.value === 'no' ? 'No' : field.value === 'yes' ? 'Yes' : 'Not sure'}
                     </span>
                   ) : (
                     <span className="text-muted-foreground">Select an answer</span>
@@ -133,25 +136,47 @@ function NetworkSetupPreferences() {
           </FieldGroup>
         </Field>
 
-        {/* Other Application Description */}
+        {/* Other Network Usage Toggle */}
         <Controller
-          name="preferences.applications.other"
+          name="preferences.applications.otherEnabled"
           control={control}
-          render={({ field: { value, ...field }, fieldState }) => (
+          render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name}>Other network usage</FieldLabel>
-              <Input
-                {...field}
-                value={value ?? ''}
-                id={field.name}
-                type="text"
-                placeholder="Enter other usage"
-                aria-invalid={fieldState.invalid}
-              />
+              <div className="flex items-start gap-3">
+                <Checkbox
+                  id={field.name}
+                  checked={!!field.value}
+                  onCheckedChange={(checked) => field.onChange(Boolean(checked))}
+                />
+                <div className="space-y-1">
+                  <FieldLabel htmlFor={field.name}>Other network usage</FieldLabel>
+                </div>
+              </div>
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
             </Field>
           )}
         />
+
+        {otherUsageEnabled && (
+          <Controller
+            name="preferences.applications.other"
+            control={control}
+            render={({ field: { value, ...field }, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor={field.name}>Tell us what other network usage you have</FieldLabel>
+                <Input
+                  {...field}
+                  value={value ?? ''}
+                  id={field.name}
+                  type="text"
+                  placeholder="Enter other usage"
+                  aria-invalid={fieldState.invalid}
+                />
+                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              </Field>
+            )}
+          />
+        )}
 
         {/* Equipment Location */}
         <Controller

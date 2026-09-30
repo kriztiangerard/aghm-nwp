@@ -82,7 +82,7 @@ function InternetConnection() {
         <Controller
           name="internet.currentSpeedMbps"
           control={control}
-          render={({ field, fieldState }) => (
+          render={({ field: { value, onChange, ...field }, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
               <FieldLabel htmlFor={field.name}>
                 What is your current internet speed?
@@ -96,20 +96,15 @@ function InternetConnection() {
 
               <Input
                 {...field}
+                value={value ?? ''}
                 id={field.name}
                 type="number"
                 min="1"
                 placeholder="Enter a number in Mbps"
                 aria-invalid={fieldState.invalid}
-                value={field.value ?? ''}
                 onChange={(event) => {
-                  const value = event.target.value
-
-                  field.onChange(
-                    value === ''
-                      ? undefined
-                      : event.target.valueAsNumber,
-                  )
+                  const val = event.target.valueAsNumber
+                  onChange(Number.isNaN(val) ? '' : val)
                 }}
               />
 

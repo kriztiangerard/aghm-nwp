@@ -14,18 +14,14 @@ import {
 } from '@/components/ui/form-ui'
 
 function BudgetBusinessContext() {
-  const {
-    control,
-    watch,
-    formState: { isSubmitted },
-  } = useFormContext()
+  const { control, watch } = useFormContext()
 
   const expectedGrowth = watch('businessContext.expectedGrowth')
 
   const monthlyBudgetLabels: Record<string, string> = {
-    under_15000: 'Under $15,000',
-    '15000_40000': '$15,000–$40,000',
-    over_40000: 'Over $40,000',
+    under_15000: 'Under ₱15,000',
+    '15000_40000': '₱15,000–₱40,000',
+    over_40000: 'Over ₱40,000',
   }
 
   const itSupportLabels: Record<string, string> = {
@@ -56,6 +52,9 @@ function BudgetBusinessContext() {
     two_or_more: '2+',
   }
 
+  const shouldShowError = (fieldState: { invalid: boolean; error?: unknown; isTouched: boolean }) =>
+    fieldState.invalid && fieldState.isTouched
+
   return (
     <FieldSet>
       <FieldLegend>Budget &amp; Business Context</FieldLegend>
@@ -65,14 +64,13 @@ function BudgetBusinessContext() {
           name="businessContext.monthlyITBudget"
           control={control}
           render={({ field, fieldState }) => {
-            const shouldShowError =
-              fieldState.invalid && (fieldState.isTouched || isSubmitted)
+            const showError = shouldShowError(fieldState)
 
             return (
-              <Field data-invalid={shouldShowError}>
+              <Field data-invalid={showError}>
                 <FieldLabel htmlFor={field.name}>Monthly IT budget</FieldLabel>
                 <Select value={field.value ?? ''} onValueChange={field.onChange}>
-                  <SelectTrigger id={field.name} aria-invalid={shouldShowError}>
+                  <SelectTrigger id={field.name} aria-invalid={showError}>
                     {field.value ? (
                       <span className="flex-1 text-left">{monthlyBudgetLabels[field.value]}</span>
                     ) : (
@@ -80,12 +78,12 @@ function BudgetBusinessContext() {
                     )}
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="under_15000">Under $15,000</SelectItem>
-                    <SelectItem value="15000_40000">$15,000–$40,000</SelectItem>
-                    <SelectItem value="over_40000">Over $40,000</SelectItem>
+                    <SelectItem value="under_15000">Under ₱15,000</SelectItem>
+                    <SelectItem value="15000_40000">₱15,000–₱40,000</SelectItem>
+                    <SelectItem value="over_40000">Over ₱40,000</SelectItem>
                   </SelectContent>
                 </Select>
-                {shouldShowError && <FieldError errors={[fieldState.error]} />}
+                {showError && <FieldError errors={[fieldState.error]} />}
               </Field>
             )
           }}
@@ -95,14 +93,13 @@ function BudgetBusinessContext() {
           name="businessContext.ITSupport"
           control={control}
           render={({ field, fieldState }) => {
-            const shouldShowError =
-              fieldState.invalid && (fieldState.isTouched || isSubmitted)
+            const showError = shouldShowError(fieldState)
 
             return (
-              <Field data-invalid={shouldShowError}>
+              <Field data-invalid={showError}>
                 <FieldLabel htmlFor={field.name}>IT support</FieldLabel>
                 <Select value={field.value ?? ''} onValueChange={field.onChange}>
-                  <SelectTrigger id={field.name} aria-invalid={shouldShowError}>
+                  <SelectTrigger id={field.name} aria-invalid={showError}>
                     {field.value ? (
                       <span className="flex-1 text-left">{itSupportLabels[field.value]}</span>
                     ) : (
@@ -115,7 +112,7 @@ function BudgetBusinessContext() {
                     <SelectItem value="in_house">In-house IT</SelectItem>
                   </SelectContent>
                 </Select>
-                {shouldShowError && <FieldError errors={[fieldState.error]} />}
+                {showError && <FieldError errors={[fieldState.error]} />}
               </Field>
             )
           }}
@@ -125,14 +122,13 @@ function BudgetBusinessContext() {
           name="businessContext.electricityReliability"
           control={control}
           render={({ field, fieldState }) => {
-            const shouldShowError =
-              fieldState.invalid && (fieldState.isTouched || isSubmitted)
+            const showError = shouldShowError(fieldState)
 
             return (
-              <Field data-invalid={shouldShowError}>
+              <Field data-invalid={showError}>
                 <FieldLabel htmlFor={field.name}>Electricity reliability</FieldLabel>
                 <Select value={field.value ?? ''} onValueChange={field.onChange}>
-                  <SelectTrigger id={field.name} aria-invalid={shouldShowError}>
+                  <SelectTrigger id={field.name} aria-invalid={showError}>
                     {field.value ? (
                       <span className="flex-1 text-left">{electricityLabels[field.value]}</span>
                     ) : (
@@ -144,7 +140,7 @@ function BudgetBusinessContext() {
                     <SelectItem value="frequent_outages">Frequent brownouts/outages</SelectItem>
                   </SelectContent>
                 </Select>
-                {shouldShowError && <FieldError errors={[fieldState.error]} />}
+                {showError && <FieldError errors={[fieldState.error]} />}
               </Field>
             )
           }}
@@ -154,11 +150,10 @@ function BudgetBusinessContext() {
           name="businessContext.expectedGrowth"
           control={control}
           render={({ field, fieldState }) => {
-            const shouldShowError =
-              fieldState.invalid && (fieldState.isTouched || isSubmitted)
+            const showError = shouldShowError(fieldState)
 
             return (
-              <Field data-invalid={shouldShowError}>
+              <Field data-invalid={showError}>
                 <FieldLabel htmlFor={field.name}>
                   Do you expect business growth in the next 1–2 years?
                 </FieldLabel>
@@ -166,7 +161,7 @@ function BudgetBusinessContext() {
                   value={field.value === undefined ? '' : field.value ? 'yes' : 'no'}
                   onValueChange={(val) => field.onChange(val === 'yes')}
                 >
-                  <SelectTrigger id={field.name} aria-invalid={shouldShowError}>
+                  <SelectTrigger id={field.name} aria-invalid={showError}>
                     {field.value !== undefined ? (
                       <span className="flex-1 text-left">{growthLabels[field.value ? 'yes' : 'no']}</span>
                     ) : (
@@ -178,7 +173,7 @@ function BudgetBusinessContext() {
                     <SelectItem value="yes">Yes</SelectItem>
                   </SelectContent>
                 </Select>
-                {shouldShowError && <FieldError errors={[fieldState.error]} />}
+                {showError && <FieldError errors={[fieldState.error]} />}
               </Field>
             )
           }}
@@ -190,14 +185,13 @@ function BudgetBusinessContext() {
               name="businessContext.growth.headcountGrowth"
               control={control}
               render={({ field, fieldState }) => {
-                const shouldShowError =
-                  fieldState.invalid && (fieldState.isTouched || isSubmitted)
+                const showError = shouldShowError(fieldState)
 
                 return (
-                  <Field data-invalid={shouldShowError}>
+                  <Field data-invalid={showError}>
                     <FieldLabel htmlFor={field.name}>Expected headcount growth</FieldLabel>
                     <Select value={field.value ?? ''} onValueChange={field.onChange}>
-                      <SelectTrigger id={field.name} aria-invalid={shouldShowError}>
+                      <SelectTrigger id={field.name} aria-invalid={showError}>
                         {field.value ? (
                           <span className="flex-1 text-left">{headcountLabels[field.value]}</span>
                         ) : (
@@ -210,7 +204,7 @@ function BudgetBusinessContext() {
                         <SelectItem value="31_plus">31%+</SelectItem>
                       </SelectContent>
                     </Select>
-                    {shouldShowError && <FieldError errors={[fieldState.error]} />}
+                    {showError && <FieldError errors={[fieldState.error]} />}
                   </Field>
                 )
               }}
@@ -220,14 +214,13 @@ function BudgetBusinessContext() {
               name="businessContext.growth.newSites"
               control={control}
               render={({ field, fieldState }) => {
-                const shouldShowError =
-                  fieldState.invalid && (fieldState.isTouched || isSubmitted)
+                const showError = shouldShowError(fieldState)
 
                 return (
-                  <Field data-invalid={shouldShowError}>
+                  <Field data-invalid={showError}>
                     <FieldLabel htmlFor={field.name}>Expected additional sites</FieldLabel>
                     <Select value={field.value ?? ''} onValueChange={field.onChange}>
-                      <SelectTrigger id={field.name} aria-invalid={shouldShowError}>
+                      <SelectTrigger id={field.name} aria-invalid={showError}>
                         {field.value ? (
                           <span className="flex-1 text-left">{siteLabels[field.value]}</span>
                         ) : (
@@ -240,7 +233,7 @@ function BudgetBusinessContext() {
                         <SelectItem value="two_or_more">2+</SelectItem>
                       </SelectContent>
                     </Select>
-                    {shouldShowError && <FieldError errors={[fieldState.error]} />}
+                    {showError && <FieldError errors={[fieldState.error]} />}
                   </Field>
                 )
               }}

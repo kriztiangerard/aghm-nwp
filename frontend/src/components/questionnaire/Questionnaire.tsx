@@ -54,6 +54,7 @@ function Questionnaire() {
     mode: 'onSubmit',
     reValidateMode: 'onChange',
     shouldUnregister: false,
+
     defaultValues: {
       preferences: {
         applications: {
@@ -65,9 +66,11 @@ function Questionnaire() {
           videoStreaming: false,
           securityCameraViewing: false,
           basicBrowsingEmail: false,
+          otherEnabled: false,
           other: '',
         },
       },
+
       businessContext: {
         expectedGrowth: false,
       },
@@ -77,26 +80,63 @@ function Questionnaire() {
   const { isSubmitting } = form.formState
   const CurrentSection = steps[currentStep]
 
+  /*
+   * Paths aligned strictly with schema key locations:
+   * Step 1 uses `project.*` namespace.
+   */
   const fieldsByStep: FormField[][] = [
-    ['project'],
-    ['physicalSpace'],
-    ['existingNetwork'],
-    ['internet'],
-    ['devices'],
-    ['preferences'],
-    ['businessContext'],
+    // Step 1 - Project Basics
+    [
+      'project.name' as FormField,
+      'project.numberOfSites' as FormField,
+      'project.siteRelationship' as FormField,
+      'project.totalUsers' as FormField,
+    ],
+
+    // Step 2 - Physical Space
+    [
+      'physicalSpace.numberOfFloors' as FormField,
+      'physicalSpace.floorAreaPerFloor' as FormField,
+      'physicalSpace.roomsPerFloor' as FormField,
+      'physicalSpace.largeGroupRooms.hasLargeGroupRooms' as FormField,
+    ],
+
+    // Step 3 - Existing Environment
+    ['existingNetwork' as FormField],
+
+    // Step 4 - Internet Connection
+    ['internet' as FormField],
+
+    // Step 5 - Devices
+    ['devices' as FormField],
+
+    // Step 6 - Network Setup Preferences
+    ['preferences' as FormField],
+
+    // Step 7 - Budget / Business Context
+    ['businessContext' as FormField],
   ]
 
   const handleNext = async () => {
     setSubmitError(null)
-    const currentFields = fieldsByStep[currentStep]
+    form.clearErrors()
 
-    if (currentFields) {
-      const isValid = await form.trigger(currentFields)
+    const currentFields = [...fieldsByStep[currentStep]]
 
-      if (!isValid) {
-        return
-      }
+    // Dynamically validate details array only if large rooms are selected in Step 2
+    if (
+      currentStep === 1 &&
+      form.getValues('physicalSpace.largeGroupRooms.hasLargeGroupRooms' as FormField) === true
+    ) {
+      currentFields.push('physicalSpace.largeGroupRooms.rooms' as FormField)
+    }
+
+    const isValid = await form.trigger(currentFields, {
+      shouldFocus: true,
+    })
+
+    if (!isValid) {
+      return
     }
 
     if (currentStep < steps.length - 1) {
@@ -106,6 +146,8 @@ function Questionnaire() {
 
   const handleBack = () => {
     setSubmitError(null)
+    form.clearErrors()
+
     if (currentStep > 0) {
       setCurrentStep((step) => step - 1)
     }
@@ -113,6 +155,7 @@ function Questionnaire() {
 
   const onSubmit = async (data: FormOutput) => {
     setSubmitError(null)
+
     const apiUrl = import.meta.env.VITE_API_URL?.trim()
 
     if (!apiUrl) {
@@ -123,6 +166,7 @@ function Questionnaire() {
         'VITE_API_URL is not configured. Submission is using placeholder mode.',
         data,
       )
+
       setSubmitError(missingApiMessage)
       return
     }
@@ -143,10 +187,17 @@ function Questionnaire() {
       }
 
       const result = await response.json()
-      console.log('Recommendation result:', result)
+
+      console.log(
+        'Recommendation result:',
+        result,
+      )
     } catch (err) {
       const errorMessage =
-        err instanceof Error ? err.message : 'An unexpected error occurred.'
+        err instanceof Error
+          ? err.message
+          : 'An unexpected error occurred.'
+
       setSubmitError(errorMessage)
     }
   }
@@ -155,14 +206,17 @@ function Questionnaire() {
     <FormProvider {...form}>
       <main className="min-h-screen bg-muted/30 px-4 py-8 sm:px-8 sm:py-12">
         <div className="mx-auto grid w-full max-w-6xl grid-cols-1 items-start gap-8 lg:grid-cols-[minmax(15rem,0.8fr)_minmax(0,1.4fr)] lg:gap-12">
+
           <SummaryPanel />
 
           <Card className="flex flex-col overflow-hidden lg:h-[calc(100dvh-6rem)] lg:min-h-[36rem]">
+
             <form
               onSubmit={form.handleSubmit(onSubmit)}
               className="flex min-h-0 flex-1 flex-col lg:h-full"
               aria-labelledby="questionnaire-title"
             >
+
               <CardHeader className="shrink-0">
                 <h1
                   id="questionnaire-title"
@@ -173,7 +227,9 @@ function Questionnaire() {
 
                 <div className="space-y-2 pt-2">
                   <Progress
-                    value={((currentStep + 1) / steps.length) * 100}
+                    value={
+                      ((currentStep + 1) / steps.length) * 100
+                    }
                     aria-label={`Step ${currentStep + 1} of ${steps.length}`}
                   />
 
@@ -187,6 +243,7 @@ function Questionnaire() {
 
               <ScrollArea className="min-h-0 lg:h-0 lg:flex-1">
                 <CardContent className="space-y-6 pt-6">
+
                   {submitError && (
                     <div
                       role="alert"
@@ -197,17 +254,22 @@ function Questionnaire() {
                   )}
 
                   <CurrentSection />
+
                 </CardContent>
               </ScrollArea>
 
               <Separator />
 
               <CardContent className="flex shrink-0 justify-between py-4">
+
                 <Button
                   type="button"
                   variant="outline"
                   onClick={handleBack}
-                  disabled={currentStep === 0 || isSubmitting}
+                  disabled={
+                    currentStep === 0 ||
+                    isSubmitting
+                  }
                 >
                   Back
                 </Button>
@@ -216,6 +278,7 @@ function Questionnaire() {
                   <Button
                     type="button"
                     onClick={handleNext}
+                    disabled={isSubmitting}
                   >
                     Next
                   </Button>
@@ -224,11 +287,15 @@ function Questionnaire() {
                     type="submit"
                     disabled={isSubmitting}
                   >
-                    {isSubmitting ? 'Submitting...' : 'Submit'}
+                    {isSubmitting
+                      ? 'Submitting...'
+                      : 'Submit'}
                   </Button>
                 )}
+
               </CardContent>
             </form>
+
           </Card>
         </div>
       </main>

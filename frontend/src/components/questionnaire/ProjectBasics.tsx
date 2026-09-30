@@ -1,3 +1,4 @@
+import React from 'react'
 import { Controller, useFormContext } from 'react-hook-form'
 
 import {
@@ -14,6 +15,12 @@ import {
   SelectTrigger,
 } from '@/components/ui/form-ui'
 import { formatSelectLabel } from '@/lib/formatters'
+
+function preventInvalidNumberKeys(e: React.KeyboardEvent<HTMLInputElement>) {
+  if (['e', 'E', '+', '-', '.'].includes(e.key)) {
+    e.preventDefault()
+  }
+}
 
 function ProjectBasics() {
   const { control } = useFormContext()
@@ -39,6 +46,11 @@ function ProjectBasics() {
                 type="text"
                 placeholder="Enter project or company name"
                 aria-invalid={fieldState.invalid}
+                className={
+                  fieldState.invalid
+                    ? 'border-destructive focus-visible:ring-destructive'
+                    : ''
+                }
               />
 
               {fieldState.invalid && (
@@ -65,11 +77,15 @@ function ProjectBasics() {
                 min="1"
                 placeholder="Enter number of locations"
                 aria-invalid={fieldState.invalid}
+                className={
+                  fieldState.invalid
+                    ? 'border-destructive focus-visible:ring-destructive'
+                    : ''
+                }
+                onKeyDown={preventInvalidNumberKeys}
                 onChange={(event) => {
                   const val = event.target.value
-                  onChange(
-                    val === '' ? undefined : event.target.valueAsNumber,
-                  )
+                  onChange(val === '' ? '' : Number(val))
                 }}
               />
 
@@ -96,6 +112,11 @@ function ProjectBasics() {
                 <SelectTrigger
                   id={field.name}
                   aria-invalid={fieldState.invalid}
+                  className={
+                    fieldState.invalid
+                      ? 'border-destructive focus-visible:ring-destructive'
+                      : ''
+                  }
                 >
                   {field.value ? (
                     <span className="flex-1 text-left">
@@ -147,11 +168,15 @@ function ProjectBasics() {
                 min="1"
                 placeholder="Enter number of users"
                 aria-invalid={fieldState.invalid}
+                className={
+                  fieldState.invalid
+                    ? 'border-destructive focus-visible:ring-destructive'
+                    : ''
+                }
+                onKeyDown={preventInvalidNumberKeys}
                 onChange={(event) => {
                   const val = event.target.value
-                  onChange(
-                    val === '' ? undefined : event.target.valueAsNumber,
-                  )
+                  onChange(val === '' ? '' : Number(val))
                 }}
               />
 

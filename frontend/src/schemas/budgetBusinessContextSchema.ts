@@ -1,40 +1,63 @@
 import { z } from 'zod'
 
-const growthSchema = z.object({
-  headcountGrowth: z.enum([
-    '0_10',
-    '11_30',
-    '31_plus',
-  ]),
+const requiredEnum = <T extends readonly [string, ...string[]]>(
+  values: T,
+  message: string
+) =>
+  z.preprocess(
+    (value) =>
+      value === undefined || value === null || value === ''
+        ? '__MISSING__'
+        : value,
+    z
+      .union([z.enum(values), z.literal('__MISSING__')])
+      .refine((value) => value !== '__MISSING__', { message })
+  )
 
-  newSites: z.enum([
-    'none',
-    'one',
-    'two_or_more',
-  ]),
+const requiredBoolean = (message: string) =>
+  z.preprocess(
+    (value) =>
+      value === undefined || value === null || value === ''
+        ? '__MISSING__'
+        : value,
+    z
+      .union([z.boolean(), z.literal('__MISSING__')])
+      .refine((value) => value !== '__MISSING__', { message })
+  )
+
+const growthSchema = z.object({
+  headcountGrowth: requiredEnum(
+    ['0_10', '11_30', '31_plus'],
+    'Headcount growth is required.'
+  ),
+
+  newSites: requiredEnum(
+    ['none', 'one', 'two_or_more'],
+    'New site count is required.'
+  ),
 })
 
 export const budgetBusinessContextSchema = z.object({
   businessContext: z
     .object({
-      monthlyITBudget: z.enum([
-        'under_15000',
-        '15000_40000',
-        'over_40000',
-      ]),
+      monthlyITBudget: requiredEnum(
+        ['under_15000', '15000_40000', 'over_40000'],
+        'Monthly IT budget is required.'
+      ),
 
-      ITSupport: z.enum([
-        'none',
-        'external',
-        'in_house',
-      ]),
+      ITSupport: requiredEnum(
+        ['none', 'external', 'in_house'],
+        'IT support model is required.'
+      ),
 
-      electricityReliability: z.enum([
-        'stable',
-        'frequent_outages',
-      ]),
+      electricityReliability: requiredEnum(
+        ['stable', 'frequent_outages'],
+        'Electricity reliability is required.'
+      ),
 
-      expectedGrowth: z.boolean(),
+      expectedGrowth: requiredBoolean(
+        'Expected business growth is required.'
+      ),
 
       growth: growthSchema.optional(),
     })
