@@ -1,15 +1,39 @@
-import { Controller, useFormContext } from 'react-hook-form'
+import { Controller, useFormContext, useWatch } from 'react-hook-form'
 
 import {
-  FieldSet, FieldLegend, FieldGroup,
-  Field, FieldLabel, FieldError,
+  FieldSet,
+  FieldLegend,
+  FieldGroup,
+  Field,
+  FieldLabel,
+  FieldError,
   Input,
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/form-ui"
-import { Checkbox } from "@/components/ui/checkbox"
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+} from '@/components/ui/form-ui'
+import { Checkbox } from '@/components/ui/checkbox'
 
 function NetworkSetupPreferences() {
   const { control } = useFormContext()
+  const otherUsageEnabled = useWatch({
+    control,
+    name: 'preferences.applications.otherEnabled',
+  })
+
+  const equipmentLocationLabels: Record<string, string> = {
+    full_size_rack: 'Full-size rack in a dedicated closet/room',
+    wall_cabinet: 'Wall cabinet',
+    not_sure: 'Not sure / Recommend',
+  }
+
+  const managementPreferenceLabels: Record<string, string> = {
+    dashboard: "A simple app or web dashboard (easier to use, good if you don't have dedicated IT staff)",
+    command_line:
+      'Traditional command-line/technical management (for experienced IT staff)',
+    not_sure: 'Not sure — recommend for me',
+  }
 
   const applicationList = [
     { name: 'preferences.applications.videoConferencing', label: 'Video conferencing' },
@@ -35,11 +59,17 @@ function NetworkSetupPreferences() {
             <Field data-invalid={fieldState.invalid}>
               <FieldLabel htmlFor={field.name}>Do you need Guest Wi-Fi?</FieldLabel>
               <Select
-                value={field.value ? 'yes' : 'no'}
+                value={field.value === undefined ? '' : field.value ? 'yes' : 'no'}
                 onValueChange={(val) => field.onChange(val === 'yes')}
               >
                 <SelectTrigger id={field.name} aria-invalid={fieldState.invalid}>
-                  <SelectValue placeholder="Select an answer" />
+                  {field.value !== undefined ? (
+                    <span className="flex-1 text-left">
+                      {field.value ? 'Yes' : 'No'}
+                    </span>
+                  ) : (
+                    <span className="text-muted-foreground">Select an answer</span>
+                  )}
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="no">No</SelectItem>
@@ -58,9 +88,18 @@ function NetworkSetupPreferences() {
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
               <FieldLabel htmlFor={field.name}>Does the business handle sensitive data?</FieldLabel>
-              <Select value={field.value} onValueChange={field.onChange}>
+              <Select
+                value={field.value ?? ''}
+                onValueChange={field.onChange}
+              >
                 <SelectTrigger id={field.name} aria-invalid={fieldState.invalid}>
-                  <SelectValue placeholder="Select an answer" />
+                  {field.value ? (
+                    <span className="flex-1 text-left">
+                      {field.value === 'no' ? 'No' : field.value === 'yes' ? 'Yes' : 'Not sure'}
+                    </span>
+                  ) : (
+                    <span className="text-muted-foreground">Select an answer</span>
+                  )}
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="no">No</SelectItem>
@@ -97,24 +136,47 @@ function NetworkSetupPreferences() {
           </FieldGroup>
         </Field>
 
-        {/* Other Application Description */}
+        {/* Other Network Usage Toggle */}
         <Controller
-          name="preferences.applications.other"
+          name="preferences.applications.otherEnabled"
           control={control}
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name}>Other network usage</FieldLabel>
-              <Input
-                {...field}
-                id={field.name}
-                type="text"
-                placeholder="Enter other usage"
-                aria-invalid={fieldState.invalid}
-              />
+              <div className="flex items-start gap-3">
+                <Checkbox
+                  id={field.name}
+                  checked={!!field.value}
+                  onCheckedChange={(checked) => field.onChange(Boolean(checked))}
+                />
+                <div className="space-y-1">
+                  <FieldLabel htmlFor={field.name}>Other network usage</FieldLabel>
+                </div>
+              </div>
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
             </Field>
           )}
         />
+
+        {otherUsageEnabled && (
+          <Controller
+            name="preferences.applications.other"
+            control={control}
+            render={({ field: { value, ...field }, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor={field.name}>Tell us what other network usage you have</FieldLabel>
+                <Input
+                  {...field}
+                  value={value ?? ''}
+                  id={field.name}
+                  type="text"
+                  placeholder="Enter other usage"
+                  aria-invalid={fieldState.invalid}
+                />
+                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              </Field>
+            )}
+          />
+        )}
 
         {/* Equipment Location */}
         <Controller
@@ -125,9 +187,18 @@ function NetworkSetupPreferences() {
               <FieldLabel htmlFor={field.name}>
                 Where should the main network equipment be housed?
               </FieldLabel>
-              <Select value={field.value} onValueChange={field.onChange}>
+              <Select
+                value={field.value ?? ''}
+                onValueChange={field.onChange}
+              >
                 <SelectTrigger id={field.name} aria-invalid={fieldState.invalid}>
-                  <SelectValue placeholder="Select an option" />
+                  {field.value ? (
+                    <span className="flex-1 text-left">
+                      {equipmentLocationLabels[field.value]}
+                    </span>
+                  ) : (
+                    <span className="text-muted-foreground">Select an option</span>
+                  )}
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="full_size_rack">
@@ -148,15 +219,32 @@ function NetworkSetupPreferences() {
           control={control}
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name}>Preferred network management</FieldLabel>
-              <Select value={field.value} onValueChange={field.onChange}>
+              <FieldLabel htmlFor={field.name}>
+                How would you like to manage the network day-to-day?
+              </FieldLabel>
+              <Select
+                value={field.value ?? ''}
+                onValueChange={field.onChange}
+              >
                 <SelectTrigger id={field.name} aria-invalid={fieldState.invalid}>
-                  <SelectValue placeholder="Select an option" />
+                  {field.value ? (
+                    <span className="flex-1 text-left">
+                      {managementPreferenceLabels[field.value]}
+                    </span>
+                  ) : (
+                    <span className="text-muted-foreground">Select an option</span>
+                  )}
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="dashboard">Simple app/web dashboard</SelectItem>
-                  <SelectItem value="command_line">Traditional CLI/technical</SelectItem>
-                  <SelectItem value="not_sure">Not sure</SelectItem>
+                  <SelectItem value="dashboard">
+                    A simple app or web dashboard (easier to use, good if you don't have dedicated IT staff)
+                  </SelectItem>
+                  <SelectItem value="command_line">
+                    Traditional command-line/technical management (for experienced IT staff)
+                  </SelectItem>
+                  <SelectItem value="not_sure">
+                    Not sure — recommend for me
+                  </SelectItem>
                 </SelectContent>
               </Select>
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}

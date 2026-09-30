@@ -1,3 +1,4 @@
+import React, { useEffect } from 'react'
 import { Controller, useFieldArray, useFormContext } from 'react-hook-form'
 
 import {
@@ -15,38 +16,90 @@ import {
   SelectTrigger,
   SelectValue,
   Button,
-} from '@/components/ui/form-ui'
+} from "@/components/ui/form-ui"
+
+function preventInvalidNumberKeys(
+  e: React.KeyboardEvent<HTMLInputElement>
+) {
+  if (['e', 'E', '+', '-', '.'].includes(e.key)) {
+    e.preventDefault()
+  }
+}
 
 function PhysicalSpace() {
-  const { control, watch } = useFormContext()
+  const { control, watch, setValue } = useFormContext()
 
-  const largeRoomsAnswer = watch(
-    'physicalSpace.largeGroupRooms.hasLargeGroupRooms',
-  )
-
+  const largeRoomsAnswer = watch('physicalSpace.largeGroupRooms.hasLargeGroupRooms')
+  const isLargeRoomsSelected = largeRoomsAnswer === true
   const floorsCount = watch('physicalSpace.numberOfFloors')
 
-  const { fields, append, remove } = useFieldArray({
+  const { fields, append, remove, replace } = useFieldArray<any>({
     control,
-    name: 'physicalSpace.largeGroupRooms.rooms',
+    name: 'physicalSpace.largeGroupRooms.rooms' as any,
   })
 
   const floorOptions = Array.from(
     {
-      length: Number(floorsCount) > 0 ? Number(floorsCount) : 0,
+      length:
+        Number(floorsCount) > 0
+          ? Number(floorsCount)
+          : 0,
     },
-    (_, index) => index + 1,
+    (_, i) => i + 1
   )
+
+  /*
+   * If the user changes the answer from Yes to No,
+   * remove the large-room details because they are no longer relevant.
+   */
+  useEffect(() => {
+    if (largeRoomsAnswer === false) {
+      replace([])
+    }
+  }, [largeRoomsAnswer, replace])
+
+  /*
+   * If the number of floors is reduced, remove any room
+   * that refers to a floor that no longer exists.
+   */
+  useEffect(() => {
+    const numberOfFloors = Number(floorsCount)
+
+    if (!numberOfFloors || numberOfFloors < 1) {
+      return
+    }
+
+    fields.forEach((room, index) => {
+      const roomFloor = Number(
+        (room as { floor?: number | string }).floor
+      )
+
+      if (roomFloor > numberOfFloors) {
+        setValue(
+          `largeRoomDetails.${index}.floor`,
+          undefined,
+          {
+            shouldValidate: true,
+            shouldDirty: true,
+          }
+        )
+      }
+    })
+  }, [floorsCount, fields, setValue])
 
   return (
     <FieldSet>
       <FieldLegend>Physical Space</FieldLegend>
 
       <FieldGroup>
+        {/* NUMBER OF FLOORS */}
         <Controller
           name="physicalSpace.numberOfFloors"
           control={control}
-          render={({ field, fieldState }) => (
+          render={({
+            field: { value, onChange, ...field },
+            fieldState,
+          }) => (
             <Field data-invalid={fieldState.invalid}>
               <FieldLabel htmlFor={field.name}>
                 Number of floors
@@ -54,63 +107,83 @@ function PhysicalSpace() {
 
               <Input
                 {...field}
+                value={value ?? ''}
                 id={field.name}
                 type="number"
                 min="1"
                 placeholder="Enter number of floors"
                 aria-invalid={fieldState.invalid}
-                onChange={(event) =>
-                  field.onChange(event.target.valueAsNumber)
-                }
-              />
+                onKeyDown={preventInvalidNumberKeys}
+                onChange={(e) => {
+                  const val = e.target.value
 
-              {fieldState.invalid && (
-                <FieldError errors={[fieldState.error]} />
-              )}
-            </Field>
-          )}
-        />
-
-        <Controller
-          name="physicalSpace.floorAreaPerFloor"
-          control={control}
-          render={({ field, fieldState }) => (
-            <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name}>
-                Approximate floor area per floor (sqm)
-              </FieldLabel>
-
-              <FieldDescription>
-                Enter the approximate area of one floor in square meters.
-              </FieldDescription>
-
-              <Input
-                {...field}
-                id={field.name}
-                type="number"
-                min="1"
-                placeholder="Enter area in square meters"
-                aria-invalid={fieldState.invalid}
-                value={field.value ?? ''}
-                onChange={(event) => {
-                  const value = event.target.value
-                  field.onChange(
-                    value === '' ? undefined : event.target.valueAsNumber,
+                  onChange(
+                    val === ''
+                      ? ''
+                      : Number(val)
                   )
                 }}
               />
 
               {fieldState.invalid && (
-                <FieldError errors={[fieldState.error]} />
+                <FieldError
+                  errors={[fieldState.error]}
+                />
               )}
             </Field>
           )}
         />
 
+        {/* FLOOR AREA */}
+        <Controller
+          name="physicalSpace.floorAreaPerFloor"
+          control={control}
+          render={({
+            field: { value, onChange, ...field },
+            fieldState,
+          }) => (
+            <Field data-invalid={fieldState.invalid}>
+              <FieldLabel htmlFor={field.name}>
+                Approximate floor area per floor (sqm)
+              </FieldLabel>
+
+              <Input
+                {...field}
+                value={value ?? ''}
+                id={field.name}
+                type="number"
+                min="1"
+                placeholder="Enter area in square meters"
+                aria-invalid={fieldState.invalid}
+                onKeyDown={preventInvalidNumberKeys}
+                onChange={(e) => {
+                  const val = e.target.value
+
+                  onChange(
+                    val === ''
+                      ? ''
+                      : Number(val)
+                  )
+                }}
+              />
+
+              {fieldState.invalid && (
+                <FieldError
+                  errors={[fieldState.error]}
+                />
+              )}
+            </Field>
+          )}
+        />
+
+        {/* ROOMS */}
         <Controller
           name="physicalSpace.roomsPerFloor"
           control={control}
-          render={({ field, fieldState }) => (
+          render={({
+            field: { value, onChange, ...field },
+            fieldState,
+          }) => (
             <Field data-invalid={fieldState.invalid}>
               <FieldLabel htmlFor={field.name}>
                 Number of rooms/work areas per floor
@@ -118,23 +191,34 @@ function PhysicalSpace() {
 
               <Input
                 {...field}
+                value={value ?? ''}
                 id={field.name}
                 type="number"
                 min="1"
                 placeholder="Enter number of rooms"
                 aria-invalid={fieldState.invalid}
-                onChange={(event) =>
-                  field.onChange(event.target.valueAsNumber)
-                }
+                onKeyDown={preventInvalidNumberKeys}
+                onChange={(e) => {
+                  const val = e.target.value
+
+                  onChange(
+                    val === ''
+                      ? ''
+                      : Number(val)
+                  )
+                }}
               />
 
               {fieldState.invalid && (
-                <FieldError errors={[fieldState.error]} />
+                <FieldError
+                  errors={[fieldState.error]}
+                />
               )}
             </Field>
           )}
         />
 
+        {/* LARGE-GROUP ROOMS */}
         <Controller
           name="physicalSpace.largeGroupRooms.hasLargeGroupRooms"
           control={control}
@@ -145,54 +229,73 @@ function PhysicalSpace() {
               </FieldLabel>
 
               <FieldDescription>
-                These are rooms used for meetings, training, or events
-                that can accommodate many people.
+                Rooms used for meetings, training, or events
+                with more than a handful of people.
               </FieldDescription>
 
               <Select
-                value={field.value ? 'yes' : 'no'}
-                onValueChange={(value) =>
-                  field.onChange(value === 'yes')
-                }
+                value={field.value === undefined ? '' : field.value ? 'yes' : 'no'}
+                onValueChange={(value) => field.onChange(value === 'yes')}
               >
                 <SelectTrigger
                   id={field.name}
                   aria-invalid={fieldState.invalid}
                 >
-                  <SelectValue placeholder="Select an answer" />
+                  {field.value !== undefined ? (
+                    <span className="flex-1 text-left">
+                      {field.value ? 'Yes' : 'No'}
+                    </span>
+                  ) : (
+                    <span className="text-muted-foreground">Select an answer</span>
+                  )}
                 </SelectTrigger>
 
                 <SelectContent>
-                  <SelectItem value="no">No</SelectItem>
-                  <SelectItem value="yes">Yes</SelectItem>
+                  <SelectItem value="no">
+                    No
+                  </SelectItem>
+
+                  <SelectItem value="yes">
+                    Yes
+                  </SelectItem>
                 </SelectContent>
               </Select>
 
               {fieldState.invalid && (
-                <FieldError errors={[fieldState.error]} />
+                <FieldError
+                  errors={[fieldState.error]}
+                />
               )}
             </Field>
           )}
         />
 
-        {largeRoomsAnswer && (
+        {/* LARGE-GROUP ROOM DETAILS */}
+        {isLargeRoomsSelected && (
           <FieldSet>
             <FieldLegend variant="label">
               Large-group rooms
             </FieldLegend>
 
             <FieldDescription>
-              Add each large-group room, including its floor and maximum
-              capacity.
+              List each large-group room, its floor,
+              and how many people it can hold.
             </FieldDescription>
 
             <FieldGroup>
               {fields.map((item, index) => (
-                <Field key={item.id} orientation="horizontal">
+                <Field
+                  key={item.id}
+                  orientation="horizontal"
+                >
+                  {/* FLOOR */}
                   <Controller
                     name={`physicalSpace.largeGroupRooms.rooms.${index}.floor`}
                     control={control}
-                    render={({ field, fieldState }) => (
+                    render={({
+                      field,
+                      fieldState,
+                    }) => (
                       <Field data-invalid={fieldState.invalid}>
                         <FieldLabel htmlFor={field.name}>
                           Floor
@@ -200,18 +303,25 @@ function PhysicalSpace() {
 
                         <Select
                           value={
-                            field.value
+                            field.value !== undefined &&
+                            field.value !== null
                               ? String(field.value)
-                              : undefined
+                              : ''
                           }
-                          onValueChange={(value) =>
-                            field.onChange(Number(value))
+                          onValueChange={(value) => {
+                            field.onChange(
+                              Number(value)
+                            )
+                          }}
+                          disabled={
+                            floorOptions.length === 0
                           }
-                          disabled={floorOptions.length === 0}
                         >
                           <SelectTrigger
                             id={field.name}
-                            aria-invalid={fieldState.invalid}
+                            aria-invalid={
+                              fieldState.invalid
+                            }
                           >
                             <SelectValue
                               placeholder={
@@ -223,59 +333,90 @@ function PhysicalSpace() {
                           </SelectTrigger>
 
                           <SelectContent>
-                            {floorOptions.map((floorNumber) => (
-                              <SelectItem
-                                key={floorNumber}
-                                value={String(floorNumber)}
-                              >
-                                Floor {floorNumber}
-                              </SelectItem>
-                            ))}
+                            {floorOptions.map(
+                              (floorNum) => (
+                                <SelectItem
+                                  key={floorNum}
+                                  value={String(
+                                    floorNum
+                                  )}
+                                >
+                                  Floor {floorNum}
+                                </SelectItem>
+                              )
+                            )}
                           </SelectContent>
                         </Select>
 
                         {fieldState.invalid && (
-                          <FieldError errors={[fieldState.error]} />
-                        )}
-                      </Field>
-                    )}
-                  />
-
-                  <Controller
-                    name={`physicalSpace.largeGroupRooms.rooms.${index}.capacity`}
-                    control={control}
-                    render={({ field, fieldState }) => (
-                      <Field data-invalid={fieldState.invalid}>
-                        <FieldLabel htmlFor={field.name}>
-                          Capacity (people)
-                        </FieldLabel>
-
-                        <Input
-                          {...field}
-                          id={field.name}
-                          type="number"
-                          min="1"
-                          placeholder="Enter capacity"
-                          aria-invalid={fieldState.invalid}
-                          value={field.value ?? ''}
-                          onChange={(event) =>
-                            field.onChange(
-                              event.target.value === ''
-                                ? undefined
-                                : event.target.valueAsNumber,
-                            )
-                          }
-                        />
-
-                        {fieldState.invalid && (
                           <FieldError
-                            errors={[fieldState.error]}
+                            errors={[
+                              fieldState.error,
+                            ]}
                           />
                         )}
                       </Field>
                     )}
                   />
 
+                  {/* CAPACITY */}
+                  <Controller
+                    name={`physicalSpace.largeGroupRooms.rooms.${index}.capacity`}
+                    control={control}
+                    render={({
+                      field: {
+                        value,
+                        onChange,
+                        ...field
+                      },
+                      fieldState,
+                    }) => (
+                      <Field
+                        data-invalid={
+                          fieldState.invalid
+                        }
+                      >
+                        <FieldLabel htmlFor={field.name}>
+                          Capacity (people)
+                        </FieldLabel>
+
+                        <Input
+                          {...field}
+                          value={value ?? ''}
+                          id={field.name}
+                          type="number"
+                          min="1"
+                          placeholder="Enter capacity"
+                          aria-invalid={
+                            fieldState.invalid
+                          }
+                          onKeyDown={
+                            preventInvalidNumberKeys
+                          }
+                          onChange={(e) => {
+                            const val =
+                              e.target.value
+
+                            onChange(
+                              val === ''
+                                ? ''
+                                : Number(val)
+                            )
+                          }}
+                        />
+
+                        {fieldState.invalid && (
+                          <FieldError
+                            errors={[
+                              fieldState.error,
+                            ]}
+                          />
+                        )}
+                      </Field>
+                    )}
+                  />
+
+                  {/* REMOVE */}
                   <Button
                     type="button"
                     variant="outline"
@@ -286,6 +427,7 @@ function PhysicalSpace() {
                 </Field>
               ))}
 
+              {/* ADD ROOM */}
               <Button
                 type="button"
                 variant="outline"

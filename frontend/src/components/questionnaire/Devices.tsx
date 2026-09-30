@@ -1,18 +1,42 @@
-import { Controller, useFormContext } from 'react-hook-form'
+import { Controller, useFormContext, useWatch } from 'react-hook-form'
 
 import {
-  FieldSet, FieldLegend, FieldGroup,
-  Field, FieldLabel, FieldError,
+  FieldSet,
+  FieldLegend,
+  FieldGroup,
+  Field,
+  FieldLabel,
+  FieldDescription,
+  FieldError,
   Input,
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/form-ui"
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+} from '@/components/ui/form-ui'
+import { formatSelectLabel } from '@/lib/formatters'
 
-function Devices() {
-  const { control, watch } = useFormContext()
+export default function Devices() {
+  const { control } = useFormContext()
 
-  const voipEnabled = watch('devices.voip.enabled')
-  const ipCamerasEnabled = watch('devices.ipCameras.enabled')
-  const otherDevicesEnabled = watch('devices.otherNetworkDevices.enabled')
+  // 1. Optimized rendering using useWatch with targeted field names
+  const [voipEnabled, ipCamerasEnabled, otherDevicesEnabled] = useWatch({
+    control,
+    name: [
+      'devices.voip.enabled',
+      'devices.ipCameras.enabled',
+      'devices.otherNetworkDevices.enabled',
+    ],
+  })
+
+  // Helper for numeric input parsing to safely handle NaN / empty states
+  const handleNumberChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    onChange: (value: number | string) => void
+  ) => {
+    const val = e.target.valueAsNumber
+    onChange(Number.isNaN(val) ? '' : val)
+  }
 
   return (
     <FieldSet>
@@ -23,17 +47,21 @@ function Devices() {
         <Controller
           name="devices.wiredComputers"
           control={control}
-          render={({ field, fieldState }) => (
+          render={({ field: { value, onChange, ...field }, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name}>Number of wired desktops/laptops</FieldLabel>
+              <FieldLabel htmlFor={field.name}>How many wired computers are in use?</FieldLabel>
+              <FieldDescription>
+                Include desktops and laptops that connect through Ethernet.
+              </FieldDescription>
               <Input
                 {...field}
+                value={value ?? ''}
                 id={field.name}
                 type="number"
                 min="0"
-                placeholder="Enter number"
+                placeholder="Enter a number"
                 aria-invalid={fieldState.invalid}
-                onChange={(event) => field.onChange(event.target.valueAsNumber)}
+                onChange={(e) => handleNumberChange(e, onChange)}
               />
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
             </Field>
@@ -44,17 +72,21 @@ function Devices() {
         <Controller
           name="devices.wifiDevices"
           control={control}
-          render={({ field, fieldState }) => (
+          render={({ field: { value, onChange, ...field }, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name}>Number of Wi-Fi devices</FieldLabel>
+              <FieldLabel htmlFor={field.name}>How many wireless devices are connected?</FieldLabel>
+              <FieldDescription>
+                Include phones, laptops, tablets, printers, and other devices that use Wi-Fi.
+              </FieldDescription>
               <Input
                 {...field}
+                value={value ?? ''}
                 id={field.name}
                 type="number"
                 min="0"
-                placeholder="Enter number"
+                placeholder="Enter a number"
                 aria-invalid={fieldState.invalid}
-                onChange={(event) => field.onChange(event.target.valueAsNumber)}
+                onChange={(e) => handleNumberChange(e, onChange)}
               />
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
             </Field>
@@ -67,13 +99,22 @@ function Devices() {
           control={control}
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name}>Do you use VoIP phones?</FieldLabel>
+              <FieldLabel htmlFor={field.name}>Do you use voice over internet protocol phones?</FieldLabel>
+              <FieldDescription>
+                This includes desk phones and other office phones that connect over the internet.
+              </FieldDescription>
               <Select
-                value={field.value ? 'yes' : 'no'}
+                value={field.value === undefined ? '' : field.value ? 'yes' : 'no'}
                 onValueChange={(val) => field.onChange(val === 'yes')}
               >
                 <SelectTrigger id={field.name} aria-invalid={fieldState.invalid}>
-                  <SelectValue placeholder="Select an answer" />
+                  {field.value !== undefined ? (
+                    <span className="flex-1 text-left">
+                      {formatSelectLabel(field.value)}
+                    </span>
+                  ) : (
+                    <span className="text-muted-foreground">Select an answer</span>
+                  )}
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="no">No</SelectItem>
@@ -90,17 +131,18 @@ function Devices() {
           <Controller
             name="devices.voip.phoneCount"
             control={control}
-            render={({ field, fieldState }) => (
+            render={({ field: { value, onChange, ...field }, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor={field.name}>Number of VoIP phones</FieldLabel>
+                <FieldLabel htmlFor={field.name}>How many voice over internet protocol phones do you have?</FieldLabel>
                 <Input
                   {...field}
+                  value={value ?? ''}
                   id={field.name}
                   type="number"
                   min="0"
-                  placeholder="Enter number"
+                  placeholder="Enter a number"
                   aria-invalid={fieldState.invalid}
-                  onChange={(event) => field.onChange(event.target.valueAsNumber)}
+                  onChange={(e) => handleNumberChange(e, onChange)}
                 />
                 {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
               </Field>
@@ -114,13 +156,22 @@ function Devices() {
           control={control}
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name}>Do you use IP cameras?</FieldLabel>
+              <FieldLabel htmlFor={field.name}>Do you use internet protocol cameras?</FieldLabel>
+              <FieldDescription>
+                This includes security cameras or monitoring cameras connected to your network.
+              </FieldDescription>
               <Select
-                value={field.value ? 'yes' : 'no'}
+                value={field.value === undefined ? '' : field.value ? 'yes' : 'no'}
                 onValueChange={(val) => field.onChange(val === 'yes')}
               >
                 <SelectTrigger id={field.name} aria-invalid={fieldState.invalid}>
-                  <SelectValue placeholder="Select an answer" />
+                  {field.value !== undefined ? (
+                    <span className="flex-1 text-left">
+                      {formatSelectLabel(field.value)}
+                    </span>
+                  ) : (
+                    <span className="text-muted-foreground">Select an answer</span>
+                  )}
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="no">No</SelectItem>
@@ -137,17 +188,18 @@ function Devices() {
           <Controller
             name="devices.ipCameras.cameraCount"
             control={control}
-            render={({ field, fieldState }) => (
+            render={({ field: { value, onChange, ...field }, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor={field.name}>Number of IP cameras</FieldLabel>
+                <FieldLabel htmlFor={field.name}>How many internet protocol cameras do you have?</FieldLabel>
                 <Input
                   {...field}
+                  value={value ?? ''}
                   id={field.name}
                   type="number"
                   min="0"
-                  placeholder="Enter number"
+                  placeholder="Enter a number"
                   aria-invalid={fieldState.invalid}
-                  onChange={(event) => field.onChange(event.target.valueAsNumber)}
+                  onChange={(e) => handleNumberChange(e, onChange)}
                 />
                 {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
               </Field>
@@ -161,13 +213,24 @@ function Devices() {
           control={control}
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name}>Do you have other network-connected devices?</FieldLabel>
+              <FieldLabel htmlFor={field.name}>
+                Do you have other network-connected devices?
+              </FieldLabel>
+              <FieldDescription>
+                Include devices such as printers, smart sensors, displays, or other equipment on your network.
+              </FieldDescription>
               <Select
-                value={field.value ? 'yes' : 'no'}
+                value={field.value === undefined ? '' : field.value ? 'yes' : 'no'}
                 onValueChange={(val) => field.onChange(val === 'yes')}
               >
                 <SelectTrigger id={field.name} aria-invalid={fieldState.invalid}>
-                  <SelectValue placeholder="Select an answer" />
+                  {field.value !== undefined ? (
+                    <span className="flex-1 text-left">
+                      {formatSelectLabel(field.value)}
+                    </span>
+                  ) : (
+                    <span className="text-muted-foreground">Select an answer</span>
+                  )}
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="no">No</SelectItem>
@@ -184,14 +247,15 @@ function Devices() {
           <Controller
             name="devices.otherNetworkDevices.description"
             control={control}
-            render={({ field, fieldState }) => (
+            render={({ field: { value, ...field }, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor={field.name}>Other network-connected devices</FieldLabel>
+                <FieldLabel htmlFor={field.name}>List the other network-connected devices</FieldLabel>
                 <Input
                   {...field}
+                  value={value ?? ''}
                   id={field.name}
                   type="text"
-                  placeholder="Enter other devices"
+                  placeholder="Enter names or descriptions"
                   aria-invalid={fieldState.invalid}
                 />
                 {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
@@ -203,5 +267,3 @@ function Devices() {
     </FieldSet>
   )
 }
-
-export default Devices

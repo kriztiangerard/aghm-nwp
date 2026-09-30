@@ -16,4 +16,5 @@ export const questionnaireSchema = projectBasicsSchema
   .extend(networkSetupPreferencesSchema.shape)
   .extend(budgetBusinessContextSchema.shape)
 
-export type QuestionnaireData = z.infer<typeof questionnaireSchema>
+export type NetworkConfiguration = z.infer<typeof questionnaireSchema>
+export type QuestionnaireData = NetworkConfiguration

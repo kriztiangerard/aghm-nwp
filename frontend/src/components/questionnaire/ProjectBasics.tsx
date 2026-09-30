@@ -1,4 +1,4 @@
-
+import React from 'react'
 import { Controller, useFormContext } from 'react-hook-form'
 
 import {
@@ -13,8 +13,14 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
 } from '@/components/ui/form-ui'
+import { formatSelectLabel } from '@/lib/formatters'
+
+function preventInvalidNumberKeys(e: React.KeyboardEvent<HTMLInputElement>) {
+  if (['e', 'E', '+', '-', '.'].includes(e.key)) {
+    e.preventDefault()
+  }
+}
 
 function ProjectBasics() {
   const { control } = useFormContext()
@@ -27,7 +33,7 @@ function ProjectBasics() {
         <Controller
           name="project.name"
           control={control}
-          render={({ field, fieldState }) => (
+          render={({ field: { value, ...field }, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
               <FieldLabel htmlFor={field.name}>
                 Project or company name
@@ -35,39 +41,15 @@ function ProjectBasics() {
 
               <Input
                 {...field}
+                value={value ?? ''}
                 id={field.name}
                 type="text"
                 placeholder="Enter project or company name"
                 aria-invalid={fieldState.invalid}
-              />
-
-              {fieldState.invalid && (
-                <FieldError errors={[fieldState.error]} />
-              )}
-            </Field>
-          )}
-        />
-      </FieldGroup>
-
-      <FieldGroup>
-        <Controller
-          name="project.numberOfSites"
-          control={control}
-          render={({ field, fieldState }) => (
-            <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name}>
-                Number of business locations
-              </FieldLabel>
-
-              <Input
-                {...field}
-                id={field.name}
-                type="number"
-                min="1"
-                placeholder="Enter number of locations"
-                aria-invalid={fieldState.invalid}
-                onChange={(event) =>
-                  field.onChange(event.target.valueAsNumber)
+                className={
+                  fieldState.invalid
+                    ? 'border-destructive focus-visible:ring-destructive'
+                    : ''
                 }
               />
 
@@ -77,9 +59,43 @@ function ProjectBasics() {
             </Field>
           )}
         />
-      </FieldGroup>
 
-      <FieldGroup>
+        <Controller
+          name="project.numberOfSites"
+          control={control}
+          render={({ field: { value, onChange, ...field }, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}>
+              <FieldLabel htmlFor={field.name}>
+                Number of business locations
+              </FieldLabel>
+
+              <Input
+                {...field}
+                value={value ?? ''}
+                id={field.name}
+                type="number"
+                min="1"
+                placeholder="Enter number of locations"
+                aria-invalid={fieldState.invalid}
+                className={
+                  fieldState.invalid
+                    ? 'border-destructive focus-visible:ring-destructive'
+                    : ''
+                }
+                onKeyDown={preventInvalidNumberKeys}
+                onChange={(event) => {
+                  const val = event.target.value
+                  onChange(val === '' ? '' : Number(val))
+                }}
+              />
+
+              {fieldState.invalid && (
+                <FieldError errors={[fieldState.error]} />
+              )}
+            </Field>
+          )}
+        />
+
         <Controller
           name="project.siteRelationship"
           control={control}
@@ -96,8 +112,21 @@ function ProjectBasics() {
                 <SelectTrigger
                   id={field.name}
                   aria-invalid={fieldState.invalid}
+                  className={
+                    fieldState.invalid
+                      ? 'border-destructive focus-visible:ring-destructive'
+                      : ''
+                  }
                 >
-                  <SelectValue placeholder="Select an answer" />
+                  {field.value ? (
+                    <span className="flex-1 text-left">
+                      {formatSelectLabel(field.value)}
+                    </span>
+                  ) : (
+                    <span className="text-muted-foreground">
+                      Select an answer
+                    </span>
+                  )}
                 </SelectTrigger>
 
                 <SelectContent>
@@ -121,13 +150,11 @@ function ProjectBasics() {
             </Field>
           )}
         />
-      </FieldGroup>
 
-      <FieldGroup>
         <Controller
           name="project.totalUsers"
           control={control}
-          render={({ field, fieldState }) => (
+          render={({ field: { value, onChange, ...field }, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
               <FieldLabel htmlFor={field.name}>
                 Total number of people who will use this network
@@ -135,14 +162,22 @@ function ProjectBasics() {
 
               <Input
                 {...field}
+                value={value ?? ''}
                 id={field.name}
                 type="number"
                 min="1"
                 placeholder="Enter number of users"
                 aria-invalid={fieldState.invalid}
-                onChange={(event) =>
-                  field.onChange(event.target.valueAsNumber)
+                className={
+                  fieldState.invalid
+                    ? 'border-destructive focus-visible:ring-destructive'
+                    : ''
                 }
+                onKeyDown={preventInvalidNumberKeys}
+                onChange={(event) => {
+                  const val = event.target.value
+                  onChange(val === '' ? '' : Number(val))
+                }}
               />
 
               {fieldState.invalid && (

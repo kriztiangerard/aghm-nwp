@@ -1,50 +1,68 @@
 import { z } from 'zod'
 
+const requiredEnum = <T extends readonly [string, ...string[]]>(
+  values: T,
+  message: string
+) =>
+  z.preprocess(
+    (value) =>
+      value === undefined || value === null || value === ''
+        ? '__MISSING__'
+        : value,
+    z
+      .union([z.enum(values), z.literal('__MISSING__')])
+      .refine((value) => value !== '__MISSING__', { message })
+  )
+
+const requiredBoolean = (message: string) =>
+  z.preprocess(
+    (value) =>
+      value === undefined || value === null || value === ''
+        ? '__MISSING__'
+        : value,
+    z
+      .union([z.boolean(), z.literal('__MISSING__')])
+      .refine((value) => value !== '__MISSING__', { message })
+  )
+
 export const existingEnvironmentSchema = z.object({
   existingNetwork: z.object({
-    equipmentStatus: z.enum([
-      'none',
-      'yes',
-      'not_sure',
-    ]),
+    equipmentStatus: requiredEnum(['none', 'yes', 'not_sure'], 'Existing network equipment status is required.'),
 
     equipment: z
       .object({
-        routerModem: z.boolean(),
+        routerModem: requiredBoolean('Router or modem status is required.'),
 
         switches: z
           .object({
-            quantity: z.enum([
-              '1',
-              '2-3',
-              'more_than_3',
-              'not_sure',
-            ]),
+            quantity: requiredEnum(
+              ['1', '2-3', 'more_than_3', 'not_sure'],
+              'Switch quantity is required.'
+            ),
           })
           .optional(),
 
         wifiAccessPoints: z
           .object({
-            quantity: z.enum([
-              '1',
-              '2-3',
-              'more_than_3',
-              'not_sure',
-            ]),
+            quantity: requiredEnum(
+              ['1', '2-3', 'more_than_3', 'not_sure'],
+              'Wi-Fi access point quantity is required.'
+            ),
           })
           .optional(),
 
-        cablingAlreadyRun: z.boolean(),
+        cablingAlreadyRun: requiredBoolean('Cabling status is required.'),
 
-        otherOrUnknown: z.boolean(),
+        otherOrUnknown: requiredBoolean(
+          'Other or unknown network status is required.'
+        ),
       })
       .optional(),
 
-    existingCabling: z.enum([
-      'none_or_not_sure',
-      'cat5e_or_cat6',
-      'fiber',
-    ]),
+    existingCabling: requiredEnum(
+      ['none_or_not_sure', 'cat5e_or_cat6', 'fiber'],
+      'Existing cabling type is required.'
+    ),
   }),
 })
 
