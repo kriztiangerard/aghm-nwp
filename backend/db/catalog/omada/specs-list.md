@@ -105,7 +105,7 @@ Excluded are outdoor variants.
 
 ### Integrated
 
-Note: Integrated Controller, Router (Gateway), and PoE switch; must have specs on each table.
+Note: Integrated Controller, Router (Gateway), and PoE switch; must have specs on each table. Entry remains at router JSON.
 * ER7212PC v2.26 - https://support.omadanetworks.com/ph/document/116729/
 
 ## Switches

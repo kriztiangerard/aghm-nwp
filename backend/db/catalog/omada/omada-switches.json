@@ -5,8 +5,7 @@
     "sku": "SX6632YF",
     "name": "Omada 26-Port 10G Stackable L3 Managed Aggregation Switch with 6 25G Slots",
     "description": "Omada 26-Port 10G Stackable L3 Managed Aggregation Switch with 6 25G Slots.",
-    "image_key": "omada/sx6632yf",
-    "price": 0,
+    "price": null,
     "is_rack_mountable": true,
     "u_height": 1,
     "lifecycle_status": "active",
@@ -17,7 +16,9 @@
       "poe_ports": 0,
       "poe_budget_w": 0,
       "switching_capacity_gbps": 820,
-      "layer": 3
+      "layer": 3,
+      "sfp_ports": "",
+      "sfp_form_factor": ""
     }
   },
   {
@@ -26,8 +27,7 @@
     "sku": "SG6654XHP",
     "name": "Omada 48-Port Gigabit Stackable L3 Managed PoE+ Switch with 6 10G Slots",
     "description": "Omada 48-Port Gigabit Stackable L3 Managed PoE+ Switch with 6 10G Slots.",
-    "image_key": "omada/sg6654xhp",
-    "price": 0,
+    "price": null,
     "is_rack_mountable": true,
     "u_height": 1,
     "lifecycle_status": "active",
@@ -37,7 +37,9 @@
       "port_count": 54,
       "poe_ports": 48,
       "poe_budget_w": 1440,
-      "layer": 3
+      "layer": 3,
+      "sfp_ports": "",
+      "sfp_form_factor": ""
     }
   },
   {
@@ -46,8 +48,7 @@
     "sku": "SG6428XHP",
     "name": "Omada 24-Port Gigabit Stackable L3 Managed PoE+ Switch with 4 10G Slots",
     "description": "Omada 24-Port Gigabit Stackable L3 Managed PoE+ Switch with 4 10G Slots.",
-    "image_key": "omada/sg6428xhp",
-    "price": 0,
+    "price": null,
     "is_rack_mountable": true,
     "u_height": 1,
     "lifecycle_status": "active",
@@ -57,7 +58,9 @@
       "port_count": 28,
       "poe_ports": 24,
       "poe_budget_w": 720,
-      "layer": 3
+      "layer": 3,
+      "sfp_ports": "",
+      "sfp_form_factor": ""
     }
   },
   {
@@ -66,8 +69,7 @@
     "sku": "SG5452XMPP",
     "name": "Omada 48-Port Gigabit Stackable Lite L3 Managed PoE++ Switch with 4x 10G Slots",
     "description": "Omada 48-Port Gigabit Stackable Lite L3 Managed PoE++ Switch with 4x 10G Slots.",
-    "image_key": "omada/sg5452xmpp",
-    "price": 0,
+    "price": null,
     "is_rack_mountable": true,
     "u_height": 1,
     "lifecycle_status": "active",
@@ -77,7 +79,9 @@
       "port_count": 52,
       "poe_ports": 48,
       "poe_budget_w": 770,
-      "layer": 3
+      "layer": 3,
+      "sfp_ports": "",
+      "sfp_form_factor": ""
     }
   },
   {
@@ -86,8 +90,7 @@
     "sku": "SG5428XMPP",
     "name": "Omada 24-Port Gigabit Stackable Lite L3 Managed PoE++ Switch with 4x 10G Slots",
     "description": "Omada 24-Port Gigabit Stackable Lite L3 Managed PoE++ Switch with 4x 10G Slots.",
-    "image_key": "omada/sg5428xmpp",
-    "price": 0,
+    "price": null,
     "is_rack_mountable": true,
     "u_height": 1,
     "lifecycle_status": "active",
@@ -97,7 +100,9 @@
       "port_count": 28,
       "poe_ports": 24,
       "poe_budget_w": 500,
-      "layer": 3
+      "layer": 3,
+      "sfp_ports": "",
+      "sfp_form_factor": ""
     }
   },
   {
@@ -106,8 +111,7 @@
     "sku": "SX3016F",
     "name": "Omada 16-Port 10GE SFP+ L2+ Managed Switch",
     "description": "Omada 16-Port 10GE SFP+ L2+ Managed Switch.",
-    "image_key": "omada/sx3016f",
-    "price": 0,
+    "price": null,
     "is_rack_mountable": true,
     "u_height": 1,
     "lifecycle_status": "active",
@@ -118,7 +122,9 @@
       "poe_ports": 0,
       "poe_budget_w": 0,
       "switching_capacity_gbps": 320,
-      "layer": 2
+      "layer": 2,
+      "sfp_ports": "",
+      "sfp_form_factor": ""
     }
   },
   {
@@ -127,8 +133,7 @@
     "sku": "SX3032F",
     "name": "Omada 32-Port 10GE SFP+ L2+ Managed Switch",
     "description": "Omada 32-Port 10GE SFP+ L2+ Managed Switch.",
-    "image_key": "omada/sx3032f",
-    "price": 0,
+    "price": null,
     "is_rack_mountable": true,
     "u_height": 1,
     "lifecycle_status": "active",
@@ -139,7 +144,9 @@
       "poe_ports": 0,
       "poe_budget_w": 0,
       "switching_capacity_gbps": 640,
-      "layer": 2
+      "layer": 2,
+      "sfp_ports": "",
+      "sfp_form_factor": ""
     }
   },
   {
@@ -148,8 +155,7 @@
     "sku": "SX3008F",
     "name": "Omada 8-Port 10GE SFP+ L2+ Managed Switch",
     "description": "Omada 8-Port 10GE SFP+ L2+ Managed Switch.",
-    "image_key": "omada/sx3008f",
-    "price": 0,
+    "price": null,
     "is_rack_mountable": true,
     "u_height": 1,
     "lifecycle_status": "active",
@@ -160,7 +166,9 @@
       "poe_ports": 0,
       "poe_budget_w": 0,
       "switching_capacity_gbps": 160,
-      "layer": 2
+      "layer": 2,
+      "sfp_ports": "",
+      "sfp_form_factor": ""
     }
   },
   {
@@ -169,8 +177,7 @@
     "sku": "SX3832MPP",
     "name": "Omada 32-Port 10GE L2+ Managed Switch with 24-Port PoE++",
     "description": "Omada 32-Port 10GE L2+ Managed Switch with 24-Port PoE++.",
-    "image_key": "omada/sx3832mpp",
-    "price": 0,
+    "price": null,
     "is_rack_mountable": true,
     "u_height": 1,
     "lifecycle_status": "active",
@@ -180,7 +187,9 @@
       "port_count": 32,
       "poe_ports": 24,
       "poe_budget_w": 770,
-      "layer": 2
+      "layer": 2,
+      "sfp_ports": "",
+      "sfp_form_factor": ""
     }
   },
   {
@@ -189,8 +198,7 @@
     "sku": "SX3832",
     "name": "Omada Access Max 24-Port 10GBASE-T Switch with 8x 10G SFP+ Slots",
     "description": "Omada Access Max 24-Port 10GBASE-T Switch with 8x 10G SFP+ Slots.",
-    "image_key": "omada/sx3832",
-    "price": 0,
+    "price": null,
     "is_rack_mountable": true,
     "u_height": 1,
     "lifecycle_status": "active",
@@ -200,7 +208,9 @@
       "port_count": 32,
       "poe_ports": 0,
       "poe_budget_w": 0,
-      "layer": 2
+      "layer": 2,
+      "sfp_ports": "",
+      "sfp_form_factor": ""
     }
   },
   {
@@ -209,8 +219,7 @@
     "sku": "TL-SX3206HPP",
     "name": "JetStream 6-Port 10GE L2+ Managed Switch with 4-Port PoE++",
     "description": "JetStream 6-Port 10GE L2+ Managed Switch with 4-Port PoE++.",
-    "image_key": "omada/tl-sx3206hpp",
-    "price": 0,
+    "price": null,
     "is_rack_mountable": false,
     "u_height": 0,
     "lifecycle_status": "sunsetting",
@@ -220,7 +229,9 @@
       "port_count": 6,
       "poe_ports": 4,
       "poe_budget_w": 200,
-      "layer": 2
+      "layer": 2,
+      "sfp_ports": "",
+      "sfp_form_factor": ""
     }
   },
   {
@@ -229,8 +240,7 @@
     "sku": "SG2210XMP-M2",
     "name": "Omada 8-Port 2.5GBASE-T and 2-Port 10GE SFP+ Smart Switch with 8-Port PoE+",
     "description": "Omada 8-Port 2.5GBASE-T and 2-Port 10GE SFP+ Smart Switch with 8-Port PoE+.",
-    "image_key": "omada/sg2210xmp-m2",
-    "price": 0,
+    "price": null,
     "is_rack_mountable": false,
     "u_height": 0,
     "lifecycle_status": "active",
@@ -240,7 +250,9 @@
       "port_count": 10,
       "poe_ports": 8,
       "poe_budget_w": 160,
-      "layer": 2
+      "layer": 2,
+      "sfp_ports": "",
+      "sfp_form_factor": ""
     }
   },
   {
@@ -249,8 +261,7 @@
     "sku": "SG3210X-M2",
     "name": "Omada 8-Port 2.5G L2+ Managed Switch",
     "description": "Omada 8-Port 2.5G L2+ Managed Switch.",
-    "image_key": "omada/sg3210x-m2",
-    "price": 0,
+    "price": null,
     "is_rack_mountable": false,
     "u_height": 0,
     "lifecycle_status": "active",
@@ -261,7 +272,9 @@
       "poe_ports": 0,
       "poe_budget_w": 0,
       "switching_capacity_gbps": 80,
-      "layer": 2
+      "layer": 2,
+      "sfp_ports": "",
+      "sfp_form_factor": ""
     }
   },
   {
@@ -270,8 +283,7 @@
     "sku": "TL-SG3210XHP-M2",
     "name": "JetStream 8-Port 2.5GBASE-T and 2-Port 10GE SFP+ L2+ Managed Switch with 8-Port PoE+",
     "description": "JetStream 8-Port 2.5GBASE-T and 2-Port 10GE SFP+ L2+ Managed Switch with 8-Port PoE+.",
-    "image_key": "omada/tl-sg3210xhp-m2",
-    "price": 0,
+    "price": null,
     "is_rack_mountable": false,
     "u_height": 0,
     "lifecycle_status": "active",
@@ -281,7 +293,9 @@
       "port_count": 10,
       "poe_ports": 8,
       "poe_budget_w": 240,
-      "layer": 2
+      "layer": 2,
+      "sfp_ports": "",
+      "sfp_form_factor": ""
     }
   },
   {
@@ -290,8 +304,7 @@
     "sku": "SG3428X-M2",
     "name": "Omada 24-Port 2.5GBASE-T L2+ Managed Switch with 4 10GE SFP+ Slots",
     "description": "Omada 24-Port 2.5GBASE-T L2+ Managed Switch with 4 10GE SFP+ Slots.",
-    "image_key": "omada/sg3428x-m2",
-    "price": 0,
+    "price": null,
     "is_rack_mountable": true,
     "u_height": 1,
     "lifecycle_status": "active",
@@ -301,7 +314,9 @@
       "port_count": 28,
       "poe_ports": 0,
       "poe_budget_w": 0,
-      "layer": 2
+      "layer": 2,
+      "sfp_ports": "",
+      "sfp_form_factor": ""
     }
   },
   {
@@ -310,8 +325,7 @@
     "sku": "SG3428XPP-M2",
     "name": "Omada Access Pro 24-Port 2.5G and 4-Port 10GE SFP+ Switch with 24-Port PoE++",
     "description": "Omada Access Pro 24-Port 2.5G and 4-Port 10GE SFP+ Switch with 24-Port PoE++.",
-    "image_key": "omada/sg3428xpp-m2",
-    "price": 0,
+    "price": null,
     "is_rack_mountable": true,
     "u_height": 1,
     "lifecycle_status": "active",
@@ -321,7 +335,9 @@
       "port_count": 28,
       "poe_ports": 24,
       "poe_budget_w": 770,
-      "layer": 2
+      "layer": 2,
+      "sfp_ports": "",
+      "sfp_form_factor": ""
     }
   },
   {
@@ -330,8 +346,7 @@
     "sku": "TL-SG3428XPP-M2",
     "name": "JetStream 24-Port 2.5GBASE-T and 4-Port 10GE SFP+ L2+ Managed Switch with 16-Port PoE+ & 8-Port PoE++",
     "description": "JetStream 24-Port 2.5GBASE-T and 4-Port 10GE SFP+ L2+ Managed Switch with 16-Port PoE+ & 8-Port PoE++.",
-    "image_key": "omada/tl-sg3428xpp-m2",
-    "price": 0,
+    "price": null,
     "is_rack_mountable": true,
     "u_height": 1,
     "lifecycle_status": "active",
@@ -341,7 +356,9 @@
       "port_count": 28,
       "poe_ports": 24,
       "poe_budget_w": 500,
-      "layer": 2
+      "layer": 2,
+      "sfp_ports": "",
+      "sfp_form_factor": ""
     }
   },
   {
@@ -350,8 +367,7 @@
     "sku": "SG3428XMP",
     "name": "Omada 24-Port Gigabit and 4-Port 10GE SFP+ L2+ Managed Switch with 24-Port PoE+",
     "description": "Omada 24-Port Gigabit and 4-Port 10GE SFP+ L2+ Managed Switch with 24-Port PoE+.",
-    "image_key": "omada/sg3428xmp",
-    "price": 0,
+    "price": null,
     "is_rack_mountable": true,
     "u_height": 1,
     "lifecycle_status": "active",
@@ -361,7 +377,9 @@
       "port_count": 28,
       "poe_ports": 24,
       "poe_budget_w": 384,
-      "layer": 2
+      "layer": 2,
+      "sfp_ports": "",
+      "sfp_form_factor": ""
     }
   },
   {
@@ -370,8 +388,7 @@
     "sku": "SG3428XMPP",
     "name": "Omada Access Plus 24-Port Gigabit and 4-Port 10GE SFP+ Switch with 16-Port PoE+ & 8-Port PoE++",
     "description": "Omada Access Plus 24-Port Gigabit and 4-Port 10GE SFP+ Switch with 16-Port PoE+ & 8-Port PoE++.",
-    "image_key": "omada/sg3428xmpp",
-    "price": 0,
+    "price": null,
     "is_rack_mountable": true,
     "u_height": 1,
     "lifecycle_status": "active",
@@ -381,7 +398,9 @@
       "port_count": 28,
       "poe_ports": 24,
       "poe_budget_w": 500,
-      "layer": 2
+      "layer": 2,
+      "sfp_ports": "",
+      "sfp_form_factor": ""
     }
   },
   {
@@ -390,8 +409,7 @@
     "sku": "SG3428MP",
     "name": "Omada 28-Port Gigabit L2+ Managed Switch with 24-Port PoE+",
     "description": "Omada 28-Port Gigabit L2+ Managed Switch with 24-Port PoE+.",
-    "image_key": "omada/sg3428mp",
-    "price": 0,
+    "price": null,
     "is_rack_mountable": true,
     "u_height": 1,
     "lifecycle_status": "active",
@@ -401,7 +419,9 @@
       "port_count": 28,
       "poe_ports": 24,
       "poe_budget_w": 384,
-      "layer": 2
+      "layer": 2,
+      "sfp_ports": "",
+      "sfp_form_factor": ""
     }
   },
   {
@@ -410,8 +430,7 @@
     "sku": "TL-SG3452XP",
     "name": "JetStream 48-Port Gigabit and 4-Port 10GE SFP+ L2+ Managed Switch with 48-Port PoE+",
     "description": "JetStream 48-Port Gigabit and 4-Port 10GE SFP+ L2+ Managed Switch with 48-Port PoE+.",
-    "image_key": "omada/tl-sg3452xp",
-    "price": 0,
+    "price": null,
     "is_rack_mountable": true,
     "u_height": 1,
     "lifecycle_status": "active",
@@ -421,7 +440,9 @@
       "port_count": 52,
       "poe_ports": 48,
       "poe_budget_w": 500,
-      "layer": 2
+      "layer": 2,
+      "sfp_ports": "",
+      "sfp_form_factor": ""
     }
   },
   {
@@ -430,8 +451,7 @@
     "sku": "SG3452X",
     "name": "Omada 48-Port Gigabit L2+ Managed Switch with 4 10GE SFP+ Slots",
     "description": "Omada 48-Port Gigabit L2+ Managed Switch with 4 10GE SFP+ Slots.",
-    "image_key": "omada/sg3452x",
-    "price": 0,
+    "price": null,
     "is_rack_mountable": true,
     "u_height": 1,
     "lifecycle_status": "active",
@@ -441,7 +461,9 @@
       "port_count": 52,
       "poe_ports": 0,
       "poe_budget_w": 0,
-      "layer": 2
+      "layer": 2,
+      "sfp_ports": "",
+      "sfp_form_factor": ""
     }
   },
   {
@@ -450,8 +472,7 @@
     "sku": "SG3452P",
     "name": "Omada 52-Port Gigabit L2+ Managed Switch with 48-Port PoE+",
     "description": "Omada 52-Port Gigabit L2+ Managed Switch with 48-Port PoE+.",
-    "image_key": "omada/sg3452p",
-    "price": 0,
+    "price": null,
     "is_rack_mountable": true,
     "u_height": 1,
     "lifecycle_status": "active",
@@ -461,7 +482,9 @@
       "port_count": 52,
       "poe_ports": 48,
       "poe_budget_w": 384,
-      "layer": 2
+      "layer": 2,
+      "sfp_ports": "",
+      "sfp_form_factor": ""
     }
   },
   {
@@ -470,8 +493,7 @@
     "sku": "SG2428P",
     "name": "Omada 28-Port Gigabit Smart Switch with 24-Port PoE+",
     "description": "Omada 28-Port Gigabit Smart Switch with 24-Port PoE+.",
-    "image_key": "omada/sg2428p",
-    "price": 0,
+    "price": null,
     "is_rack_mountable": true,
     "u_height": 1,
     "lifecycle_status": "active",
@@ -481,7 +503,9 @@
       "port_count": 28,
       "poe_ports": 24,
       "poe_budget_w": 250,
-      "layer": 2
+      "layer": 2,
+      "sfp_ports": "",
+      "sfp_form_factor": ""
     }
   },
   {
@@ -490,8 +514,7 @@
     "sku": "SG2218P",
     "name": "Omada 18-Port Gigabit Smart Switch with 16-Port PoE+",
     "description": "Omada 18-Port Gigabit Smart Switch with 16-Port PoE+.",
-    "image_key": "omada/sg2218p",
-    "price": 0,
+    "price": null,
     "is_rack_mountable": true,
     "u_height": 1,
     "lifecycle_status": "active",
@@ -501,7 +524,9 @@
       "port_count": 18,
       "poe_ports": 16,
       "poe_budget_w": 150,
-      "layer": 2
+      "layer": 2,
+      "sfp_ports": "",
+      "sfp_form_factor": ""
     }
   },
   {
@@ -510,8 +535,7 @@
     "sku": "SG2210MP",
     "name": "Omada 10-Port Gigabit Smart Switch with 8-Port PoE+",
     "description": "Omada 10-Port Gigabit Smart Switch with 8-Port PoE+.",
-    "image_key": "omada/sg2210mp",
-    "price": 0,
+    "price": null,
     "is_rack_mountable": false,
     "u_height": 0,
     "lifecycle_status": "active",
@@ -521,7 +545,9 @@
       "port_count": 10,
       "poe_ports": 8,
       "poe_budget_w": 150,
-      "layer": 2
+      "layer": 2,
+      "sfp_ports": "",
+      "sfp_form_factor": ""
     }
   },
   {
@@ -530,8 +556,7 @@
     "sku": "SG2210P",
     "name": "Omada 10-Port Gigabit Smart Switch with 8-Port PoE+",
     "description": "Omada 10-Port Gigabit Smart Switch with 8-Port PoE+.",
-    "image_key": "omada/sg2210p",
-    "price": 0,
+    "price": null,
     "is_rack_mountable": false,
     "u_height": 0,
     "lifecycle_status": "active",
@@ -541,7 +566,9 @@
       "port_count": 10,
       "poe_ports": 8,
       "poe_budget_w": 61,
-      "layer": 2
+      "layer": 2,
+      "sfp_ports": "",
+      "sfp_form_factor": ""
     }
   },
   {
@@ -550,8 +577,7 @@
     "sku": "TL-SG2008P",
     "name": "JetStream 8-Port Gigabit Smart Switch with 4-Port PoE+",
     "description": "JetStream 8-Port Gigabit Smart Switch with 4-Port PoE+.",
-    "image_key": "omada/tl-sg2008p",
-    "price": 0,
+    "price": null,
     "is_rack_mountable": false,
     "u_height": 0,
     "lifecycle_status": "active",
@@ -561,7 +587,9 @@
       "port_count": 8,
       "poe_ports": 4,
       "poe_budget_w": 62,
-      "layer": 2
+      "layer": 2,
+      "sfp_ports": "",
+      "sfp_form_factor": ""
     }
   },
   {
@@ -570,8 +598,7 @@
     "sku": "ES228GMP",
     "name": "Omada 28-Port Gigabit Easy Managed Switch with 24-Port PoE+",
     "description": "Omada 28-Port Gigabit Easy Managed Switch with 24-Port PoE+.",
-    "image_key": "omada/es228gmp",
-    "price": 0,
+    "price": null,
     "is_rack_mountable": true,
     "u_height": 1,
     "lifecycle_status": "active",
@@ -581,7 +608,9 @@
       "port_count": 28,
       "poe_ports": 24,
       "poe_budget_w": 384,
-      "layer": 2
+      "layer": 2,
+      "sfp_ports": "",
+      "sfp_form_factor": ""
     }
   },
   {
@@ -590,8 +619,7 @@
     "sku": "ES220GMP",
     "name": "Omada 20-Port Gigabit Easy Managed Switch with 16-Port PoE+",
     "description": "Omada 20-Port Gigabit Easy Managed Switch with 16-Port PoE+.",
-    "image_key": "omada/es220gmp",
-    "price": 0,
+    "price": null,
     "is_rack_mountable": true,
     "u_height": 1,
     "lifecycle_status": "active",
@@ -601,7 +629,9 @@
       "port_count": 20,
       "poe_ports": 16,
       "poe_budget_w": 250,
-      "layer": 2
+      "layer": 2,
+      "sfp_ports": "",
+      "sfp_form_factor": ""
     }
   },
   {
@@ -610,8 +640,7 @@
     "sku": "ES224G",
     "name": "Omada 24-Port Gigabit Easy Managed Switch",
     "description": "Omada 24-Port Gigabit Easy Managed Switch.",
-    "image_key": "omada/es224g",
-    "price": 0,
+    "price": null,
     "is_rack_mountable": true,
     "u_height": 1,
     "lifecycle_status": "active",
@@ -621,7 +650,9 @@
       "port_count": 24,
       "poe_ports": 0,
       "poe_budget_w": 0,
-      "layer": 2
+      "layer": 2,
+      "sfp_ports": "",
+      "sfp_form_factor": ""
     }
   },
   {
@@ -630,8 +661,7 @@
     "sku": "ES210GMP",
     "name": "Omada 10-Port Gigabit Easy Managed Switch with 8-Port PoE+",
     "description": "Omada 10-Port Gigabit Easy Managed Switch with 8-Port PoE+.",
-    "image_key": "omada/es210gmp",
-    "price": 0,
+    "price": null,
     "is_rack_mountable": false,
     "u_height": 0,
     "lifecycle_status": "active",
@@ -641,7 +671,9 @@
       "port_count": 10,
       "poe_ports": 8,
       "poe_budget_w": 123,
-      "layer": 2
+      "layer": 2,
+      "sfp_ports": "",
+      "sfp_form_factor": ""
     }
   },
   {
@@ -650,8 +682,7 @@
     "sku": "ES210GP",
     "name": "Omada 10-Port Gigabit Easy Managed Switch with 8-Port PoE+",
     "description": "Omada 10-Port Gigabit Easy Managed Switch with 8-Port PoE+.",
-    "image_key": "omada/es210gp",
-    "price": 0,
+    "price": null,
     "is_rack_mountable": false,
     "u_height": 0,
     "lifecycle_status": "active",
@@ -661,7 +692,9 @@
       "port_count": 10,
       "poe_ports": 8,
       "poe_budget_w": 63,
-      "layer": 2
+      "layer": 2,
+      "sfp_ports": "",
+      "sfp_form_factor": ""
     }
   },
   {
@@ -670,8 +703,7 @@
     "sku": "ES208GP",
     "name": "Omada 8-Port Gigabit Easy Managed Switch with 8-Port PoE+",
     "description": "Omada 8-Port Gigabit Easy Managed Switch with 8-Port PoE+.",
-    "image_key": "omada/es208gp",
-    "price": 0,
+    "price": null,
     "is_rack_mountable": false,
     "u_height": 0,
     "lifecycle_status": "active",
@@ -681,7 +713,9 @@
       "port_count": 8,
       "poe_ports": 8,
       "poe_budget_w": 64,
-      "layer": 2
+      "layer": 2,
+      "sfp_ports": "",
+      "sfp_form_factor": ""
     }
   },
   {
@@ -690,8 +724,7 @@
     "sku": "ES208G",
     "name": "Omada 8-Port Gigabit Easy Managed Switch",
     "description": "Omada 8-Port Gigabit Easy Managed Switch.",
-    "image_key": "omada/es208g",
-    "price": 0,
+    "price": null,
     "is_rack_mountable": false,
     "u_height": 0,
     "lifecycle_status": "active",
@@ -701,7 +734,9 @@
       "port_count": 8,
       "poe_ports": 0,
       "poe_budget_w": 0,
-      "layer": 2
+      "layer": 2,
+      "sfp_ports": "",
+      "sfp_form_factor": ""
     }
   }
 ]

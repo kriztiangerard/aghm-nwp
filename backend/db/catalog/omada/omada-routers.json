@@ -2,17 +2,15 @@
   {
     "vendor_id": 1,
     "sku": "ER605",
-    "price": 3499.00,
+    "price": null,
     "price_updated_at": "",
     "name": "TP-Link Omada ER605 (TL-R605)",
     "description": "Multi-WAN VPN router, gigabit ports, entry-tier Omada gateway.",
-    "image_key": "omada/er605.png",
     "is_rack_mountable": false,
     "u_height": 0,
     "lifecycle_status": "active",
     "eos_date": null,
     "eol_date": null,
-    "category": "gateway_router",
     "gateway_router_specs": {
       "wan_ports": 2,
       "lan_ports": 3,
@@ -20,5 +18,41 @@
       "max_power_draw_w": 12,
       "vpn_supported": true
     }
+  },
+  {
+    "vendor_id": 1,
+    "sku": "ER7212PC",
+    "price": null,
+    "name": "Omada 3-in-1 Gigabit VPN Router ER7212PC",
+    "description": "Integrates router, PoE switch, and Omada controller altogether.",
+    "is_rack_mountable": false,
+    "u_height": 0,
+    "lifecycle_status": "active",
+    "eos_date": null,
+    "eol_date": null,
+    "category": "gateway_router",
+    "gateway_router_specs": {
+      "wan_ports": 4,
+      "lan_ports": 0,
+      "max_throughput_mbps": 940,
+      "max_power_draw_w": 12,
+      "vpn_supported": true,
+      "sfp_ports": 2,
+      "sfp_form_factor": "SFP"
+    },
+    "switch_specs": {
+      "port_count": 8,
+      "poe_ports": 8,
+      "poe_budget_w": 64,
+      "layer": 2
+    },
+    "controller_specs": {
+      "controller_type": "integrated",
+      "max_managed_aps": 22,
+      "max_managed_switches": 22,
+      "max_managed_gateways": 2,
+      "max_managed_aps_and_switches": 22
+    },
+    "capabilities": ["router", "switch", "controller"]
   }
 ]

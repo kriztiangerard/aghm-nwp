@@ -12,11 +12,14 @@
         "device_id": { "type": "integer" },
         "vendor_id": { "type": "integer" },
         "sku": { "type": "string" },
-        "price": { "type": "number", "minimum": 0 },
+        "price": {
+          "type": ["number", "null"],
+          "minimum": 0,
+          "description": "Unit price. null = unknown/price on request (excluded from Cost-Efficient ranking); 0 = genuinely free."
+        },
         "price_updated_at": { "type": "string", "format": "date-time" },
         "name": { "type": "string" },
         "description": { "type": "string" },
-        "image_key": { "type": "string" },
         "is_rack_mountable": { "type": "boolean" },
         "u_height": { "type": "integer", "minimum": 0 },
         "lifecycle_status": {
@@ -24,7 +27,13 @@
           "enum": ["active", "sunsetting", "discontinued"]
         },
         "eos_date": { "type": ["string", "null"], "format": "date" },
-        "eol_date": { "type": ["string", "null"], "format": "date" }
+        "eol_date": { "type": ["string", "null"], "format": "date" },
+        "capabilities": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string" },
+          "description": "Role tags written to the DeviceCapability junction at seed time (capability_desc values, e.g. router, switch, controller, firewall). Tag every role a multi-role device performs so the engine knows it replaces separate devices. Optional for single-role devices."
+        }
       },
       "required": [
         "vendor_id",
@@ -44,10 +53,21 @@
         "wan_ports": { "type": "integer", "minimum": 0 },
         "lan_ports": { "type": "integer", "minimum": 0 },
         "max_throughput_mbps": { "type": "integer", "minimum": 0 },
-        "max_power_draw_w": { "type": "integer", "minimum": 0 },
-        "vpn_supported": { "type": "boolean" }
+        "max_power_draw_w": { "type": "number", "minimum": 0 },
+        "vpn_supported": { "type": "boolean" },
+        "sfp_ports": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of SFP-family ports. A subset of wan_ports + lan_ports, not additional to it."
+        },
+        "sfp_form_factor": {
+          "$ref": "#/$defs/sfpFormFactor",
+          "description": "Form factor of the SFP ports. Required when sfp_ports > 0."
+        }
       },
-      "required": ["wan_ports", "lan_ports", "vpn_supported"]
+      "required": ["wan_ports", "lan_ports", "vpn_supported"],
+      "if": { "required": ["sfp_ports"], "properties": { "sfp_ports": { "minimum": 1 } } },
+      "then": { "required": ["sfp_form_factor"] }
     },
 
     "switchSpecs": {
@@ -59,9 +79,20 @@
         "poe_budget_w": { "type": "integer", "minimum": 0 },
         "switching_capacity_gbps": { "type": "number", "minimum": 0 },
         "layer": { "type": "integer", "enum": [2, 3] },
-        "max_power_draw_w": { "type": "integer", "minimum": 0 }
+        "max_power_draw_w": { "type": "number", "minimum": 0 },
+        "sfp_ports": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of SFP-family ports. A subset of the total port count, not additional to it."
+        },
+        "sfp_form_factor": {
+          "$ref": "#/$defs/sfpFormFactor",
+          "description": "Form factor of the SFP ports. Required when sfp_ports > 0."
+        }
       },
-      "required": ["port_count", "layer"]
+      "required": ["port_count", "layer"],
+      "if": { "required": ["sfp_ports"], "properties": { "sfp_ports": { "minimum": 1 } } },
+      "then": { "required": ["sfp_form_factor"] }
     },
 
     "apSpecs": {
@@ -74,7 +105,7 @@
         "supported_24ghz": { "type": "boolean" },
         "supported_5ghz": { "type": "boolean" },
         "supported_6ghz": { "type": "boolean" },
-        "max_power_draw_w": { "type": "integer", "minimum": 0 },
+        "max_power_draw_w": { "type": "number", "minimum": 0 },
         "power_method": { "type": "string", "description": "e.g. PoE+, PoE++, DC adapter" }
       },
       "required": ["wifi_standard", "supported_24ghz", "supported_5ghz", "supported_6ghz"]
@@ -89,7 +120,7 @@
         "max_concurrent_sessions": { "type": "integer", "minimum": 0 },
         "wan_ports": { "type": "integer", "minimum": 0 },
         "lan_ports": { "type": "integer", "minimum": 0 },
-        "max_power_draw_w": { "type": "integer", "minimum": 0 }
+        "max_power_draw_w": { "type": "number", "minimum": 0 }
       },
       "required": ["firewall_throughputs_mbps"]
     },
@@ -113,12 +144,17 @@
       "properties": {
         "controller_type": {
           "type": "string",
-          "enum": ["hardware", "software", "cloud"],
-          "description": "hardware = physical appliance; software = self-hosted install; cloud = vendor-hosted (typically licensed)."
+          "enum": ["hardware", "software", "cloud", "integrated"],
+          "description": "hardware = standalone physical appliance; software = self-hosted install; cloud = vendor-hosted (typically licensed); integrated = built into another device (e.g. a router such as the Omada ER7212PC) and not separately purchasable."
         },
         "max_managed_aps": { "type": "integer", "minimum": 0, "description": "Max access points this controller can manage." },
         "max_managed_switches": { "type": "integer", "minimum": 0, "description": "Max switches this controller can manage." },
         "max_managed_gateways": { "type": "integer", "minimum": 0, "description": "Max gateways/routers this controller can manage." },
+        "max_managed_aps_and_switches": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Optional combined cap shared by access points and switches, for controllers whose vendor states one (e.g. 22 for the Omada ER7212PC's integrated controller). The engine checks aps + switches against this in addition to the per-type limits."
+        },
         "max_managed_clients": { "type": "integer", "minimum": 0 },
         "lan_ports": {
           "type": "integer",
@@ -129,6 +165,12 @@
         "max_power_draw_w": { "type": "number", "minimum": 0 }
       },
       "required": ["controller_type", "max_managed_aps", "max_managed_switches", "max_managed_gateways"]
+    },
+
+    "sfpFormFactor": {
+      "type": "string",
+      "enum": ["SFP", "SFP+", "SFP28", "QSFP+", "QSFP28"],
+      "description": "Physical SFP-family form factor of a switch or gateway port. SFP modules themselves are not catalogued; they appear on the Installation Materials Summary."
     },
 
     "gatewayRouterDevice": {
@@ -142,9 +184,25 @@
             "firewall_specs": {
               "description": "Present only when this gateway/router is ALSO capability-tagged as a firewall (dual-role device, e.g. UniFi UDM-Pro). Omit entirely for a plain gateway with no firewall role — don't send null, just leave the key out.",
               "$ref": "#/$defs/firewallSpecs"
+            },
+            "switch_specs": {
+              "description": "Present only when this gateway/router has an integrated switch (e.g. Omada ER7212PC with built-in PoE ports). Omit entirely for a plain gateway. The engine counts ports from this block, so gateway_router_specs.lan_ports must be 0 whenever switch_specs is present (enforced below).",
+              "$ref": "#/$defs/switchSpecs"
+            },
+            "controller_specs": {
+              "description": "Present only when this gateway/router has an integrated controller (e.g. Omada ER7212PC). Omit entirely for a plain gateway.",
+              "$ref": "#/$defs/controllerSpecs"
             }
           },
-          "required": ["category", "gateway_router_specs"]
+          "required": ["category", "gateway_router_specs"],
+          "if": { "required": ["switch_specs"] },
+          "then": {
+            "properties": {
+              "gateway_router_specs": {
+                "properties": { "lan_ports": { "const": 0 } }
+              }
+            }
+          }
         }
       ]
     },
