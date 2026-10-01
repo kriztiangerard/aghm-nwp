@@ -9,59 +9,85 @@ const requiredString = (message: string) =>
     z.string().trim().min(1, message)
   )
 
-const requiredEnum = <T extends readonly [string, ...string[]]>(
-  values: T,
-  message: string
-) =>
-  z.preprocess(
-    (value) =>
-      value === undefined || value === null || value === ''
-        ? undefined
-        : value,
-    z.enum(values, {
-      error: message,
-    })
-  )
-
 const requiredNumber = (
   message: string,
   minMessage: string,
   intMessage: string,
-  minimum = 1
+  minimum = 1,
+  maximum?: number,
+  maxMessage?: string
 ) =>
   z.preprocess(
     (value) =>
       value === undefined || value === null || value === ''
-        ? undefined
+        ? '__MISSING__'
         : value,
     z
-      .coerce
-      .number({ error: message })
-      .refine((value) => !Number.isNaN(value), { error: message })
-      .refine(Number.isInteger, { error: intMessage })
-      .min(minimum, { error: minMessage })
+      .union([z.coerce.number(), z.literal('__MISSING__')])
+      .refine((value) => value !== '__MISSING__', { message })
+      .refine((value) => !Number.isNaN(value), { message })
+      .refine((value) => Number.isInteger(value), { message: intMessage })
+      .refine((value) => value >= minimum, { message: minMessage })
+      .refine((value) => maximum === undefined || value <= maximum, {
+        message: maxMessage ?? `Value must be at most ${maximum}.`,
+      })
   )
 
 export const projectBasicsSchema = z.object({
   project: z.object({
     name: requiredString('Project or company name is required.'),
 
-    numberOfSites: requiredNumber(
-      'Number of business locations is required.',
-      'Number of business locations must be at least 1.',
-      'Number of business locations must be a whole number.'
+    numberOfSites: z.preprocess(
+      (value) => {
+        if (value === undefined || value === null || value === '') return '__MISSING__'
+        if (typeof value === 'number') {
+          if (value === 1) return 'one'
+          if (value > 1) return 'two_or_more'
+        }
+
+        return value
+      },
+      z
+        .union([
+          z.enum(['one', 'two_or_more']),
+          z.literal('__MISSING__'),
+        ])
+        .refine((value) => value !== '__MISSING__', {
+          message: 'Number of business locations is required.',
+        })
     ),
 
-    siteRelationship: requiredEnum(
-      ['same_city', 'same_country', 'different_countries'],
-      'Business location relationship is required.'
-    ),
+    siteRelationship: z
+      .preprocess(
+        (value) =>
+          value === undefined || value === null || value === ''
+            ? '__MISSING__'
+            : value,
+        z
+          .union([
+            z.enum(['same_city', 'same_country', 'different_countries']),
+            z.literal('__MISSING__'),
+          ])
+      )
+      .optional()
+      .transform((value) => (value === '__MISSING__' ? undefined : value)),
 
     totalUsers: requiredNumber(
       'Total number of users is required.',
-      'Total number of users must be at least 1.',
-      'Total number of users must be a whole number.'
+      'Headcount must be between 1 and 200.',
+      'Headcount must be between 1 and 200.',
+      1,
+      200,
+      'Headcount must be between 1 and 200.'
     ),
+  }).superRefine((value, ctx) => {
+    if (value.numberOfSites === 'two_or_more' && !value.siteRelationship) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['siteRelationship'],
+        message: 'Business location relationship is required when more than one site is selected.',
+      })
+    }
   }),
 })
 

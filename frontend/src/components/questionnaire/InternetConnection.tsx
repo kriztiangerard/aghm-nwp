@@ -15,6 +15,11 @@ import {
   SelectTrigger,
 } from '@/components/ui/form-ui'
 import { formatSelectLabel } from '@/lib/formatters'
+import {
+  handleWholeNumberChange,
+  handleWholeNumberPaste,
+  preventWholeNumberKeys,
+} from '@/lib/numberInput'
 
 function InternetConnection() {
   const { control } = useFormContext()
@@ -30,12 +35,11 @@ function InternetConnection() {
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
               <FieldLabel htmlFor={field.name}>
-                What type of internet connection do you currently have?
+                What type of internet connection do you have or plan to get?
               </FieldLabel>
 
               <FieldDescription>
-                If you're not sure what type of connection you have,
-                choose "Not checked / Not sure."
+                Choose the option that best matches your current or planned connection.
               </FieldDescription>
 
               <Select
@@ -85,13 +89,12 @@ function InternetConnection() {
           render={({ field: { value, onChange, ...field }, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
               <FieldLabel htmlFor={field.name}>
-                What is your current internet speed?
+                Current internet speed, if known (in Mbps)
               </FieldLabel>
 
               <FieldDescription>
-                Enter the speed shown by your internet provider or
-                speed test, in Mbps. You can leave this blank if you
-                don't know it.
+                This is your internet plan's advertised speed. Check your ISP bill or
+                router settings. Not sure? Skip this and we will estimate it safely.
               </FieldDescription>
 
               <Input
@@ -99,12 +102,16 @@ function InternetConnection() {
                 value={value ?? ''}
                 id={field.name}
                 type="number"
+                inputMode="numeric"
                 min="1"
+                max="1000000"
+                step="1"
                 placeholder="Enter a number in Mbps"
                 aria-invalid={fieldState.invalid}
+                onKeyDown={preventWholeNumberKeys}
+                onPaste={handleWholeNumberPaste}
                 onChange={(event) => {
-                  const val = event.target.valueAsNumber
-                  onChange(Number.isNaN(val) ? '' : val)
+                  handleWholeNumberChange(event.target.value, onChange)
                 }}
               />
 
@@ -121,14 +128,12 @@ function InternetConnection() {
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
               <FieldLabel htmlFor={field.name}>
-                How important is it for your internet connection to
-                stay available?
+                If your internet went down for an hour, how much would it hurt the business?
               </FieldLabel>
 
               <FieldDescription>
-                Think about what would happen to your business if the
-                internet stopped working. Choose the option that best
-                describes how quickly you would need it working again.
+                Think about how quickly the business would be affected if the internet were
+                unavailable for a while.
               </FieldDescription>
 
               <Select

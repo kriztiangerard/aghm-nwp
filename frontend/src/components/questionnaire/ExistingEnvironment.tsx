@@ -20,7 +20,7 @@ function ExistingEnvironment() {
 
   return (
     <FieldSet>
-      <FieldLegend>Existing Network</FieldLegend>
+      <FieldLegend>Existing Environment</FieldLegend>
 
       <FieldGroup>
         <Controller
@@ -29,12 +29,11 @@ function ExistingEnvironment() {
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
               <FieldLabel htmlFor={field.name}>
-                Do you already have network equipment?
+                Is there existing network equipment on site?
               </FieldLabel>
 
               <FieldDescription>
-                This includes routers, switches, or Wi-Fi access points
-                that are already being used.
+                This includes routers, switches, and Wi-Fi access points already in use.
               </FieldDescription>
 
               <Select
@@ -76,7 +75,7 @@ function ExistingEnvironment() {
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
               <FieldLabel htmlFor={field.name}>
-                Do you already have a router or modem?
+                Roughly what do you have? (check all that apply)
               </FieldLabel>
 
               <FieldDescription>
@@ -228,7 +227,7 @@ function ExistingEnvironment() {
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
               <FieldLabel htmlFor={field.name}>
-                Has network cabling already been installed?
+                Is there existing network cabling in the walls or ceiling?
               </FieldLabel>
 
               <Select

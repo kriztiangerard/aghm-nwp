@@ -4,7 +4,9 @@ const requiredNumber = (
   message: string,
   minMessage: string,
   intMessage: string,
-  minimum = 0
+  minimum = 0,
+  maximum?: number,
+  maxMessage?: string
 ) =>
   z.preprocess(
     (value) =>
@@ -20,6 +22,9 @@ const requiredNumber = (
       .refine((value) => !Number.isNaN(value), { message })
       .refine((value) => Number.isInteger(value), { message: intMessage })
       .refine((value) => value >= minimum, { message: minMessage })
+      .refine((value) => maximum === undefined || value <= maximum, {
+        message: maxMessage ?? `Value must be at most ${maximum}.`,
+      })
   )
 
 const requiredBoolean = (message: string) =>
@@ -63,13 +68,19 @@ export const devicesSchema = z.object({
     wiredComputers: requiredNumber(
       'Wired computer count is required.',
       'Wired computer count cannot be negative.',
-      'Wired computer count must be a whole number.'
+      'Wired computer count must be a whole number.',
+      0,
+      1500,
+      'Wired computer count must be 1,500 or fewer.'
     ),
 
     wifiDevices: requiredNumber(
       'Wireless device count is required.',
       'Wireless device count cannot be negative.',
-      'Wireless device count must be a whole number.'
+      'Wireless device count must be a whole number.',
+      0,
+      2500,
+      'Wireless device count must be 2,500 or fewer.'
     ),
 
     voip: z.object({
@@ -81,7 +92,11 @@ export const devicesSchema = z.object({
         'Voice over internet protocol phone count is required.',
         'Voice over internet protocol phone count cannot be negative.',
         'Voice over internet protocol phone count must be a whole number.'
-      ).optional(),
+      )
+        .refine((value) => value === undefined || value <= 500, {
+          message: 'Voice over internet protocol phone count must be 500 or fewer.',
+        })
+        .optional(),
     }).superRefine((value, ctx) => {
       if (
         value.enabled &&
@@ -104,7 +119,11 @@ export const devicesSchema = z.object({
         'Internet protocol camera count is required.',
         'Internet protocol camera count cannot be negative.',
         'Internet protocol camera count must be a whole number.'
-      ).optional(),
+      )
+        .refine((value) => value === undefined || value <= 500, {
+          message: 'Internet protocol camera count must be 500 or fewer.',
+        })
+        .optional(),
     }).superRefine((value, ctx) => {
       if (
         value.enabled &&

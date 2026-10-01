@@ -87,7 +87,7 @@ function NetworkSetupPreferences() {
           control={control}
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name}>Does the business handle sensitive data?</FieldLabel>
+              <FieldLabel htmlFor={field.name}>Will this network handle sensitive data?</FieldLabel>
               <Select
                 value={field.value ?? ''}
                 onValueChange={field.onChange}
@@ -114,7 +114,7 @@ function NetworkSetupPreferences() {
 
         {/* Application Checkboxes */}
         <Field>
-          <FieldLabel>Main network usage</FieldLabel>
+          <FieldLabel>Which of these will your team regularly use on this network?</FieldLabel>
           <FieldGroup data-slot="checkbox-group">
             {applicationList.map(({ name, label }) => (
               <Controller
@@ -185,7 +185,7 @@ function NetworkSetupPreferences() {
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
               <FieldLabel htmlFor={field.name}>
-                Where should the main network equipment be housed?
+                Where will the main network equipment (switches, router) be housed?
               </FieldLabel>
               <Select
                 value={field.value ?? ''}

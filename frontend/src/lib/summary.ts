@@ -1,6 +1,6 @@
 export type SummaryItem = {
   label: string
-  value: string
+  value: string | string[]
 }
 
 export type SummarySection = {
@@ -11,7 +11,7 @@ export type SummarySection = {
 const LABEL_OVERRIDES: Record<string, string> = {
   name: 'Project or company name',
   numberOfSites: 'Number of business locations',
-  siteRelationship: 'Business location relationship',
+  siteRelationship: 'Site locations',
   totalUsers: 'Total number of users',
   numberOfFloors: 'Number of floors',
   floorAreaPerFloor: 'Approximate floor area per floor',
@@ -29,7 +29,7 @@ const LABEL_OVERRIDES: Record<string, string> = {
   downtimeImpact: 'Internet downtime impact',
   wiredComputers: 'Wired computer count',
   wifiDevices: 'Wireless device count',
-  phoneCount: 'VOIP phone count',
+  phoneCount: 'VoIP phone count',
   cameraCount: 'IP camera count',
   description: 'Device description',
   guestWifi: 'Guest Wi‑Fi preference',
@@ -42,15 +42,26 @@ const LABEL_OVERRIDES: Record<string, string> = {
   expectedGrowth: 'Expected business growth',
   headcountGrowth: 'Expected headcount growth',
   newSites: 'Expected additional sites',
+  videoConferencing: 'Video conferencing',
+  voipCalls: 'VoIP calls',
+  posPayment: 'POS/payment',
+  cloudStorage: 'Cloud storage',
+  businessSoftware: 'Business software',
+  videoStreaming: 'Video streaming',
+  securityCameraViewing: 'Security camera viewing',
+  basicBrowsingEmail: 'Basic browsing / email',
   otherEnabled: 'Other network usage enabled',
   other: 'Other network usage',
   enabled: 'Enabled',
 }
 
 const VALUE_OVERRIDES: Record<string, string> = {
+  one: 'One site',
+  two_or_more: 'Two or more sites',
   same_city: 'Same city',
   different_city: 'Different city',
   same_country: 'Same country',
+  different_countries: 'Different countries',
   national: 'National',
   multi_site: 'Multi-site',
   fiber: 'Fiber',
@@ -60,6 +71,7 @@ const VALUE_OVERRIDES: Record<string, string> = {
   same_day_matters: 'Same day matters',
   same_week_matters: 'Same week matters',
   can_wait: 'Can wait',
+  every_minute_matters: 'Every minute matters',
   yes: 'Yes',
   no: 'No',
   stable: 'Stable',
@@ -73,14 +85,12 @@ const VALUE_OVERRIDES: Record<string, string> = {
   '0_10': '0–10%',
   '11_30': '11–30%',
   '31_plus': '31%+',
-  one: '1',
-  two_or_more: '2+',
   wall_cabinet: 'Wall cabinet',
   dedicated_room: 'Dedicated room',
   rack_room: 'Rack room',
 }
 
-const SECTION_TITLES: Record<string, string> = {
+export const SECTION_TITLES: Record<string, string> = {
   project: 'Project basics',
   physicalSpace: 'Physical space',
   existingNetwork: 'Existing environment',
@@ -100,12 +110,57 @@ const prettifyKey = (key: string) => {
     .replace(/\b\w/g, (char) => char.toUpperCase())
 }
 
-const formatValue = (key: string, value: unknown): string => {
+const UNIT_SUFFIXES: Record<string, string> = {
+  totalUsers: ' people',
+  numberOfFloors: ' floors',
+  floorAreaPerFloor: ' m²',
+  roomsPerFloor: ' rooms',
+  currentSpeedMbps: ' Mbps',
+  wiredComputers: ' computers',
+  wifiDevices: ' devices',
+  phoneCount: ' phones',
+  cameraCount: ' cameras',
+}
+
+const formatObjectArrayValue = (value: Record<string, unknown>[]) =>
+  value
+    .map((item) => {
+      const floor = typeof item.floor === 'number' ? `Floor ${item.floor}` : undefined
+      const capacity = typeof item.capacity === 'number' ? `${item.capacity} people` : undefined
+      const parts = [floor, capacity].filter(Boolean)
+      return parts.length > 0 ? parts.join(' · ') : JSON.stringify(item)
+    })
+    .filter(Boolean)
+
+const formatValue = (key: string, value: unknown): string | string[] => {
   if (value === undefined || value === null || value === '') return ''
 
+  if (key === 'totalUsers') {
+    const numericValue = typeof value === 'string' ? Number(value) : value
+
+    if (typeof numericValue !== 'number' || !Number.isInteger(numericValue) || numericValue < 1 || numericValue > 200) {
+      return ''
+    }
+  }
+
   if (typeof value === 'boolean') return value ? 'Yes' : 'No'
-  if (typeof value === 'number') return String(value)
-  if (Array.isArray(value)) return value.map((item) => formatValue(key, item)).filter(Boolean).join(', ')
+  if (typeof value === 'number') {
+    const unit = UNIT_SUFFIXES[key] ?? ''
+    return `${String(value)}${unit}`
+  }
+  if (Array.isArray(value)) {
+    if (value.every((item) => item !== null && typeof item === 'object')) {
+      const formatted = formatObjectArrayValue(value as Record<string, unknown>[])
+      return formatted.length > 0 ? formatted : ['']
+    }
+
+    const formatted = value
+      .map((item) => formatValue(key, item))
+      .flatMap((item) => (Array.isArray(item) ? item : [item]))
+      .filter((item) => typeof item === 'string' && item.length > 0)
+
+    return formatted.length === 0 ? '' : formatted
+  }
   if (typeof value === 'string') {
     const normalized = value.trim()
     if (!normalized) return ''
@@ -120,6 +175,23 @@ const flattenSummaryItems = (obj: Record<string, unknown>, parentKey = ''): Summ
 
   Object.entries(obj).forEach(([key, value]) => {
     if (value === undefined || value === null || value === '') return
+
+    if (key === 'applications' && typeof value === 'object' && !Array.isArray(value)) {
+      const applicationValues = Object.entries(value as Record<string, unknown>)
+        .filter(([appKey, appValue]) => appKey !== 'other' && appKey !== 'otherEnabled' && appValue === true)
+        .map(([appKey]) => prettifyKey(appKey))
+
+      if (applicationValues.length > 0) {
+        items.push({ label: 'Main network usage', value: applicationValues })
+      }
+
+      const otherUsage = (value as Record<string, unknown>).other
+      if ((value as Record<string, unknown>).otherEnabled === true && typeof otherUsage === 'string' && otherUsage.trim()) {
+        items.push({ label: 'Other network usage', value: otherUsage.trim() })
+      }
+
+      return
+    }
 
     if (typeof value === 'object' && !Array.isArray(value)) {
       items.push(...flattenSummaryItems(value as Record<string, unknown>, key))
@@ -138,18 +210,23 @@ const flattenSummaryItems = (obj: Record<string, unknown>, parentKey = ''): Summ
   return items
 }
 
-export const getSummarySections = (values: Record<string, any> | undefined): SummarySection[] => {
+export const getSummarySections = (
+  values: Record<string, any> | undefined,
+  sectionKey?: keyof typeof SECTION_TITLES,
+): SummarySection[] => {
   if (!values || typeof values !== 'object') return []
 
-  return Object.entries(SECTION_TITLES)
-    .map(([key, title]) => {
+  const targetKeys = sectionKey ? [sectionKey] : Object.keys(SECTION_TITLES)
+
+  return targetKeys
+    .map((key) => {
       const sectionValue = values[key]
       if (!sectionValue || typeof sectionValue !== 'object') return null
 
       const items = flattenSummaryItems(sectionValue as Record<string, unknown>)
       if (!items.length) return null
 
-      return { title, items }
+      return { title: SECTION_TITLES[key], items }
     })
     .filter((section): section is SummarySection => Boolean(section))
 }

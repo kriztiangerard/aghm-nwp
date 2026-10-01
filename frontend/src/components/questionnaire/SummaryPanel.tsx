@@ -1,59 +1,69 @@
 import { FileText } from 'lucide-react'
 import { useFormContext } from 'react-hook-form'
 
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { getSummarySections, SECTION_TITLES } from '../../lib/summary'
 
-import { getSummarySections } from '../../lib/summary'
+type SummaryPanelProps = {
+  sectionKey?: keyof typeof SECTION_TITLES
+}
 
-function SummaryPanel() {
+function SummaryPanel({ sectionKey }: SummaryPanelProps) {
   const { watch } = useFormContext()
   const formData = watch()
-  const sections = getSummarySections(formData)
+  const sections = getSummarySections(formData, sectionKey)
 
   return (
-    <Card className="flex flex-col overflow-hidden border-border/70 bg-background shadow-sm lg:h-[calc(100dvh-6rem)] lg:min-h-[36rem]">
-      <CardHeader className="border-b border-border/60 bg-muted/20">
-        <div className="flex items-center gap-3">
-          <div className="rounded-md bg-primary/10 p-2 text-primary">
-            <FileText className="h-4 w-4" />
-          </div>
-          <h2 id="summary-title" className="text-xl font-semibold text-foreground">
-            Project summary
-          </h2>
+    <aside
+      aria-labelledby="section-summary-title"
+      className="flex max-h-[calc(100dvh-6rem)] min-h-[18rem] flex-col overflow-hidden border border-border/70 bg-background p-4 shadow-sm lg:sticky lg:top-8"
+    >
+      <div className="mb-4 flex items-center gap-3 border-b border-border/70 pb-3">
+        <div className="rounded-md bg-primary/10 p-2 text-primary">
+          <FileText className="h-4 w-4" />
         </div>
-      </CardHeader>
+        <h2 id="section-summary-title" className="text-lg font-semibold text-foreground">
+          Section Summary
+        </h2>
+      </div>
 
-      <CardContent className="space-y-5 overflow-y-auto p-4">
+      <div className="space-y-5 overflow-y-auto" aria-live="polite">
         {sections.length === 0 ? (
-          <div className="flex items-center justify-start gap-3 rounded-xl border border-dashed border-muted-foreground/30 bg-muted/40 p-6 text-left text-muted-foreground">
-            <FileText className="h-5 w-5 shrink-0" />
-            <p className="text-sm font-medium">Your answers will appear here after submission.</p>
+          <div className="rounded-md border border-dashed border-border/70 bg-muted/30 px-3 py-4 text-sm text-muted-foreground">
+            Your answers will appear here
           </div>
         ) : (
           sections.map((section) => (
-            <section key={section.title} className="rounded-xl border border-border/70 bg-card p-3 shadow-sm">
-              <h3 className="mb-3 text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+            <section key={section.title} className="space-y-3">
+              <h3 className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
                 {section.title}
               </h3>
 
-              <ul className="space-y-2.5">
+              <dl className="space-y-3">
                 {section.items.map((item) => (
-                  <li
-                    key={`${section.title}-${item.label}`}
-                    className="rounded-lg border border-border/60 bg-muted/20 p-2.5"
-                  >
-                    <div className="text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
+                  <div key={`${section.title}-${item.label}`} className="space-y-1">
+                    <dt className="text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
                       {item.label}
-                    </div>
-                    <div className="mt-1 text-sm text-foreground">{item.value}</div>
-                  </li>
+                    </dt>
+                    <dd>
+                      {Array.isArray(item.value) ? (
+                        <div className="flex flex-wrap gap-2">
+                          {item.value.map((valueItem) => (
+                            <Badge key={`${item.label}-${valueItem}`}>{valueItem}</Badge>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className="text-sm text-foreground">{item.value}</span>
+                      )}
+                    </dd>
+                  </div>
                 ))}
-              </ul>
+              </dl>
             </section>
           ))
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </aside>
   )
 }
 

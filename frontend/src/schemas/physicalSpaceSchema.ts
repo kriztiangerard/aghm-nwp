@@ -4,7 +4,9 @@ const requiredNumber = (
   message: string,
   minMessage: string,
   intMessage: string,
-  minimum = 1
+  minimum = 1,
+  maximum?: number,
+  maxMessage?: string
 ) =>
   z.preprocess(
     (value) =>
@@ -17,6 +19,9 @@ const requiredNumber = (
       .refine((value) => !Number.isNaN(value), { message })
       .refine((value) => Number.isInteger(value), { message: intMessage })
       .refine((value) => value >= minimum, { message: minMessage })
+      .refine((value) => maximum === undefined || value <= maximum, {
+        message: maxMessage ?? `Value must be at most ${maximum}.`,
+      })
   )
 
 const requiredBoolean = (message: string) =>
@@ -35,19 +40,33 @@ export const physicalSpaceSchema = z.object({
     numberOfFloors: requiredNumber(
       'Number of floors is required.',
       'Number of floors must be at least 1.',
-      'Number of floors must be a whole number.'
+      'Number of floors must be a whole number.',
+      1,
+      20,
+      'Number of floors must be 20 or fewer.'
     ),
 
-    floorAreaPerFloor: requiredNumber(
-      'Approximate floor area per floor is required.',
-      'Floor area must be greater than 0.',
-      'Approximate floor area per floor must be a whole number.'
+    floorAreaPerFloor: z.preprocess(
+      (value) =>
+        value === undefined || value === null || value === ''
+          ? undefined
+          : value,
+      z.union([
+        z.coerce.number()
+          .int('Approximate floor area per floor must be a whole number.')
+          .min(1, 'Floor area must be greater than 0.')
+          .max(5000, 'Approximate floor area per floor must be 5,000 sqm or less.'),
+        z.undefined(),
+      ])
     ),
 
     roomsPerFloor: requiredNumber(
       'Number of rooms/work areas per floor is required.',
       'Number of rooms/work areas per floor must be at least 1.',
-      'Number of rooms/work areas per floor must be a whole number.'
+      'Number of rooms/work areas per floor must be a whole number.',
+      1,
+      100,
+      'Number of rooms/work areas per floor must be 100 or fewer.'
     ),
 
     largeGroupRooms: z.object({

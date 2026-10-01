@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import { useEffect } from 'react'
 import { Controller, useFieldArray, useFormContext } from 'react-hook-form'
 
 import {
@@ -17,14 +17,11 @@ import {
   SelectValue,
   Button,
 } from "@/components/ui/form-ui"
-
-function preventInvalidNumberKeys(
-  e: React.KeyboardEvent<HTMLInputElement>
-) {
-  if (['e', 'E', '+', '-', '.'].includes(e.key)) {
-    e.preventDefault()
-  }
-}
+import {
+  handleWholeNumberChange,
+  handleWholeNumberPaste,
+  preventWholeNumberKeys,
+} from '@/lib/numberInput'
 
 function PhysicalSpace() {
   const { control, watch, setValue } = useFormContext()
@@ -102,7 +99,7 @@ function PhysicalSpace() {
           }) => (
             <Field data-invalid={fieldState.invalid}>
               <FieldLabel htmlFor={field.name}>
-                Number of floors
+                Number of floors this network will cover
               </FieldLabel>
 
               <Input
@@ -110,18 +107,16 @@ function PhysicalSpace() {
                 value={value ?? ''}
                 id={field.name}
                 type="number"
+                inputMode="numeric"
                 min="1"
+                max="100"
+                step="1"
                 placeholder="Enter number of floors"
                 aria-invalid={fieldState.invalid}
-                onKeyDown={preventInvalidNumberKeys}
+                onKeyDown={preventWholeNumberKeys}
+                onPaste={handleWholeNumberPaste}
                 onChange={(e) => {
-                  const val = e.target.value
-
-                  onChange(
-                    val === ''
-                      ? ''
-                      : Number(val)
-                  )
+                  handleWholeNumberChange(e.target.value, onChange)
                 }}
               />
 
@@ -144,26 +139,29 @@ function PhysicalSpace() {
           }) => (
             <Field data-invalid={fieldState.invalid}>
               <FieldLabel htmlFor={field.name}>
-                Approximate floor area per floor (sqm)
+                Approximate floor area per floor, in square meters, if known
               </FieldLabel>
+
+              <FieldDescription>
+                Not sure? If you truly do not know, skip this and we will estimate it from
+                the room count below.
+              </FieldDescription>
 
               <Input
                 {...field}
                 value={value ?? ''}
                 id={field.name}
                 type="number"
+                inputMode="numeric"
                 min="1"
+                max="100000"
+                step="1"
                 placeholder="Enter area in square meters"
                 aria-invalid={fieldState.invalid}
-                onKeyDown={preventInvalidNumberKeys}
+                onKeyDown={preventWholeNumberKeys}
+                onPaste={handleWholeNumberPaste}
                 onChange={(e) => {
-                  const val = e.target.value
-
-                  onChange(
-                    val === ''
-                      ? ''
-                      : Number(val)
-                  )
+                  handleWholeNumberChange(e.target.value, onChange)
                 }}
               />
 
@@ -186,7 +184,7 @@ function PhysicalSpace() {
           }) => (
             <Field data-invalid={fieldState.invalid}>
               <FieldLabel htmlFor={field.name}>
-                Number of rooms/work areas per floor
+                Roughly how many separate rooms or work areas per floor?
               </FieldLabel>
 
               <Input
@@ -194,18 +192,16 @@ function PhysicalSpace() {
                 value={value ?? ''}
                 id={field.name}
                 type="number"
+                inputMode="numeric"
                 min="1"
+                max="500"
+                step="1"
                 placeholder="Enter number of rooms"
                 aria-invalid={fieldState.invalid}
-                onKeyDown={preventInvalidNumberKeys}
+                onKeyDown={preventWholeNumberKeys}
+                onPaste={handleWholeNumberPaste}
                 onChange={(e) => {
-                  const val = e.target.value
-
-                  onChange(
-                    val === ''
-                      ? ''
-                      : Number(val)
-                  )
+                  handleWholeNumberChange(e.target.value, onChange)
                 }}
               />
 
@@ -225,12 +221,11 @@ function PhysicalSpace() {
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
               <FieldLabel htmlFor={field.name}>
-                Are there large-group rooms?
+                Are there any rooms where large groups of people will congregate?
               </FieldLabel>
 
               <FieldDescription>
-                Rooms used for meetings, training, or events
-                with more than a handful of people.
+                Think of large meeting rooms, training rooms, or event spaces.
               </FieldDescription>
 
               <Select
@@ -385,23 +380,18 @@ function PhysicalSpace() {
                           value={value ?? ''}
                           id={field.name}
                           type="number"
+                          inputMode="numeric"
                           min="1"
+                          max="2000"
+                          step="1"
                           placeholder="Enter capacity"
                           aria-invalid={
                             fieldState.invalid
                           }
-                          onKeyDown={
-                            preventInvalidNumberKeys
-                          }
+                          onKeyDown={preventWholeNumberKeys}
+                          onPaste={handleWholeNumberPaste}
                           onChange={(e) => {
-                            const val =
-                              e.target.value
-
-                            onChange(
-                              val === ''
-                                ? ''
-                                : Number(val)
-                            )
+                            handleWholeNumberChange(e.target.value, onChange)
                           }}
                         />
 

@@ -68,7 +68,7 @@ function BudgetBusinessContext() {
 
             return (
               <Field data-invalid={showError}>
-                <FieldLabel htmlFor={field.name}>Monthly IT budget</FieldLabel>
+                <FieldLabel htmlFor={field.name}>Monthly IT spending budget (PHP)</FieldLabel>
                 <Select value={field.value ?? ''} onValueChange={field.onChange}>
                   <SelectTrigger id={field.name} aria-invalid={showError}>
                     {field.value ? (
@@ -97,7 +97,7 @@ function BudgetBusinessContext() {
 
             return (
               <Field data-invalid={showError}>
-                <FieldLabel htmlFor={field.name}>IT support</FieldLabel>
+                <FieldLabel htmlFor={field.name}>Who currently handles IT support for your business?</FieldLabel>
                 <Select value={field.value ?? ''} onValueChange={field.onChange}>
                   <SelectTrigger id={field.name} aria-invalid={showError}>
                     {field.value ? (
@@ -126,7 +126,7 @@ function BudgetBusinessContext() {
 
             return (
               <Field data-invalid={showError}>
-                <FieldLabel htmlFor={field.name}>Electricity reliability</FieldLabel>
+                <FieldLabel htmlFor={field.name}>How reliable is the electricity at this location?</FieldLabel>
                 <Select value={field.value ?? ''} onValueChange={field.onChange}>
                   <SelectTrigger id={field.name} aria-invalid={showError}>
                     {field.value ? (
@@ -189,7 +189,7 @@ function BudgetBusinessContext() {
 
                 return (
                   <Field data-invalid={showError}>
-                    <FieldLabel htmlFor={field.name}>Expected headcount growth</FieldLabel>
+                    <FieldLabel htmlFor={field.name}>Expected headcount growth in the next 1–2 years?</FieldLabel>
                     <Select value={field.value ?? ''} onValueChange={field.onChange}>
                       <SelectTrigger id={field.name} aria-invalid={showError}>
                         {field.value ? (
@@ -218,7 +218,7 @@ function BudgetBusinessContext() {
 
                 return (
                   <Field data-invalid={showError}>
-                    <FieldLabel htmlFor={field.name}>Expected additional sites</FieldLabel>
+                    <FieldLabel htmlFor={field.name}>Do you plan to open additional physical locations in the next 1–2 years?</FieldLabel>
                     <Select value={field.value ?? ''} onValueChange={field.onChange}>
                       <SelectTrigger id={field.name} aria-invalid={showError}>
                         {field.value ? (

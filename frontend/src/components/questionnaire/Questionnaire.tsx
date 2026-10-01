@@ -3,6 +3,7 @@ import { useState } from 'react'
 import {
   FormProvider,
   useForm,
+  useFormContext,
   type FieldPath,
 } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -29,8 +30,9 @@ import BudgetBusinessContext from './BudgetBusinessContext'
 import SummaryPanel from './SummaryPanel'
 
 import { questionnaireSchema } from '../../schemas/questionnaireSchema'
+import { getSummarySections, SECTION_TITLES } from '../../lib/summary'
 
-const steps = [
+const sectionSteps = [
   ProjectBasics,
   PhysicalSpace,
   ExistingEnvironment,
@@ -38,7 +40,67 @@ const steps = [
   Devices,
   NetworkSetupPreferences,
   BudgetBusinessContext,
-]
+] as const
+
+const sectionKeys = Object.keys(SECTION_TITLES) as Array<keyof typeof SECTION_TITLES>
+
+const OverallSummary = () => {
+  const { watch } = useFormContext()
+  const formData = watch()
+  const sections = getSummarySections(formData)
+
+  return (
+    <div className="space-y-6">
+      <div className="space-y-2">
+        <h2 className="text-2xl font-semibold tracking-tight">Overall Network Planning Summary</h2>
+        <p className="text-sm text-muted-foreground">
+          Review the answers from every section before continuing.
+        </p>
+      </div>
+
+      {sections.length === 0 ? (
+        <div className="rounded-md border border-dashed border-border/70 bg-muted/30 p-4 text-sm text-muted-foreground">
+          Your answers will appear here
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {sections.map((section) => (
+            <section key={section.title} className="space-y-3">
+              <h3 className="text-base font-semibold text-foreground">{section.title}</h3>
+              <dl className="space-y-3">
+                {section.items.map((item) => (
+                  <div key={`${section.title}-${item.label}`} className="space-y-1 border-b border-border/60 pb-2 last:border-b-0 last:pb-0">
+                    <dt className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
+                      {item.label}
+                    </dt>
+                    <dd>
+                      {Array.isArray(item.value) ? (
+                        <div className="flex flex-wrap gap-2">
+                          {item.value.map((valueItem) => (
+                            <span
+                              key={`${item.label}-${valueItem}`}
+                              className="inline-flex items-center rounded-full border border-primary/20 bg-primary/5 px-2.5 py-1 text-xs font-medium text-primary"
+                            >
+                              {valueItem}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className="text-sm text-foreground">{item.value}</span>
+                      )}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </section>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+const steps = [...sectionSteps, OverallSummary]
 
 const fullSchema = questionnaireSchema
 
@@ -80,6 +142,8 @@ function Questionnaire() {
 
   const { isSubmitting } = form.formState
   const CurrentSection = steps[currentStep]
+  const currentSectionKey = currentStep < sectionKeys.length ? sectionKeys[currentStep] : undefined
+  const totalSteps = steps.length
 
   /*
    * Paths aligned strictly with schema key locations:
@@ -215,7 +279,7 @@ function Questionnaire() {
     <FormProvider {...form}>
       <main className="min-h-screen bg-muted/30 px-4 py-8 sm:px-8 sm:py-12">
         <div className="mx-auto grid w-full max-w-6xl grid-cols-1 items-start gap-8 lg:grid-cols-[minmax(15rem,0.8fr)_minmax(0,1.4fr)] lg:gap-12">
-          <SummaryPanel />
+          <SummaryPanel sectionKey={currentSectionKey} />
 
           <Card className="flex flex-col overflow-hidden lg:h-[calc(100dvh-6rem)] lg:min-h-[36rem]">
             <form
@@ -234,13 +298,13 @@ function Questionnaire() {
                 <div className="space-y-2 pt-2">
                   <Progress
                     value={
-                      ((currentStep + 1) / steps.length) * 100
+                      ((currentStep + 1) / totalSteps) * 100
                     }
-                    aria-label={`Step ${currentStep + 1} of ${steps.length}`}
+                    aria-label={`Step ${currentStep + 1} of ${totalSteps}`}
                   />
 
                   <p className="text-sm text-muted-foreground">
-                    Step {currentStep + 1} of {steps.length}
+                    Step {currentStep + 1} of {totalSteps}
                   </p>
                 </div>
               </CardHeader>
@@ -259,6 +323,11 @@ function Questionnaire() {
                   )}
 
                   <CurrentSection />
+
+                  <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+                    Please confirm exact quantities and placements with a qualified installer before purchasing.
+                  </div>
+
                 </CardContent>
               </ScrollArea>
 
@@ -277,7 +346,7 @@ function Questionnaire() {
                   Back
                 </Button>
 
-                {currentStep < steps.length - 1 ? (
+                {currentStep < totalSteps - 1 ? (
                   <Button
                     type="button"
                     onClick={handleNext}
