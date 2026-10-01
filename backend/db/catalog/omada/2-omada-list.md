@@ -1,4 +1,6 @@
-# Omada Specifications List
+# TP-Link Omada Specifications List
+
+Vendor ID = 2
 
 All datasheets can be found at: https://support.omadanetworks.com/ph/document/?documentResourceTypeIdList=1130
 

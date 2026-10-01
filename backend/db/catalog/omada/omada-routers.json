@@ -1,6 +1,6 @@
 [
   {
-    "vendor_id": 1,
+    "vendor_id": 2,
     "sku": "ER605",
     "price": null,
     "price_updated_at": "",
@@ -20,7 +20,7 @@
     }
   },
   {
-    "vendor_id": 1,
+    "vendor_id": 2,
     "sku": "ER7212PC",
     "price": null,
     "name": "Omada 3-in-1 Gigabit VPN Router ER7212PC",

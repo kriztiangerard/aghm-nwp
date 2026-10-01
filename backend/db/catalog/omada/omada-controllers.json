@@ -1,6 +1,6 @@
 [
   {
-    "vendor_id": 1,
+    "vendor_id": 2,
     "sku": "OC200",
     "name": "Omada Hardware Controller OC200 v2.6",
     "description": "Cloud-capable hardware controller for centralized management of Omada APs, switches and gateways.",
@@ -23,7 +23,7 @@
         }
     },
   {
-    "vendor_id": 1,
+    "vendor_id": 2,
     "sku": "OC220",
     "name": "Omada Hardware Controller OC220",
     "description": "Cloud-capable hardware controller for centralized management of Omada APs, switches and gateways. Faster",
@@ -46,7 +46,7 @@
         }
     },
     {
-    "vendor_id": 1,
+    "vendor_id": 2,
     "sku": "OC300",
     "name": "Omada Hardware Controller OC300 v1.6",
     "description": "Cloud-capable hardware controller for centralized management of Omada APs, switches and gateways.",
@@ -69,7 +69,7 @@
         }
     },
     {
-    "vendor_id": 1,
+    "vendor_id": 2,
     "sku": "OC400",
     "name": "Omada Hardware Controller OC400 v1.6",
     "description": "Cloud-capable hardware controller for centralized management of Omada APs, switches and gateways.",
@@ -92,7 +92,7 @@
         }
     },
     {
-    "vendor_id": 1,
+    "vendor_id": 2,
     "sku": "SoftwareController",
     "name": "Omada Software Controller",
     "description": "Cloud-capable free software controller for centralized management of Omada APs, switches and gateways. Needs a client device.",
