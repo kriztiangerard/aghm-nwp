@@ -3,15 +3,15 @@ import { z } from 'zod'
 const requiredEnum = <T extends readonly [string, ...string[]]>(
   values: T,
   message: string
-) =>
+): z.ZodType<T[number]> =>
   z.preprocess(
     (value) =>
       value === undefined || value === null || value === ''
-        ? '__MISSING__'
+        ? undefined
         : value,
-    z
-      .union([z.enum(values), z.literal('__MISSING__')])
-      .refine((value) => value !== '__MISSING__', { message })
+    z.enum(values, {
+      error: message,
+    })
   )
 
 const requiredBoolean = (message: string) =>

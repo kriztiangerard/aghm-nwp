@@ -16,11 +16,11 @@ const requiredEnum = <T extends readonly [string, ...string[]]>(
   z.preprocess(
     (value) =>
       value === undefined || value === null || value === ''
-        ? '__MISSING__'
+        ? undefined
         : value,
-    z
-      .union([z.enum(values), z.literal('__MISSING__')])
-      .refine((value) => value !== '__MISSING__', { message })
+    z.enum(values, {
+      error: message,
+    })
   )
 
 const requiredNumber = (
@@ -32,14 +32,14 @@ const requiredNumber = (
   z.preprocess(
     (value) =>
       value === undefined || value === null || value === ''
-        ? '__MISSING__'
+        ? undefined
         : value,
     z
-      .union([z.coerce.number(), z.literal('__MISSING__')])
-      .refine((value) => value !== '__MISSING__', { message })
-      .refine((value) => !Number.isNaN(value), { message })
-      .refine((value) => Number.isInteger(value), { message: intMessage })
-      .refine((value) => value >= minimum, { message: minMessage })
+      .coerce
+      .number({ error: message })
+      .refine((value) => !Number.isNaN(value), { error: message })
+      .refine(Number.isInteger, { error: intMessage })
+      .min(minimum, { error: minMessage })
   )
 
 export const projectBasicsSchema = z.object({
