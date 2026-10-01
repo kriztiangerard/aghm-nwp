@@ -130,7 +130,7 @@ Push your branch to GitHub.
 `[NWP-123]` Add device recommendation logic
 
 ### 7. Request Review
-- The PR requires approval from both Gerard and Angel before it can be merged.
+- The PR requires approval from the assigned member for QA and testing.
 
 ### 8. Wait for Approval
 - Do not merge the PR yourself.

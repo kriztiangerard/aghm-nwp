@@ -8,10 +8,20 @@ import * as apigwv2 from 'aws-cdk-lib/aws-apigatewayv2';
 import { HttpLambdaIntegration } from 'aws-cdk-lib/aws-apigatewayv2-integrations';
 import * as events from 'aws-cdk-lib/aws-events';
 import * as targets from 'aws-cdk-lib/aws-events-targets';
+import * as iam from 'aws-cdk-lib/aws-iam';
 
 export class AghmNwpStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
+
+    const amplifyRole = new iam.Role(this, 'AmplifyServiceRole', {
+      assumedBy: new iam.ServicePrincipal('amplify.amazonaws.com'),
+      description: 'Service role used by AWS Amplify to run builds',
+    });
+
+    amplifyRole.addManagedPolicy(
+      iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess-Amplify')
+    );
 
 
     // 1. BACKEND: AWS Lambda Functions
@@ -130,17 +140,14 @@ applications:
         baseDirectory: dist
         files:
           - '**/*'
-      cache:
-        paths:
-          - node_modules/**/*
 `;
 
     const amplifyApp = new amplify.CfnApp(this, 'MonorepoAmplifyApp', {
       name: 'Capstone Project',
       repository: 'https://github.com/kriztiangerard/aghm-nwp',
-      repository: 'https://github.com/kriztiangerard/aghm-nwp',
       oauthToken: githubToken,
       buildSpec: buildSpecYaml,
+      iamServiceRole: amplifyRole.roleArn,
 
 
       // For fixing client-side routing
@@ -152,15 +159,18 @@ applications:
           status: '200',
         },
       ],
-          status: '200',
-        },
-      ],
     });
 
     // Connect the main branch so it triggers builds on push
     const mainBranch = new amplify.CfnBranch(this, 'MainBranch', {
       appId: amplifyApp.attrAppId,
       branchName: 'main',
+      enableAutoBuild: true,
+    });
+
+    const developmentBranch = new amplify.CfnBranch(this, 'DevelopmentBranch', {
+      appId: amplifyApp.attrAppId,
+      branchName: 'development',
       enableAutoBuild: true,
     });
 
