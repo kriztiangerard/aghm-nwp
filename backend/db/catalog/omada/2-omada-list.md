@@ -8,13 +8,10 @@ Stick with international versions; PH uses EU/UN regional specifications by defa
 
 If no datasheet is available, website entry is listed instead. Unless listed otherwise, model is the latest version with no EOS/EOL.
 
-## Possible distributors list
-* DynaQuest - https://dynaquestpc.com/collections/access-point-range-extender?sort_by=best-selling&filter.p.vendor=TPLink
+## Official Website list
 
-Lazada/Shopee-based
-* Official TP-Link - https://shopee.ph/mall/search?keyword=eap&shop=117867014
-* EJD - https://www.lazada.com.ph/shop-access-points/?from=wangpu&m=shop&q=All-Products&style=wf&tp-link-by-ejd
-* Drex Technologies - https://www.lazada.com.ph/shop-access-points/?drex-technologies&from=wangpu&m=shop&q=All-Products
+* Official Website - https://www.omadanetworks.com/ph
+* Official Shopee - https://shopee.ph/mall/search?keyword=eap&shop=117867014
 
 ## EOL Policy
 
@@ -126,6 +123,7 @@ Out of scope for the initial list are unmanaged switches. Older models have TL-S
 Suffixes
 * SG - Speed gigabit
 * SX - Speed 10-gigabit
+* Second digit - SFP port count
 * Last two digits - port count
 * P - PoE enabled
 * MP - Max power; high-budget PoE
@@ -142,9 +140,10 @@ Suffixes
 
 ### Access Pro
 
-* SG3210X-M2 - https://support.omadanetworks.com/ph/document/118259/
+* SG3210X-M2 - https://support.omadanetworks.com/ph/document/3477/ [NOTE: EOS 11/25/2026, EOL 11/25/2029]
 * SG3428XPP-M2 - https://support.omadanetworks.com/ph/document/115757/
-* SG3210XHP-M2 v2.6 - https://support.omadanetworks.com/ph/document/2174/ [NOTE: EOS 5/21/2026, EOL 5/21/2029]
+* SG3210XHP-M2 v3.26 - https://support.omadanetworks.com/ph/document/118259/ [NOTE: EOS 1/6/2027, EOL 1/6/2030]
+<!--* SG3210XHP-M2 v2.6 - https://support.omadanetworks.com/ph/document/2174/ [NOTE: EOS 5/21/2026, EOL 5/21/2029] -->
 
 ### Access
 * SG2210P v5.3 – https://support.omadanetworks.com/ph/document/128552/
