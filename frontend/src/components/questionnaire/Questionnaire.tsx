@@ -1,3 +1,4 @@
+import { mapFormToNetworkConfiguration } from '../../lib/network-config-mapper'
 import { useState } from 'react'
 import {
   FormProvider,
@@ -126,9 +127,13 @@ function Questionnaire() {
     // Dynamically validate details array only if large rooms are selected in Step 2
     if (
       currentStep === 1 &&
-      form.getValues('physicalSpace.largeGroupRooms.hasLargeGroupRooms' as FormField) === true
+      form.getValues(
+        'physicalSpace.largeGroupRooms.hasLargeGroupRooms' as FormField,
+      ) === true
     ) {
-      currentFields.push('physicalSpace.largeGroupRooms.rooms' as FormField)
+      currentFields.push(
+        'physicalSpace.largeGroupRooms.rooms' as FormField,
+      )
     }
 
     const isValid = await form.trigger(currentFields, {
@@ -171,13 +176,17 @@ function Questionnaire() {
       return
     }
 
+    const payload = mapFormToNetworkConfiguration(data)
+
+    console.log('Network payload:', payload)
+
     try {
       const response = await fetch(`${apiUrl}/generate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify(payload),
       })
 
       if (!response.ok) {
@@ -206,17 +215,14 @@ function Questionnaire() {
     <FormProvider {...form}>
       <main className="min-h-screen bg-muted/30 px-4 py-8 sm:px-8 sm:py-12">
         <div className="mx-auto grid w-full max-w-6xl grid-cols-1 items-start gap-8 lg:grid-cols-[minmax(15rem,0.8fr)_minmax(0,1.4fr)] lg:gap-12">
-
           <SummaryPanel />
 
           <Card className="flex flex-col overflow-hidden lg:h-[calc(100dvh-6rem)] lg:min-h-[36rem]">
-
             <form
               onSubmit={form.handleSubmit(onSubmit)}
               className="flex min-h-0 flex-1 flex-col lg:h-full"
               aria-labelledby="questionnaire-title"
             >
-
               <CardHeader className="shrink-0">
                 <h1
                   id="questionnaire-title"
@@ -243,7 +249,6 @@ function Questionnaire() {
 
               <ScrollArea className="min-h-0 lg:h-0 lg:flex-1">
                 <CardContent className="space-y-6 pt-6">
-
                   {submitError && (
                     <div
                       role="alert"
@@ -254,14 +259,12 @@ function Questionnaire() {
                   )}
 
                   <CurrentSection />
-
                 </CardContent>
               </ScrollArea>
 
               <Separator />
 
               <CardContent className="flex shrink-0 justify-between py-4">
-
                 <Button
                   type="button"
                   variant="outline"
@@ -292,10 +295,8 @@ function Questionnaire() {
                       : 'Submit'}
                   </Button>
                 )}
-
               </CardContent>
             </form>
-
           </Card>
         </div>
       </main>
