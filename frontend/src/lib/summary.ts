@@ -1,3 +1,5 @@
+import { formatSelectLabel } from '../schemas/formatters'
+
 export type SummaryItem = {
   label: string
   value: string | string[]
@@ -164,7 +166,16 @@ const formatValue = (key: string, value: unknown): string | string[] => {
   if (typeof value === 'string') {
     const normalized = value.trim()
     if (!normalized) return ''
-    return VALUE_OVERRIDES[normalized] ?? normalized
+
+    if (VALUE_OVERRIDES[normalized]) {
+      return VALUE_OVERRIDES[normalized]
+    }
+
+    if (normalized.includes('_') || normalized.includes('-')) {
+      return formatSelectLabel(normalized)
+    }
+
+    return normalized
   }
 
   return String(value)

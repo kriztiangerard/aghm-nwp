@@ -4,6 +4,7 @@ import {
   handleWholeNumberChange,
   sanitizeNumberInput,
 } from '../frontend/src/lib/numberInput'
+import { formatSelectLabel } from '../frontend/src/schemas/formatters'
 import { questionnaireSchema } from '../frontend/src/schemas/questionnaireSchema'
 
 describe('questionnaire validation messages', () => {
@@ -23,6 +24,45 @@ describe('questionnaire validation messages', () => {
     })
 
     expect(changedValue).toBe(250)
+  })
+
+  it('uses user-facing labels rather than raw enum values in summary output', () => {
+    const sections = getSummarySections({
+      project: {
+        name: 'Acme Logistics',
+        numberOfSites: 'two_or_more',
+        siteRelationship: 'same_city',
+        totalUsers: 80,
+      },
+      existingNetwork: {
+        equipmentStatus: 'not_sure',
+        existingCabling: 'cat5e_or_cat6',
+      },
+      businessContext: {
+        monthlyITBudget: '15000_40000',
+        ITSupport: 'in_house',
+        electricityReliability: 'frequent_outages',
+        expectedGrowth: true,
+        growth: {
+          headcountGrowth: '11_30',
+          newSites: 'one',
+        },
+      },
+    })
+
+    const summaryText = sections
+      .flatMap((section) => section.items.map((item) => item.value))
+      .join(' ')
+
+    expect(formatSelectLabel('not_sure')).toBe('Not sure')
+    expect(formatSelectLabel('cat5e_or_cat6')).toBe('Cat5e / Cat6')
+    expect(summaryText).toContain('Same city')
+    expect(summaryText).toContain('Yes')
+    expect(summaryText).toContain('In-house IT')
+    expect(summaryText).toContain('Not sure')
+    expect(summaryText).toContain('Cat5e / Cat6')
+    expect(summaryText).not.toContain('not_sure')
+    expect(summaryText).not.toContain('cat5e_or_cat6')
   })
 
   it('blocks empty device counts and descriptions with clear required messages', () => {

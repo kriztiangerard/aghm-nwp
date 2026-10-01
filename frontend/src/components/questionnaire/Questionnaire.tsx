@@ -134,9 +134,7 @@ function Questionnaire() {
         },
       },
 
-      businessContext: {
-        expectedGrowth: false,
-      },
+      businessContext: {},
     },
   })
 
