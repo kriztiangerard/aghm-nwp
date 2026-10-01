@@ -1,5 +1,9 @@
 import { getSummarySections } from '../frontend/src/lib/summary'
-import { sanitizeNumberInput } from '../frontend/src/lib/numberInput'
+import {
+  clampWholeNumberInput,
+  handleWholeNumberChange,
+  sanitizeNumberInput,
+} from '../frontend/src/lib/numberInput'
 import { questionnaireSchema } from '../frontend/src/schemas/questionnaireSchema'
 
 describe('questionnaire validation messages', () => {
@@ -8,6 +12,17 @@ describe('questionnaire validation messages', () => {
     expect(sanitizeNumberInput('250')).toBe(250)
     expect(sanitizeNumberInput('0')).toBe(0)
     expect(sanitizeNumberInput('abc')).toBeUndefined()
+  })
+
+  it('does not apply a global 200 cap to generic whole-number inputs', () => {
+    expect(clampWholeNumberInput('250', 1)).toBe(250)
+
+    let changedValue: string | number | undefined
+    handleWholeNumberChange('250', (value) => {
+      changedValue = value
+    })
+
+    expect(changedValue).toBe(250)
   })
 
   it('blocks empty device counts and descriptions with clear required messages', () => {
@@ -202,6 +217,426 @@ describe('questionnaire validation messages', () => {
     )
   })
 
+  it('groups multi-select application choices into a badge list', () => {
+    const sections = getSummarySections({
+      preferences: {
+        applications: {
+          videoConferencing: true,
+          voipCalls: true,
+          posPayment: false,
+          otherEnabled: true,
+          other: 'Inventory system',
+        },
+      },
+    })
+
+    expect(sections).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          title: 'Network setup preferences',
+          items: expect.arrayContaining([
+            expect.objectContaining({
+              label: 'Main network usage',
+              value: ['Video conferencing', 'VoIP calls'],
+            }),
+            expect.objectContaining({
+              label: 'Other network usage',
+              value: 'Inventory system',
+            }),
+          ]),
+        }),
+      ])
+    )
+  })
+
+  it('adds units to summary values where the questionnaire calls for them', () => {
+    const sections = getSummarySections({
+      project: {
+        totalUsers: 42,
+      },
+      internet: {
+        currentSpeedMbps: 250,
+      },
+      devices: {
+        voip: {
+          phoneCount: 12,
+        },
+        ipCameras: {
+          cameraCount: 5,
+        },
+      },
+    })
+
+    expect(sections).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          title: 'Project basics',
+          items: expect.arrayContaining([
+            expect.objectContaining({ label: 'Total number of users', value: '42 people' }),
+          ]),
+        }),
+        expect.objectContaining({
+          title: 'Internet connection',
+          items: expect.arrayContaining([
+            expect.objectContaining({ label: 'Current internet speed', value: '250 Mbps' }),
+          ]),
+        }),
+        expect.objectContaining({
+          title: 'Devices',
+          items: expect.arrayContaining([
+            expect.objectContaining({ label: 'VoIP phone count', value: '12 phones' }),
+            expect.objectContaining({ label: 'IP camera count', value: '5 cameras' }),
+          ]),
+        }),
+      ])
+    )
+  })
+
+  it('shows only the current section in the side summary and keeps the full history for the overall summary', () => {
+    const values = {
+      project: {
+        name: 'Acme Logistics',
+        numberOfSites: 'two_or_more',
+        siteRelationship: 'different_countries',
+        totalUsers: 50,
+      },
+      physicalSpace: {
+        numberOfFloors: 2,
+        floorAreaPerFloor: 150,
+        roomsPerFloor: 8,
+        largeGroupRooms: { hasLargeGroupRooms: true, rooms: [{ floor: 1, capacity: 25 }] },
+      },
+      internet: {
+        currentSpeedMbps: 300,
+        connectionType: 'fiber',
+        downtimeImpact: 'every_minute_matters',
+      },
+      preferences: {
+        applications: {
+          videoConferencing: true,
+          cloudStorage: true,
+          basicBrowsingEmail: false,
+          otherEnabled: false,
+          other: '',
+        },
+      },
+    }
+
+    const sectionSummary = getSummarySections(values, 'project')
+    expect(sectionSummary).toEqual([
+      expect.objectContaining({
+        title: 'Project basics',
+        items: expect.arrayContaining([
+          expect.objectContaining({ label: 'Project or company name', value: 'Acme Logistics' }),
+          expect.objectContaining({ label: 'Number of business locations', value: 'Two or more sites' }),
+          expect.objectContaining({ label: 'Site locations', value: 'Different countries' }),
+          expect.objectContaining({ label: 'Total number of users', value: '50 people' }),
+        ]),
+      }),
+    ])
+    expect(sectionSummary).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ title: 'Physical space' }),
+      ])
+    )
+
+    const overallSummary = getSummarySections(values)
+    expect(overallSummary).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ title: 'Project basics' }),
+        expect.objectContaining({ title: 'Physical space' }),
+        expect.objectContaining({ title: 'Internet connection' }),
+        expect.objectContaining({ title: 'Network setup preferences' }),
+      ])
+    )
+  })
+
+  it('allows skipping site relationship and rough estimates when the user is unsure', () => {
+    const result = questionnaireSchema.safeParse({
+      project: {
+        name: 'Example Business',
+        numberOfSites: 1,
+        siteRelationship: undefined,
+        totalUsers: 15,
+      },
+      physicalSpace: {
+        numberOfFloors: 2,
+        floorAreaPerFloor: undefined,
+        roomsPerFloor: 5,
+        largeGroupRooms: {
+          hasLargeGroupRooms: false,
+          rooms: undefined,
+        },
+      },
+      existingNetwork: {
+        equipmentStatus: 'yes',
+        equipment: {
+          routerModem: true,
+          switches: { quantity: '1' },
+          wifiAccessPoints: { quantity: '1' },
+          cablingAlreadyRun: true,
+          otherOrUnknown: false,
+        },
+        existingCabling: 'cat5e_or_cat6',
+      },
+      internet: {
+        currentSpeedMbps: undefined,
+        connectionType: 'fiber',
+        downtimeImpact: 'same_day_matters',
+      },
+      devices: {
+        wiredComputers: 5,
+        wifiDevices: 10,
+        voip: { enabled: false, phoneCount: undefined },
+        ipCameras: { enabled: false, cameraCount: undefined },
+        otherNetworkDevices: { enabled: false, description: undefined },
+      },
+      preferences: {
+        guestWifi: true,
+        sensitiveData: 'yes',
+        applications: {
+          videoConferencing: true,
+          voipCalls: false,
+          posPayment: false,
+          cloudStorage: false,
+          businessSoftware: false,
+          videoStreaming: false,
+          securityCameraViewing: false,
+          basicBrowsingEmail: false,
+          otherEnabled: false,
+          other: '',
+        },
+        equipmentLocation: 'wall_cabinet',
+        managementPreference: 'dashboard',
+      },
+      businessContext: {
+        monthlyITBudget: '15000_40000',
+        ITSupport: 'in_house',
+        electricityReliability: 'stable',
+        expectedGrowth: false,
+      },
+    })
+
+    expect(result.success).toBe(true)
+  })
+
+  it('caps the total user count at 200 as required by the draft', () => {
+    const validCases = [1, 50, 200]
+    const invalidCases = [0, -1, 201, 20000000, 50.5]
+
+    validCases.forEach((value) => {
+      const result = questionnaireSchema.safeParse({
+        project: {
+          name: 'Example Business',
+          numberOfSites: 1,
+          siteRelationship: 'same_city',
+          totalUsers: value,
+        },
+        physicalSpace: {
+          numberOfFloors: 2,
+          floorAreaPerFloor: 1500,
+          roomsPerFloor: 5,
+          largeGroupRooms: { hasLargeGroupRooms: false, rooms: undefined },
+        },
+        existingNetwork: {
+          equipmentStatus: 'yes',
+          equipment: {
+            routerModem: true,
+            switches: { quantity: '1' },
+            wifiAccessPoints: { quantity: '1' },
+            cablingAlreadyRun: true,
+            otherOrUnknown: false,
+          },
+          existingCabling: 'cat5e_or_cat6',
+        },
+        internet: {
+          currentSpeedMbps: 250,
+          connectionType: 'fiber',
+          downtimeImpact: 'same_day_matters',
+        },
+        devices: {
+          wiredComputers: 5,
+          wifiDevices: 10,
+          voip: { enabled: false, phoneCount: undefined },
+          ipCameras: { enabled: false, cameraCount: undefined },
+          otherNetworkDevices: { enabled: false, description: undefined },
+        },
+        preferences: {
+          guestWifi: true,
+          sensitiveData: 'yes',
+          applications: {
+            videoConferencing: true,
+            voipCalls: false,
+            posPayment: false,
+            cloudStorage: false,
+            businessSoftware: false,
+            videoStreaming: false,
+            securityCameraViewing: false,
+            basicBrowsingEmail: false,
+            otherEnabled: false,
+            other: '',
+          },
+          equipmentLocation: 'wall_cabinet',
+          managementPreference: 'dashboard',
+        },
+        businessContext: {
+          monthlyITBudget: '15000_40000',
+          ITSupport: 'in_house',
+          electricityReliability: 'stable',
+          expectedGrowth: false,
+        },
+      })
+
+      expect(result.success).toBe(true)
+    })
+
+    invalidCases.forEach((value) => {
+      const result = questionnaireSchema.safeParse({
+        project: {
+          name: 'Example Business',
+          numberOfSites: 1,
+          siteRelationship: 'same_city',
+          totalUsers: value,
+        },
+        physicalSpace: {
+          numberOfFloors: 2,
+          floorAreaPerFloor: 1500,
+          roomsPerFloor: 5,
+          largeGroupRooms: { hasLargeGroupRooms: false, rooms: undefined },
+        },
+        existingNetwork: {
+          equipmentStatus: 'yes',
+          equipment: {
+            routerModem: true,
+            switches: { quantity: '1' },
+            wifiAccessPoints: { quantity: '1' },
+            cablingAlreadyRun: true,
+            otherOrUnknown: false,
+          },
+          existingCabling: 'cat5e_or_cat6',
+        },
+        internet: {
+          currentSpeedMbps: 250,
+          connectionType: 'fiber',
+          downtimeImpact: 'same_day_matters',
+        },
+        devices: {
+          wiredComputers: 5,
+          wifiDevices: 10,
+          voip: { enabled: false, phoneCount: undefined },
+          ipCameras: { enabled: false, cameraCount: undefined },
+          otherNetworkDevices: { enabled: false, description: undefined },
+        },
+        preferences: {
+          guestWifi: true,
+          sensitiveData: 'yes',
+          applications: {
+            videoConferencing: true,
+            voipCalls: false,
+            posPayment: false,
+            cloudStorage: false,
+            businessSoftware: false,
+            videoStreaming: false,
+            securityCameraViewing: false,
+            basicBrowsingEmail: false,
+            otherEnabled: false,
+            other: '',
+          },
+          equipmentLocation: 'wall_cabinet',
+          managementPreference: 'dashboard',
+        },
+        businessContext: {
+          monthlyITBudget: '15000_40000',
+          ITSupport: 'in_house',
+          electricityReliability: 'stable',
+          expectedGrowth: false,
+        },
+      })
+
+      expect(result.success).toBe(false)
+      expect(result.error?.issues.some((issue) => issue.path.join('.') === 'project.totalUsers')).toBe(true)
+    })
+
+    const summary = getSummarySections({
+      project: {
+        totalUsers: 201,
+      },
+    })
+
+    expect(summary).toEqual([])
+  })
+
+  it('caps rough device and speed estimates to realistic SME ranges', () => {
+    const result = questionnaireSchema.safeParse({
+      project: {
+        name: 'Example Business',
+        numberOfSites: 1,
+        siteRelationship: 'same_city',
+        totalUsers: 50,
+      },
+      physicalSpace: {
+        numberOfFloors: 3,
+        floorAreaPerFloor: 3500,
+        roomsPerFloor: 18,
+        largeGroupRooms: { hasLargeGroupRooms: false, rooms: undefined },
+      },
+      existingNetwork: {
+        equipmentStatus: 'yes',
+        equipment: {
+          routerModem: true,
+          switches: { quantity: '1' },
+          wifiAccessPoints: { quantity: '1' },
+          cablingAlreadyRun: true,
+          otherOrUnknown: false,
+        },
+        existingCabling: 'cat5e_or_cat6',
+      },
+      internet: {
+        currentSpeedMbps: 25000,
+        connectionType: 'fiber',
+        downtimeImpact: 'same_day_matters',
+      },
+      devices: {
+        wiredComputers: 1501,
+        wifiDevices: 2501,
+        voip: { enabled: true, phoneCount: 501 },
+        ipCameras: { enabled: true, cameraCount: 501 },
+        otherNetworkDevices: { enabled: false, description: undefined },
+      },
+      preferences: {
+        guestWifi: true,
+        sensitiveData: 'yes',
+        applications: {
+          videoConferencing: true,
+          voipCalls: false,
+          posPayment: false,
+          cloudStorage: false,
+          businessSoftware: false,
+          videoStreaming: false,
+          securityCameraViewing: false,
+          basicBrowsingEmail: false,
+          otherEnabled: false,
+          other: '',
+        },
+        equipmentLocation: 'wall_cabinet',
+        managementPreference: 'dashboard',
+      },
+      businessContext: {
+        monthlyITBudget: '15000_40000',
+        ITSupport: 'in_house',
+        electricityReliability: 'stable',
+        expectedGrowth: false,
+      },
+    })
+
+    expect(result.success).toBe(false)
+    expect(result.error?.issues.some((issue) => issue.path.join('.') === 'devices.wiredComputers')).toBe(true)
+    expect(result.error?.issues.some((issue) => issue.path.join('.') === 'devices.wifiDevices')).toBe(true)
+    expect(result.error?.issues.some((issue) => issue.path.join('.') === 'devices.voip.phoneCount')).toBe(true)
+    expect(result.error?.issues.some((issue) => issue.path.join('.') === 'devices.ipCameras.cameraCount')).toBe(true)
+    expect(result.error?.issues.some((issue) => issue.path.join('.') === 'internet.currentSpeedMbps')).toBe(true)
+  })
+
   it('shows clear required-field messages for core questionnaire questions', () => {
     const result = questionnaireSchema.safeParse({
       project: {
@@ -268,13 +703,10 @@ describe('questionnaire validation messages', () => {
       expect.arrayContaining([
         'Project or company name is required.',
         'Number of business locations is required.',
-        'Business location relationship is required.',
         'Total number of users is required.',
         'Number of floors is required.',
-        'Approximate floor area per floor is required.',
         'Number of rooms/work areas per floor is required.',
         'Existing network equipment status is required.',
-        'Current internet speed is required.',
         'Internet connection type is required.',
         'Internet downtime impact is required.',
         'Wired computer count is required.',
