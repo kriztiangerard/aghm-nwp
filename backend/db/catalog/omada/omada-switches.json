@@ -329,8 +329,8 @@
     "is_rack_mountable": true,
     "u_height": 1,
     "lifecycle_status": "active",
-    "eos_date": null,
-    "eol_date": null,
+    "eos_date": "2027-01-06",
+    "eol_date": "2030-01-06",
     "switch_specs": {
       "port_count": 10,
       "poe_ports": 8,
@@ -338,30 +338,6 @@
       "switching_capacity_gbps": 80,
       "layer": 2,
       "sfp_ports": 2,
-      "sfp_form_factor": "SFP+"
-    }
-  },
-  {
-    "vendor_id": 2,
-    "category": "switch",
-    "capabilities": [
-      "switch"
-    ],
-    "sku": "SG3210XHP-M2",
-    "name": "JetStream 8-Port 2.5GBASE-T and 2-Port 10GE SFP+ L2+ Managed Switch with 8-Port PoE+",
-    "description": "JetStream 8-Port 2.5GBASE-T and 2-Port 10GE SFP+ L2+ Managed Switch with 8-Port PoE+.",
-    "price": null,
-    "is_rack_mountable": false,
-    "u_height": 0,
-    "lifecycle_status": "active",
-    "eos_date": "2027-01-06",
-    "eol_date": "2030-01-06",
-    "switch_specs": {
-      "port_count": 10,
-      "poe_ports": 8,
-      "poe_budget_w": 240,
-      "layer": 2,
-      "sfp_ports": 10,
       "sfp_form_factor": "SFP+"
     }
   },
