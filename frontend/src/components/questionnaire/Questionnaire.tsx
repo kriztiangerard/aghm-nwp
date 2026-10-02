@@ -1,6 +1,6 @@
 import { mapFormToNetworkConfiguration } from '../../lib/network-config-mapper'
 import { closeOpenSelectPortals } from '../../lib/closeOpenSelectPortals'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   FormProvider,
   useForm,
@@ -58,6 +58,9 @@ function Questionnaire() {
   const [currentStep, setCurrentStep] = useState(0)
   const [submitError, setSubmitError] = useState<string | null>(null)
 
+  const sectionHeadingRef = useRef<HTMLHeadingElement>(null)
+  const isInitialRender = useRef(true)
+
   const form = useForm<FormInput, unknown, FormOutput>({
     resolver: zodResolver(fullSchema),
     mode: 'onSubmit',
@@ -97,7 +100,15 @@ function Questionnaire() {
         active.blur()
       }
     }
+
+    if (isInitialRender.current) {
+      isInitialRender.current = false
+      return
+    }
+
+    sectionHeadingRef.current?.focus()
   }, [currentStep])
+
   const showSummaryPanel = currentStep < totalSteps - 1
   const mainGridClass = showSummaryPanel
     ? 'lg:grid-cols-[minmax(15rem,0.8fr)_minmax(0,1.4fr)] lg:gap-12'
@@ -286,7 +297,10 @@ function Questionnaire() {
                     aria-label={`Step ${currentStep + 1} of ${totalSteps}`}
                   />
 
-                  <p className="text-sm text-muted-foreground">
+                  <p
+                    className="text-sm text-muted-foreground"
+                    aria-live="polite"
+                  >
                     Step {currentStep + 1} of {totalSteps}
                   </p>
                 </div>
@@ -295,24 +309,36 @@ function Questionnaire() {
               <Separator />
 
               <ScrollArea className="min-h-0 lg:h-0 lg:flex-1">
-                <CardContent className="space-y-6 pt-6">
-                  {submitError && (
-                    <div
-                      role="alert"
-                      className="rounded-md bg-destructive/15 p-3 text-sm text-destructive"
-                    >
-                      {submitError}
-                    </div>
-                  )}
+              <CardContent className="space-y-6 pt-6">
+                {submitError && (
+                  <div
+                    role="alert"
+                    className="rounded-md bg-destructive/15 p-3 text-sm text-destructive"
+                  >
+                    {submitError}
+                  </div>
+                )}
+
+                <section aria-labelledby="current-section-title">
+                  <h2
+                    id="current-section-title"
+                    ref={sectionHeadingRef}
+                    tabIndex={-1}
+                    className="sr-only"
+                  >
+                    {currentSectionKey
+                      ? SECTION_TITLES[currentSectionKey]
+                      : 'Overall Network Planning Summary'}
+                  </h2>
 
                   <CurrentSection />
+                </section>
 
-                  <div className="rounded-md border border-amber-200 bg-amber-50 px-2.5 py-2 text-[11px] font-normal leading-relaxed text-amber-900/90">
-                    Please confirm exact quantities and placements with a qualified installer before purchasing.
-                  </div>
-
-                </CardContent>
-              </ScrollArea>
+                <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+                  Please confirm exact quantities and placements with a qualified installer before purchasing.
+                </div>
+              </CardContent>
+            </ScrollArea>
 
               <Separator />
 
