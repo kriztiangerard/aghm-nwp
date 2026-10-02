@@ -27,10 +27,17 @@ function SummaryPanel({ sectionKey }: SummaryPanelProps) {
         </h2>
       </div>
 
-      <div className="space-y-5 overflow-y-auto" aria-live="polite">
+      <div
+            className="space-y-5 overflow-y-auto"
+            aria-live="polite"
+            aria-atomic="false"
+          >
         {sections.length === 0 ? (
-          <div className="rounded-md border border-dashed border-border/70 bg-muted/30 px-3 py-4 text-sm text-muted-foreground">
-            Your answers will appear here
+          <div
+              role="status"
+              className="rounded-md border border-dashed border-border/70 bg-muted/30 px-3 py-4 text-sm text-muted-foreground"
+            >
+              Your answers will appear here
           </div>
         ) : (
           sections.map((section) => (
