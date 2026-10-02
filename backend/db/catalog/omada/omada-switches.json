@@ -17,7 +17,7 @@
       "poe_budget_w": 0,
       "switching_capacity_gbps": 820,
       "layer": 3,
-      "sfp_ports": "32",
+      "sfp_ports": 32,
       "sfp_form_factor": "SFP+"
     }
   },
@@ -38,7 +38,7 @@
       "poe_ports": 48,
       "poe_budget_w": 1440,
       "layer": 3,
-      "sfp_ports": "6",
+      "sfp_ports": 6,
       "sfp_form_factor": "SFP+"
     }
   },
@@ -59,7 +59,7 @@
       "poe_ports": 24,
       "poe_budget_w": 720,
       "layer": 3,
-      "sfp_ports": "4",
+      "sfp_ports": 4,
       "sfp_form_factor": "SFP+"
     }
   },
@@ -80,7 +80,7 @@
       "poe_ports": 48,
       "poe_budget_w": 770,
       "layer": 3,
-      "sfp_ports": "4",
+      "sfp_ports": 4,
       "sfp_form_factor": "SFP+"
     }
   },
@@ -101,7 +101,7 @@
       "poe_ports": 24,
       "poe_budget_w": 500,
       "layer": 3,
-      "sfp_ports": "4",
+      "sfp_ports": 4,
       "sfp_form_factor": "SFP+"
     }
   },
@@ -123,7 +123,7 @@
       "poe_budget_w": 0,
       "switching_capacity_gbps": 320,
       "layer": 2,
-      "sfp_ports": "16",
+      "sfp_ports": 16,
       "sfp_form_factor": "SFP+"
     }
   },
@@ -145,7 +145,7 @@
       "poe_budget_w": 0,
       "switching_capacity_gbps": 640,
       "layer": 2,
-      "sfp_ports": "32",
+      "sfp_ports": 32,
       "sfp_form_factor": "SFP+"
     }
   },
@@ -167,7 +167,7 @@
       "poe_budget_w": 0,
       "switching_capacity_gbps": 160,
       "layer": 2,
-      "sfp_ports": "8",
+      "sfp_ports": 8,
       "sfp_form_factor": "SFP+"
     }
   },
@@ -188,7 +188,7 @@
       "poe_ports": 24,
       "poe_budget_w": 770,
       "layer": 2,
-      "sfp_ports": "8",
+      "sfp_ports": 8,
       "sfp_form_factor": "SFP+"
     }
   },
@@ -209,7 +209,7 @@
       "poe_ports": 0,
       "poe_budget_w": 0,
       "layer": 2,
-      "sfp_ports": "8",
+      "sfp_ports": 8,
       "sfp_form_factor": "SFP+"
     }
   },
@@ -230,7 +230,7 @@
       "poe_ports": 4,
       "poe_budget_w": 200,
       "layer": 2,
-      "sfp_ports": "2",
+      "sfp_ports": 2,
       "sfp_form_factor": "SFP+"
     }
   },
@@ -251,7 +251,7 @@
       "poe_ports": 8,
       "poe_budget_w": 160,
       "layer": 2,
-      "sfp_ports": "2",
+      "sfp_ports": 2,
       "sfp_form_factor": "SFP+"
     }
   },
@@ -273,7 +273,7 @@
       "poe_budget_w": 0,
       "switching_capacity_gbps": 80,
       "layer": 2,
-      "sfp_ports": "2",
+      "sfp_ports": 2,
       "sfp_form_factor": "SFP+"
     }
   },
@@ -295,7 +295,7 @@
       "poe_budget_w": 240,
       "switching_capacity_gbps": 80,
       "layer": 2,
-      "sfp_ports": "2",
+      "sfp_ports": 2,
       "sfp_form_factor": "SFP+"
     }
   },
@@ -316,7 +316,7 @@
       "poe_ports": 8,
       "poe_budget_w": 240,
       "layer": 2,
-      "sfp_ports": "10",
+      "sfp_ports": 10,
       "sfp_form_factor": "SFP+"
     }
   },
@@ -337,7 +337,7 @@
       "poe_ports": 0,
       "poe_budget_w": 0,
       "layer": 2,
-      "sfp_ports": "4",
+      "sfp_ports": 4,
       "sfp_form_factor": "SFP+"
     }
   },
@@ -358,7 +358,7 @@
       "poe_ports": 24,
       "poe_budget_w": 770,
       "layer": 2,
-      "sfp_ports": "4",
+      "sfp_ports": 4,
       "sfp_form_factor": "SFP+"
     }
   },
@@ -379,7 +379,7 @@
       "poe_ports": 24,
       "poe_budget_w": 500,
       "layer": 2,
-      "sfp_ports": "4",
+      "sfp_ports": 4,
       "sfp_form_factor": "SFP+"
     }
   },
@@ -400,7 +400,7 @@
       "poe_ports": 24,
       "poe_budget_w": 384,
       "layer": 2,
-      "sfp_ports": "4",
+      "sfp_ports": 4,
       "sfp_form_factor": "SFP+"
     }
   },
@@ -421,7 +421,7 @@
       "poe_ports": 24,
       "poe_budget_w": 500,
       "layer": 2,
-      "sfp_ports": "4",
+      "sfp_ports": 4,
       "sfp_form_factor": "SFP+"
     }
   },
@@ -442,7 +442,7 @@
       "poe_ports": 24,
       "poe_budget_w": 384,
       "layer": 2,
-      "sfp_ports": "4",
+      "sfp_ports": 4,
       "sfp_form_factor": "SFP"
     }
   },
@@ -463,7 +463,7 @@
       "poe_ports": 48,
       "poe_budget_w": 500,
       "layer": 2,
-      "sfp_ports": "4",
+      "sfp_ports": 4,
       "sfp_form_factor": "SFP"
     }
   },
@@ -484,7 +484,7 @@
       "poe_ports": 0,
       "poe_budget_w": 0,
       "layer": 2,
-      "sfp_ports": "4",
+      "sfp_ports": 4,
       "sfp_form_factor": "SFP+"
     }
   },
@@ -505,7 +505,7 @@
       "poe_ports": 48,
       "poe_budget_w": 384,
       "layer": 2,
-      "sfp_ports": "4",
+      "sfp_ports": 4,
       "sfp_form_factor": "SFP"
     }
   },
@@ -526,7 +526,7 @@
       "poe_ports": 24,
       "poe_budget_w": 250,
       "layer": 2,
-      "sfp_ports": "4",
+      "sfp_ports": 4,
       "sfp_form_factor": "SFP"
     }
   },
@@ -547,7 +547,7 @@
       "poe_ports": 16,
       "poe_budget_w": 150,
       "layer": 2,
-      "sfp_ports": "2",
+      "sfp_ports": 2,
       "sfp_form_factor": "SFP"
     }
   },
@@ -568,7 +568,7 @@
       "poe_ports": 8,
       "poe_budget_w": 150,
       "layer": 2,
-      "sfp_ports": "2",
+      "sfp_ports": 2,
       "sfp_form_factor": "SFP"
     }
   },
@@ -589,7 +589,7 @@
       "poe_ports": 8,
       "poe_budget_w": 61,
       "layer": 2,
-      "sfp_ports": "2",
+      "sfp_ports": 2,
       "sfp_form_factor": "SFP"
     }
   },
@@ -610,7 +610,7 @@
       "poe_ports": 4,
       "poe_budget_w": 62,
       "layer": 2,
-      "sfp_ports": "0",
+      "sfp_ports": 0,
       "sfp_form_factor": null
     }
   },
@@ -631,7 +631,7 @@
       "poe_ports": 24,
       "poe_budget_w": 384,
       "layer": 2,
-      "sfp_ports": "2",
+      "sfp_ports": 2,
       "sfp_form_factor": "SFP"
     }
   },
@@ -652,7 +652,7 @@
       "poe_ports": 16,
       "poe_budget_w": 250,
       "layer": 2,
-      "sfp_ports": "2",
+      "sfp_ports": 2,
       "sfp_form_factor": "SFP"
     }
   },
@@ -673,7 +673,7 @@
       "poe_ports": 0,
       "poe_budget_w": 0,
       "layer": 2,
-      "sfp_ports": "0",
+      "sfp_ports": 0,
       "sfp_form_factor": null
     }
   },
@@ -694,7 +694,7 @@
       "poe_ports": 8,
       "poe_budget_w": 123,
       "layer": 2,
-      "sfp_ports": "1",
+      "sfp_ports": 1,
       "sfp_form_factor": "SFP"
     }
   },
@@ -715,7 +715,7 @@
       "poe_ports": 8,
       "poe_budget_w": 63,
       "layer": 2,
-      "sfp_ports": "1",
+      "sfp_ports": 1,
       "sfp_form_factor": "SFP"
     }
   },
@@ -736,7 +736,7 @@
       "poe_ports": 8,
       "poe_budget_w": 64,
       "layer": 2,
-      "sfp_ports": "0",
+      "sfp_ports": 0,
       "sfp_form_factor": null
     }
   },
@@ -757,7 +757,7 @@
       "poe_ports": 0,
       "poe_budget_w": 0,
       "layer": 2,
-      "sfp_ports": "0",
+      "sfp_ports": 0,
       "sfp_form_factor": null
     }
   }
