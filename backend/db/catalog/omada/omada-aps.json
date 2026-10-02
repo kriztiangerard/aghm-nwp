@@ -2,6 +2,9 @@
   {
     "vendor_id": 2,
     "category": "ap",
+    "capabilities": [
+      "ap"
+    ],
     "sku": "EAP787",
     "name": "Omada EAP787 BE15000 Ceiling Mount Tri-Band Wi-Fi 7 Access Point",
     "description": "BE15000 Ceiling Mount Tri-Band Wi-Fi 7 Access Point.",
@@ -25,6 +28,9 @@
   {
     "vendor_id": 2,
     "category": "ap",
+    "capabilities": [
+      "ap"
+    ],
     "sku": "EAP770",
     "name": "Omada EAP770 BE11000 Ceiling Mount Tri-Band Wi-Fi 7 Access Point",
     "description": "BE11000 Ceiling Mount Tri-Band Wi-Fi 7 Access Point.",
@@ -46,6 +52,9 @@
   {
     "vendor_id": 2,
     "category": "ap",
+    "capabilities": [
+      "ap"
+    ],
     "sku": "EAP727",
     "name": "Omada EAP727 BE5000 Ceiling Mount Wi-Fi 7 Access Point",
     "description": "BE5000 Ceiling Mount Wi-Fi 7 Access Point.",
@@ -67,6 +76,9 @@
   {
     "vendor_id": 2,
     "category": "ap",
+    "capabilities": [
+      "ap"
+    ],
     "sku": "EAP723",
     "name": "Omada EAP723 BE5000 Ceiling Mount Wi-Fi 7 Access Point",
     "description": "BE5000 Ceiling Mount Wi-Fi 7 Access Point.",
@@ -88,6 +100,9 @@
   {
     "vendor_id": 2,
     "category": "ap",
+    "capabilities": [
+      "ap"
+    ],
     "sku": "EAP720",
     "name": "Omada EAP720 BE5000 Ceiling Mount Wi-Fi 7 Access Point",
     "description": "BE5000 Ceiling Mount Wi-Fi 7 Access Point.",
@@ -109,6 +124,9 @@
   {
     "vendor_id": 2,
     "category": "ap",
+    "capabilities": [
+      "ap"
+    ],
     "sku": "EAP683 UR",
     "name": "Omada EAP683 UR AX6000 Ceiling Mount WiFi 6 Access Point",
     "description": "AX6000 Ceiling Mount WiFi 6 Access Point.",
@@ -130,6 +148,9 @@
   {
     "vendor_id": 2,
     "category": "ap",
+    "capabilities": [
+      "ap"
+    ],
     "sku": "EAP610",
     "name": "Omada EAP610 AX1800 Ceiling Mount WiFi 6 Access Point",
     "description": "AX1800 Ceiling Mount WiFi 6 Access Point.",
@@ -151,6 +172,9 @@
   {
     "vendor_id": 2,
     "category": "ap",
+    "capabilities": [
+      "ap"
+    ],
     "sku": "EAP650",
     "name": "Omada EAP650 AX3000 Ceiling Mount WiFi 6 Access Point",
     "description": "AX3000 Ceiling Mount WiFi 6 Access Point.",
