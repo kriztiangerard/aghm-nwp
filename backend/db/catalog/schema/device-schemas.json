@@ -31,8 +31,11 @@
         "capabilities": {
           "type": "array",
           "uniqueItems": true,
-          "items": { "type": "string" },
-          "description": "Role tags written to the DeviceCapability junction at seed time (capability_desc values, e.g. router, switch, controller, firewall). Tag every role a multi-role device performs so the engine knows it replaces separate devices. Optional for single-role devices."
+          "items": {
+            "type": "string",
+            "enum": ["router", "switch", "controller", "firewall", "ap"]
+          },
+          "description": "Role tags written to the DeviceCapability junction at seed time (capability_desc values; the seed script resolves each to a capability_id). Fixed vocabulary so a typo can't create a new capability. Tag every role a multi-role device performs so the engine knows it replaces separate devices. Optional for single-role devices."
         }
       },
       "required": [
