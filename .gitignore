@@ -11,4 +11,5 @@ cdk.out
 .env
 .env.local
 
+# RDS SSL certificate
 global-bundle.pem
