@@ -1,33 +1,261 @@
+import { useEffect } from 'react'
 import { Controller, useFormContext } from 'react-hook-form'
 
 import {
-  FieldSet, FieldLegend, FieldGroup,
-  Field, FieldLabel, FieldError,
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/form-ui"
+  FieldSet,
+  FieldLegend,
+  FieldGroup,
+  Field,
+  FieldLabel,
+  FieldError,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+} from '@/components/ui/form-ui'
 
 function BudgetBusinessContext() {
-  const { control } = useFormContext()
+  const { control, watch, setValue, clearErrors } = useFormContext()
 
-  const fields = [
-    { name: 'itSupport', label: 'IT support', options: [['none', 'No dedicated IT support'], ['outside', 'Outside person/company'], ['in-house', 'In-house IT']] },
-    { name: 'electricity', label: 'Electricity reliability', options: [['stable', 'Stable'], ['outages', 'Frequent brownouts/outages']] },
-    { name: 'growth', label: 'Do you expect business growth in the next 1–2 years?', options: [['no', 'No'], ['yes', 'Yes']] },
-    { name: 'growthRate', label: 'Expected headcount growth', options: [['0-10', '0–10%'], ['11-30', '11–30%'], ['31-plus', '31%+']] },
-    { name: 'additionalSites', label: 'Expected additional sites', options: [['none', 'None'], ['one', '1'], ['two-plus', '2+']] },
-    { name: 'management', label: 'Preferred network management', options: [['simple', 'Simple app/web dashboard'], ['technical', 'Traditional CLI/technical'], ['not-sure', 'Not sure']] },
-  ] as const
+  const expectedGrowth = watch('businessContext.expectedGrowth')
+
+  useEffect(() => {
+    if (expectedGrowth === false) {
+      setValue('businessContext.growth', undefined, {
+        shouldDirty: true,
+        shouldValidate: false,
+      })
+
+      clearErrors([
+        'businessContext.growth',
+        'businessContext.growth.headcountGrowth',
+        'businessContext.growth.newSites',
+      ])
+    }
+  }, [clearErrors, expectedGrowth, setValue])
+
+  const monthlyBudgetLabels: Record<string, string> = {
+    under_15000: 'Under ₱15,000',
+    '15000_40000': '₱15,000–₱40,000',
+    over_40000: 'Over ₱40,000',
+  }
+
+  const itSupportLabels: Record<string, string> = {
+    none: 'No dedicated IT support',
+    external: 'Outside person/company',
+    in_house: 'In-house IT',
+  }
+
+  const electricityLabels: Record<string, string> = {
+    stable: 'Stable',
+    frequent_outages: 'Frequent brownouts/outages',
+  }
+
+  const growthLabels: Record<string, string> = {
+    no: 'No',
+    yes: 'Yes',
+  }
+
+  const headcountLabels: Record<string, string> = {
+    '0_10': '0–10%',
+    '11_30': '11–30%',
+    '31_plus': '31%+',
+  }
+
+  const siteLabels: Record<string, string> = {
+    none: 'None',
+    one: '1',
+    two_or_more: '2+',
+  }
+
+  const shouldShowError = (fieldState: { invalid: boolean; error?: unknown; isTouched: boolean }) =>
+    fieldState.invalid && fieldState.isTouched
 
   return (
     <FieldSet>
       <FieldLegend>Budget &amp; Business Context</FieldLegend>
 
       <FieldGroup>
-        {fields.map(({ name, label, options }) => (
-          <Controller key={name} name={name} control={control} render={({ field, fieldState }) => (
-            <Field data-invalid={fieldState.invalid}><FieldLabel htmlFor={field.name}>{label}</FieldLabel><Select value={field.value} onValueChange={field.onChange}><SelectTrigger id={field.name} aria-invalid={fieldState.invalid}><SelectValue placeholder="Select an option" /></SelectTrigger><SelectContent>{options.map(([value, optionLabel]) => <SelectItem key={value} value={value}>{optionLabel}</SelectItem>)}</SelectContent></Select>{fieldState.invalid && <FieldError errors={[fieldState.error]} />}</Field>
-          )} />
-        ))}
+        <Controller
+          name="businessContext.monthlyITBudget"
+          control={control}
+          render={({ field, fieldState }) => {
+            const showError = shouldShowError(fieldState)
+
+            return (
+              <Field data-invalid={showError}>
+                <FieldLabel htmlFor={field.name}>Monthly IT spending budget (PHP)</FieldLabel>
+                <Select value={field.value ?? ''} onValueChange={field.onChange}>
+                  <SelectTrigger id={field.name} aria-invalid={showError}>
+                    {field.value ? (
+                      <span className="flex-1 text-left">{monthlyBudgetLabels[field.value]}</span>
+                    ) : (
+                      <span className="text-muted-foreground">Select an option</span>
+                    )}
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="under_15000">Under ₱15,000</SelectItem>
+                    <SelectItem value="15000_40000">₱15,000–₱40,000</SelectItem>
+                    <SelectItem value="over_40000">Over ₱40,000</SelectItem>
+                  </SelectContent>
+                </Select>
+                {showError && <FieldError errors={[fieldState.error]} />}
+              </Field>
+            )
+          }}
+        />
+
+        <Controller
+          name="businessContext.ITSupport"
+          control={control}
+          render={({ field, fieldState }) => {
+            const showError = shouldShowError(fieldState)
+
+            return (
+              <Field data-invalid={showError}>
+                <FieldLabel htmlFor={field.name}>Who currently handles IT support for your business?</FieldLabel>
+                <Select value={field.value ?? ''} onValueChange={field.onChange}>
+                  <SelectTrigger id={field.name} aria-invalid={showError}>
+                    {field.value ? (
+                      <span className="flex-1 text-left">{itSupportLabels[field.value]}</span>
+                    ) : (
+                      <span className="text-muted-foreground">Select an option</span>
+                    )}
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">No dedicated IT support</SelectItem>
+                    <SelectItem value="external">Outside person/company</SelectItem>
+                    <SelectItem value="in_house">In-house IT</SelectItem>
+                  </SelectContent>
+                </Select>
+                {showError && <FieldError errors={[fieldState.error]} />}
+              </Field>
+            )
+          }}
+        />
+
+        <Controller
+          name="businessContext.electricityReliability"
+          control={control}
+          render={({ field, fieldState }) => {
+            const showError = shouldShowError(fieldState)
+
+            return (
+              <Field data-invalid={showError}>
+                <FieldLabel htmlFor={field.name}>How reliable is the electricity at this location?</FieldLabel>
+                <Select value={field.value ?? ''} onValueChange={field.onChange}>
+                  <SelectTrigger id={field.name} aria-invalid={showError}>
+                    {field.value ? (
+                      <span className="flex-1 text-left">{electricityLabels[field.value]}</span>
+                    ) : (
+                      <span className="text-muted-foreground">Select an option</span>
+                    )}
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="stable">Stable</SelectItem>
+                    <SelectItem value="frequent_outages">Frequent brownouts/outages</SelectItem>
+                  </SelectContent>
+                </Select>
+                {showError && <FieldError errors={[fieldState.error]} />}
+              </Field>
+            )
+          }}
+        />
+
+        <Controller
+          name="businessContext.expectedGrowth"
+          control={control}
+          render={({ field, fieldState }) => {
+            const showError = shouldShowError(fieldState)
+
+            return (
+              <Field data-invalid={showError}>
+                <FieldLabel htmlFor={field.name}>
+                  Do you expect business growth in the next 1–2 years?
+                </FieldLabel>
+                <Select
+                  value={field.value === undefined ? '' : field.value ? 'yes' : 'no'}
+                  onValueChange={(val) => field.onChange(val === 'yes')}
+                >
+                  <SelectTrigger id={field.name} aria-invalid={showError}>
+                    {field.value !== undefined ? (
+                      <span className="flex-1 text-left">{growthLabels[field.value ? 'yes' : 'no']}</span>
+                    ) : (
+                      <span className="text-muted-foreground">Select an option</span>
+                    )}
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="no">No</SelectItem>
+                    <SelectItem value="yes">Yes</SelectItem>
+                  </SelectContent>
+                </Select>
+                {showError && <FieldError errors={[fieldState.error]} />}
+              </Field>
+            )
+          }}
+        />
+
+        {expectedGrowth && (
+          <>
+            <Controller
+              name="businessContext.growth.headcountGrowth"
+              control={control}
+              render={({ field, fieldState }) => {
+                const showError = shouldShowError(fieldState)
+
+                return (
+                  <Field data-invalid={showError}>
+                    <FieldLabel htmlFor={field.name}>Expected headcount growth in the next 1–2 years?</FieldLabel>
+                    <Select value={field.value ?? ''} onValueChange={field.onChange}>
+                      <SelectTrigger id={field.name} aria-invalid={showError}>
+                        {field.value ? (
+                          <span className="flex-1 text-left">{headcountLabels[field.value]}</span>
+                        ) : (
+                          <span className="text-muted-foreground">Select an option</span>
+                        )}
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="0_10">0–10%</SelectItem>
+                        <SelectItem value="11_30">11–30%</SelectItem>
+                        <SelectItem value="31_plus">31%+</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {showError && <FieldError errors={[fieldState.error]} />}
+                  </Field>
+                )
+              }}
+            />
+
+            <Controller
+              name="businessContext.growth.newSites"
+              control={control}
+              render={({ field, fieldState }) => {
+                const showError = shouldShowError(fieldState)
+
+                return (
+                  <Field data-invalid={showError}>
+                    <FieldLabel htmlFor={field.name}>Do you plan to open additional physical locations in the next 1–2 years?</FieldLabel>
+                    <Select value={field.value ?? ''} onValueChange={field.onChange}>
+                      <SelectTrigger id={field.name} aria-invalid={showError}>
+                        {field.value ? (
+                          <span className="flex-1 text-left">{siteLabels[field.value]}</span>
+                        ) : (
+                          <span className="text-muted-foreground">Select an option</span>
+                        )}
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">None</SelectItem>
+                        <SelectItem value="one">1</SelectItem>
+                        <SelectItem value="two_or_more">2+</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {showError && <FieldError errors={[fieldState.error]} />}
+                  </Field>
+                )
+              }}
+            />
+          </>
+        )}
       </FieldGroup>
     </FieldSet>
   )

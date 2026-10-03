@@ -23,6 +23,7 @@ function SplashPage() {
         <div className="mt-8">
           <Button
             type="button"
+            size="lg"
             onClick={() => navigate('/questionnaire')}
           >
             Start Network Generation
