@@ -1,6 +1,7 @@
 import { formatSelectLabel } from '../schemas/formatters'
 
 export type SummaryItem = {
+  id?: string
   label: string
   value: string | string[]
 }
@@ -127,12 +128,20 @@ const UNIT_SUFFIXES: Record<string, string> = {
 const formatObjectArrayValue = (value: Record<string, unknown>[]) =>
   value
     .map((item) => {
+      const hasMeaningfulData = Object.values(item).some(
+        (entry) => entry !== undefined && entry !== null && entry !== '' && !(typeof entry === 'string' && entry.trim() === ''),
+      )
+
+      if (!hasMeaningfulData) {
+        return undefined
+      }
+
       const floor = typeof item.floor === 'number' ? `Floor ${item.floor}` : undefined
       const capacity = typeof item.capacity === 'number' ? `${item.capacity} people` : undefined
       const parts = [floor, capacity].filter(Boolean)
       return parts.length > 0 ? parts.join(' · ') : JSON.stringify(item)
     })
-    .filter(Boolean)
+    .filter((item): item is string => Boolean(item))
 
 const formatValue = (key: string, value: unknown): string | string[] => {
   if (value === undefined || value === null || value === '') return ''
@@ -193,15 +202,45 @@ const flattenSummaryItems = (obj: Record<string, unknown>, parentKey = ''): Summ
         .map(([appKey]) => prettifyKey(appKey))
 
       if (applicationValues.length > 0) {
-        items.push({ label: 'Main network usage', value: applicationValues })
+        items.push({ id: 'applications.mainNetworkUsage', label: 'Main network usage', value: applicationValues })
       }
 
       const otherUsage = (value as Record<string, unknown>).other
       if ((value as Record<string, unknown>).otherEnabled === true && typeof otherUsage === 'string' && otherUsage.trim()) {
-        items.push({ label: 'Other network usage', value: otherUsage.trim() })
+        items.push({ id: 'applications.other', label: 'Other network usage', value: otherUsage.trim() })
       }
 
       return
+    }
+
+    if (key === 'largeGroupRooms' && typeof value === 'object' && !Array.isArray(value)) {
+      const largeGroupRooms = value as Record<string, unknown>
+
+      if ('hasLargeGroupRooms' in largeGroupRooms) {
+        if (largeGroupRooms.hasLargeGroupRooms === false) {
+          items.push({ id: 'largeGroupRooms.hasLargeGroupRooms', label: prettifyKey('hasLargeGroupRooms'), value: 'No' })
+          return
+        }
+
+        if (largeGroupRooms.hasLargeGroupRooms !== true) {
+          return
+        }
+      }
+    }
+
+    if ((key === 'voip' || key === 'ipCameras' || key === 'otherNetworkDevices') && typeof value === 'object' && !Array.isArray(value)) {
+      const nestedData = value as Record<string, unknown>
+
+      if ('enabled' in nestedData) {
+        if (nestedData.enabled === false) {
+          items.push({ id: `${key}.enabled`, label: prettifyKey('enabled'), value: 'No' })
+          return
+        }
+
+        if (nestedData.enabled !== true) {
+          return
+        }
+      }
     }
 
     if (typeof value === 'object' && !Array.isArray(value)) {
@@ -215,7 +254,7 @@ const flattenSummaryItems = (obj: Record<string, unknown>, parentKey = ''): Summ
 
     if (!text) return
 
-    items.push({ label, value: text })
+    items.push({ id: labelKey, label, value: text })
   })
 
   return items

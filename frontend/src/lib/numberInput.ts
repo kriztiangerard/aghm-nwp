@@ -28,10 +28,31 @@ export function preventWholeNumberKeys(e: KeyboardEvent<HTMLInputElement>) {
   }
 }
 
-export function handleWholeNumberPaste(e: ClipboardEvent<HTMLInputElement>) {
-  const pastedText = e.clipboardData.getData('text')
-  if (pastedText && !/^\d+$/.test(pastedText.trim())) {
+export function handleWholeNumberPaste(
+  e: ClipboardEvent<HTMLInputElement>,
+  minValue = 0,
+  maxValue?: number,
+) {
+  const pastedText = e.clipboardData.getData('text').trim()
+
+  if (!pastedText) {
+    return
+  }
+
+  if (!/^\d+$/.test(pastedText)) {
     e.preventDefault()
+    return
+  }
+
+  const numericValue = Number(pastedText)
+
+  if (maxValue !== undefined && numericValue > maxValue) {
+    e.preventDefault()
+    return
+  }
+
+  if (numericValue < minValue) {
+    return
   }
 }
 
@@ -54,12 +75,12 @@ export function clampWholeNumberInput(
     return undefined
   }
 
-  if (numericValue < minValue) {
-    return minValue
+  if (maxValue !== undefined && numericValue > maxValue) {
+    return undefined
   }
 
-  if (maxValue !== undefined && numericValue > maxValue) {
-    return maxValue
+  if (numericValue < minValue) {
+    return numericValue
   }
 
   return numericValue

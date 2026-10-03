@@ -1,5 +1,7 @@
+import { useEffect } from 'react'
 import { Controller, useFormContext, useWatch } from 'react-hook-form'
 
+import { QUESTIONNAIRE_LIMITS } from '@/lib/questionnaireLimits'
 import {
   FieldSet,
   FieldLegend,
@@ -22,9 +24,8 @@ import {
 } from '@/lib/numberInput'
 
 export default function Devices() {
-  const { control } = useFormContext()
+  const { control, setValue, clearErrors } = useFormContext()
 
-  // 1. Optimized rendering using useWatch with targeted field names
   const [voipEnabled, ipCamerasEnabled, otherDevicesEnabled] = useWatch({
     control,
     name: [
@@ -33,6 +34,36 @@ export default function Devices() {
       'devices.otherNetworkDevices.enabled',
     ],
   })
+
+  useEffect(() => {
+    if (!voipEnabled) {
+      setValue('devices.voip.phoneCount', undefined, {
+        shouldDirty: true,
+        shouldValidate: false,
+      })
+      clearErrors(['devices.voip.phoneCount'])
+    }
+  }, [clearErrors, setValue, voipEnabled])
+
+  useEffect(() => {
+    if (!ipCamerasEnabled) {
+      setValue('devices.ipCameras.cameraCount', undefined, {
+        shouldDirty: true,
+        shouldValidate: false,
+      })
+      clearErrors(['devices.ipCameras.cameraCount'])
+    }
+  }, [clearErrors, ipCamerasEnabled, setValue])
+
+  useEffect(() => {
+    if (!otherDevicesEnabled) {
+      setValue('devices.otherNetworkDevices.description', undefined, {
+        shouldDirty: true,
+        shouldValidate: false,
+      })
+      clearErrors(['devices.otherNetworkDevices.description'])
+    }
+  }, [clearErrors, otherDevicesEnabled, setValue])
 
   return (
     <FieldSet>
@@ -55,14 +86,27 @@ export default function Devices() {
                 id={field.name}
                 type="number"
                 inputMode="numeric"
-                min="0"
-                max="9999"
+                min={QUESTIONNAIRE_LIMITS.devices.wiredComputers.min}
+                max={QUESTIONNAIRE_LIMITS.devices.wiredComputers.max}
                 step="1"
                 placeholder="Enter a number"
                 aria-invalid={fieldState.invalid}
                 onKeyDown={preventWholeNumberKeys}
-                onPaste={handleWholeNumberPaste}
-                onChange={(e) => handleWholeNumberChange(e.target.value, onChange)}
+                onPaste={(e) =>
+                  handleWholeNumberPaste(
+                    e,
+                    QUESTIONNAIRE_LIMITS.devices.wiredComputers.min,
+                    QUESTIONNAIRE_LIMITS.devices.wiredComputers.max,
+                  )
+                }
+                onChange={(e) =>
+                  handleWholeNumberChange(
+                    e.target.value,
+                    onChange,
+                    QUESTIONNAIRE_LIMITS.devices.wiredComputers.min,
+                    QUESTIONNAIRE_LIMITS.devices.wiredComputers.max,
+                  )
+                }
               />
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
             </Field>
@@ -85,14 +129,27 @@ export default function Devices() {
                 id={field.name}
                 type="number"
                 inputMode="numeric"
-                min="0"
-                max="9999"
+                min={QUESTIONNAIRE_LIMITS.devices.wifiDevices.min}
+                max={QUESTIONNAIRE_LIMITS.devices.wifiDevices.max}
                 step="1"
                 placeholder="Enter a number"
                 aria-invalid={fieldState.invalid}
                 onKeyDown={preventWholeNumberKeys}
-                onPaste={handleWholeNumberPaste}
-                onChange={(e) => handleWholeNumberChange(e.target.value, onChange)}
+                onPaste={(e) =>
+                  handleWholeNumberPaste(
+                    e,
+                    QUESTIONNAIRE_LIMITS.devices.wifiDevices.min,
+                    QUESTIONNAIRE_LIMITS.devices.wifiDevices.max,
+                  )
+                }
+                onChange={(e) =>
+                  handleWholeNumberChange(
+                    e.target.value,
+                    onChange,
+                    QUESTIONNAIRE_LIMITS.devices.wifiDevices.min,
+                    QUESTIONNAIRE_LIMITS.devices.wifiDevices.max,
+                  )
+                }
               />
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
             </Field>
@@ -146,14 +203,27 @@ export default function Devices() {
                   id={field.name}
                   type="number"
                   inputMode="numeric"
-                  min="0"
-                  max="9999"
+                  min={QUESTIONNAIRE_LIMITS.devices.voipPhoneCount.min}
+                  max={QUESTIONNAIRE_LIMITS.devices.voipPhoneCount.max}
                   step="1"
                   placeholder="Enter a number"
                   aria-invalid={fieldState.invalid}
                   onKeyDown={preventWholeNumberKeys}
-                  onPaste={handleWholeNumberPaste}
-                  onChange={(e) => handleWholeNumberChange(e.target.value, onChange)}
+                  onPaste={(e) =>
+                    handleWholeNumberPaste(
+                      e,
+                      QUESTIONNAIRE_LIMITS.devices.voipPhoneCount.min,
+                      QUESTIONNAIRE_LIMITS.devices.voipPhoneCount.max,
+                    )
+                  }
+                  onChange={(e) =>
+                    handleWholeNumberChange(
+                      e.target.value,
+                      onChange,
+                      QUESTIONNAIRE_LIMITS.devices.voipPhoneCount.min,
+                      QUESTIONNAIRE_LIMITS.devices.voipPhoneCount.max,
+                    )
+                  }
                 />
                 {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
               </Field>
@@ -208,14 +278,27 @@ export default function Devices() {
                   id={field.name}
                   type="number"
                   inputMode="numeric"
-                  min="0"
-                  max="9999"
+                  min={QUESTIONNAIRE_LIMITS.devices.ipCameraCount.min}
+                  max={QUESTIONNAIRE_LIMITS.devices.ipCameraCount.max}
                   step="1"
                   placeholder="Enter a number"
                   aria-invalid={fieldState.invalid}
                   onKeyDown={preventWholeNumberKeys}
-                  onPaste={handleWholeNumberPaste}
-                  onChange={(e) => handleWholeNumberChange(e.target.value, onChange)}
+                  onPaste={(e) =>
+                    handleWholeNumberPaste(
+                      e,
+                      QUESTIONNAIRE_LIMITS.devices.ipCameraCount.min,
+                      QUESTIONNAIRE_LIMITS.devices.ipCameraCount.max,
+                    )
+                  }
+                  onChange={(e) =>
+                    handleWholeNumberChange(
+                      e.target.value,
+                      onChange,
+                      QUESTIONNAIRE_LIMITS.devices.ipCameraCount.min,
+                      QUESTIONNAIRE_LIMITS.devices.ipCameraCount.max,
+                    )
+                  }
                 />
                 {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
               </Field>
@@ -271,6 +354,7 @@ export default function Devices() {
                   value={value ?? ''}
                   id={field.name}
                   type="text"
+                  maxLength={QUESTIONNAIRE_LIMITS.text.otherDescription.max}
                   placeholder="Enter names or descriptions"
                   aria-invalid={fieldState.invalid}
                 />

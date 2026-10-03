@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Controller, useFormContext } from 'react-hook-form'
 
 import {
@@ -14,9 +15,24 @@ import {
 } from '@/components/ui/form-ui'
 
 function BudgetBusinessContext() {
-  const { control, watch } = useFormContext()
+  const { control, watch, setValue, clearErrors } = useFormContext()
 
   const expectedGrowth = watch('businessContext.expectedGrowth')
+
+  useEffect(() => {
+    if (expectedGrowth === false) {
+      setValue('businessContext.growth', undefined, {
+        shouldDirty: true,
+        shouldValidate: false,
+      })
+
+      clearErrors([
+        'businessContext.growth',
+        'businessContext.growth.headcountGrowth',
+        'businessContext.growth.newSites',
+      ])
+    }
+  }, [clearErrors, expectedGrowth, setValue])
 
   const monthlyBudgetLabels: Record<string, string> = {
     under_15000: 'Under ₱15,000',

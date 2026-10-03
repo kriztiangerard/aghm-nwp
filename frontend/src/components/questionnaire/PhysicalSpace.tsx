@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { Controller, useFieldArray, useFormContext } from 'react-hook-form'
 
+import { QUESTIONNAIRE_LIMITS } from '@/lib/questionnaireLimits'
 import {
   FieldSet,
   FieldLegend,
@@ -24,7 +25,7 @@ import {
 } from '@/lib/numberInput'
 
 function PhysicalSpace() {
-  const { control, watch, setValue } = useFormContext()
+  const { control, watch, setValue, clearErrors } = useFormContext()
 
   const largeRoomsAnswer = watch('physicalSpace.largeGroupRooms.hasLargeGroupRooms')
   const isLargeRoomsSelected = largeRoomsAnswer === true
@@ -52,8 +53,13 @@ function PhysicalSpace() {
   useEffect(() => {
     if (largeRoomsAnswer === false) {
       replace([])
+      setValue('physicalSpace.largeGroupRooms.rooms', undefined, {
+        shouldDirty: true,
+        shouldValidate: false,
+      })
+      clearErrors('physicalSpace.largeGroupRooms')
     }
-  }, [largeRoomsAnswer, replace])
+  }, [clearErrors, largeRoomsAnswer, replace, setValue])
 
   /*
    * If the number of floors is reduced, remove any room
@@ -108,15 +114,26 @@ function PhysicalSpace() {
                 id={field.name}
                 type="number"
                 inputMode="numeric"
-                min="1"
-                max="100"
+                min={QUESTIONNAIRE_LIMITS.physicalSpace.numberOfFloors.min}
+                max={QUESTIONNAIRE_LIMITS.physicalSpace.numberOfFloors.max}
                 step="1"
                 placeholder="Enter number of floors"
                 aria-invalid={fieldState.invalid}
                 onKeyDown={preventWholeNumberKeys}
-                onPaste={handleWholeNumberPaste}
+                onPaste={(e) => {
+                  handleWholeNumberPaste(
+                    e,
+                    QUESTIONNAIRE_LIMITS.physicalSpace.numberOfFloors.min,
+                    QUESTIONNAIRE_LIMITS.physicalSpace.numberOfFloors.max,
+                  )
+                }}
                 onChange={(e) => {
-                  handleWholeNumberChange(e.target.value, onChange)
+                  handleWholeNumberChange(
+                    e.target.value,
+                    onChange,
+                    QUESTIONNAIRE_LIMITS.physicalSpace.numberOfFloors.min,
+                    QUESTIONNAIRE_LIMITS.physicalSpace.numberOfFloors.max,
+                  )
                 }}
               />
 
@@ -153,15 +170,26 @@ function PhysicalSpace() {
                 id={field.name}
                 type="number"
                 inputMode="numeric"
-                min="1"
-                max="100000"
+                min={QUESTIONNAIRE_LIMITS.physicalSpace.floorAreaPerFloor.min}
+                max={QUESTIONNAIRE_LIMITS.physicalSpace.floorAreaPerFloor.max}
                 step="1"
                 placeholder="Enter area in square meters"
                 aria-invalid={fieldState.invalid}
                 onKeyDown={preventWholeNumberKeys}
-                onPaste={handleWholeNumberPaste}
+                onPaste={(e) => {
+                  handleWholeNumberPaste(
+                    e,
+                    QUESTIONNAIRE_LIMITS.physicalSpace.floorAreaPerFloor.min,
+                    QUESTIONNAIRE_LIMITS.physicalSpace.floorAreaPerFloor.max,
+                  )
+                }}
                 onChange={(e) => {
-                  handleWholeNumberChange(e.target.value, onChange)
+                  handleWholeNumberChange(
+                    e.target.value,
+                    onChange,
+                    QUESTIONNAIRE_LIMITS.physicalSpace.floorAreaPerFloor.min,
+                    QUESTIONNAIRE_LIMITS.physicalSpace.floorAreaPerFloor.max,
+                  )
                 }}
               />
 
@@ -193,15 +221,26 @@ function PhysicalSpace() {
                 id={field.name}
                 type="number"
                 inputMode="numeric"
-                min="1"
-                max="500"
+                min={QUESTIONNAIRE_LIMITS.physicalSpace.roomsPerFloor.min}
+                max={QUESTIONNAIRE_LIMITS.physicalSpace.roomsPerFloor.max}
                 step="1"
                 placeholder="Enter number of rooms"
                 aria-invalid={fieldState.invalid}
                 onKeyDown={preventWholeNumberKeys}
-                onPaste={handleWholeNumberPaste}
+                onPaste={(e) => {
+                  handleWholeNumberPaste(
+                    e,
+                    QUESTIONNAIRE_LIMITS.physicalSpace.roomsPerFloor.min,
+                    QUESTIONNAIRE_LIMITS.physicalSpace.roomsPerFloor.max,
+                  )
+                }}
                 onChange={(e) => {
-                  handleWholeNumberChange(e.target.value, onChange)
+                  handleWholeNumberChange(
+                    e.target.value,
+                    onChange,
+                    QUESTIONNAIRE_LIMITS.physicalSpace.roomsPerFloor.min,
+                    QUESTIONNAIRE_LIMITS.physicalSpace.roomsPerFloor.max,
+                  )
                 }}
               />
 
@@ -381,17 +420,28 @@ function PhysicalSpace() {
                           id={field.name}
                           type="number"
                           inputMode="numeric"
-                          min="1"
-                          max="2000"
+                          min={QUESTIONNAIRE_LIMITS.physicalSpace.largeGroupRooms.capacity.min}
+                          max={QUESTIONNAIRE_LIMITS.physicalSpace.largeGroupRooms.capacity.max}
                           step="1"
                           placeholder="Enter capacity"
                           aria-invalid={
                             fieldState.invalid
                           }
                           onKeyDown={preventWholeNumberKeys}
-                          onPaste={handleWholeNumberPaste}
+                          onPaste={(e) => {
+                            handleWholeNumberPaste(
+                              e,
+                              QUESTIONNAIRE_LIMITS.physicalSpace.largeGroupRooms.capacity.min,
+                              QUESTIONNAIRE_LIMITS.physicalSpace.largeGroupRooms.capacity.max,
+                            )
+                          }}
                           onChange={(e) => {
-                            handleWholeNumberChange(e.target.value, onChange)
+                            handleWholeNumberChange(
+                              e.target.value,
+                              onChange,
+                              QUESTIONNAIRE_LIMITS.physicalSpace.largeGroupRooms.capacity.min,
+                              QUESTIONNAIRE_LIMITS.physicalSpace.largeGroupRooms.capacity.max,
+                            )
                           }}
                         />
 

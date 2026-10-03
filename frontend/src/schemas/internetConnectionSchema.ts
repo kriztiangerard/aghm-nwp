@@ -1,5 +1,7 @@
 import { z } from 'zod'
 
+import { QUESTIONNAIRE_LIMITS } from '../lib/questionnaireLimits'
+
 const requiredEnum = <T extends readonly [string, ...string[]]>(
   values: T,
   message: string
@@ -24,8 +26,8 @@ export const internetConnectionSchema = z.object({
       z.union([
         z.coerce.number()
           .int('Current internet speed must be a whole number.')
-          .min(1, 'Current internet speed must be at least 1 Mbps.')
-          .max(10000, 'Current internet speed must be 10,000 Mbps or less.'),
+          .min(QUESTIONNAIRE_LIMITS.internet.currentSpeedMbps.min, `Current internet speed must be at least ${QUESTIONNAIRE_LIMITS.internet.currentSpeedMbps.min} Mbps.`)
+          .max(QUESTIONNAIRE_LIMITS.internet.currentSpeedMbps.max, `Current internet speed must be ${QUESTIONNAIRE_LIMITS.internet.currentSpeedMbps.max.toLocaleString()} Mbps or less.`),
         z.undefined(),
       ])
     ),

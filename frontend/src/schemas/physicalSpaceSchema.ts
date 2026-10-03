@@ -1,5 +1,7 @@
 import { z } from 'zod'
 
+import { QUESTIONNAIRE_LIMITS } from '../lib/questionnaireLimits'
+
 const requiredNumber = (
   message: string,
   minMessage: string,
@@ -39,11 +41,11 @@ export const physicalSpaceSchema = z.object({
   physicalSpace: z.object({
     numberOfFloors: requiredNumber(
       'Number of floors is required.',
-      'Number of floors must be at least 1.',
+      `Number of floors must be at least ${QUESTIONNAIRE_LIMITS.physicalSpace.numberOfFloors.min}.`,
       'Number of floors must be a whole number.',
-      1,
-      20,
-      'Number of floors must be 20 or fewer.'
+      QUESTIONNAIRE_LIMITS.physicalSpace.numberOfFloors.min,
+      QUESTIONNAIRE_LIMITS.physicalSpace.numberOfFloors.max,
+      `Number of floors must be ${QUESTIONNAIRE_LIMITS.physicalSpace.numberOfFloors.max} or fewer.`
     ),
 
     floorAreaPerFloor: z.preprocess(
@@ -54,19 +56,19 @@ export const physicalSpaceSchema = z.object({
       z.union([
         z.coerce.number()
           .int('Approximate floor area per floor must be a whole number.')
-          .min(1, 'Floor area must be greater than 0.')
-          .max(5000, 'Approximate floor area per floor must be 5,000 sqm or less.'),
+          .min(QUESTIONNAIRE_LIMITS.physicalSpace.floorAreaPerFloor.min, `Floor area must be at least ${QUESTIONNAIRE_LIMITS.physicalSpace.floorAreaPerFloor.min}.`)
+          .max(QUESTIONNAIRE_LIMITS.physicalSpace.floorAreaPerFloor.max, `Approximate floor area per floor must be ${QUESTIONNAIRE_LIMITS.physicalSpace.floorAreaPerFloor.max.toLocaleString()} sqm or less.`),
         z.undefined(),
       ])
     ),
 
     roomsPerFloor: requiredNumber(
       'Number of rooms/work areas per floor is required.',
-      'Number of rooms/work areas per floor must be at least 1.',
+      `Number of rooms/work areas per floor must be at least ${QUESTIONNAIRE_LIMITS.physicalSpace.roomsPerFloor.min}.`,
       'Number of rooms/work areas per floor must be a whole number.',
-      1,
-      100,
-      'Number of rooms/work areas per floor must be 100 or fewer.'
+      QUESTIONNAIRE_LIMITS.physicalSpace.roomsPerFloor.min,
+      QUESTIONNAIRE_LIMITS.physicalSpace.roomsPerFloor.max,
+      `Number of rooms/work areas per floor must be ${QUESTIONNAIRE_LIMITS.physicalSpace.roomsPerFloor.max} or fewer.`
     ),
 
     largeGroupRooms: z.object({
@@ -79,14 +81,20 @@ export const physicalSpaceSchema = z.object({
           z.object({
             floor: requiredNumber(
               'Room floor is required.',
-              'Room floor must be at least 1.',
-              'Room floor must be a whole number.'
+              `Room floor must be at least ${QUESTIONNAIRE_LIMITS.physicalSpace.largeGroupRooms.floor.min}.`,
+              'Room floor must be a whole number.',
+              QUESTIONNAIRE_LIMITS.physicalSpace.largeGroupRooms.floor.min,
+              QUESTIONNAIRE_LIMITS.physicalSpace.numberOfFloors.max,
+              `Room floor must be ${QUESTIONNAIRE_LIMITS.physicalSpace.numberOfFloors.max} or fewer.`
             ),
 
             capacity: requiredNumber(
               'Room capacity is required.',
-              'Room capacity must be at least 1.',
-              'Room capacity must be a whole number.'
+              `Room capacity must be at least ${QUESTIONNAIRE_LIMITS.physicalSpace.largeGroupRooms.capacity.min}.`,
+              'Room capacity must be a whole number.',
+              QUESTIONNAIRE_LIMITS.physicalSpace.largeGroupRooms.capacity.min,
+              QUESTIONNAIRE_LIMITS.physicalSpace.largeGroupRooms.capacity.max,
+              `Room capacity must be ${QUESTIONNAIRE_LIMITS.physicalSpace.largeGroupRooms.capacity.max} or fewer.`
             ),
           })
         )

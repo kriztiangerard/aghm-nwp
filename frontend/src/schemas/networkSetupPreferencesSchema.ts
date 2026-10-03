@@ -1,5 +1,7 @@
 import { z } from 'zod'
 
+import { QUESTIONNAIRE_LIMITS } from '../lib/questionnaireLimits'
+
 const requiredEnum = <T extends readonly [string, ...string[]]>(
   values: T,
   message: string
@@ -53,7 +55,7 @@ export const networkSetupPreferencesSchema = z.object({
 
       otherEnabled: z.boolean().optional().default(false),
 
-      other: z.string().optional(),
+      other: z.string().max(QUESTIONNAIRE_LIMITS.text.otherDescription.max, `Other network usage must be ${QUESTIONNAIRE_LIMITS.text.otherDescription.max} characters or fewer.`).optional(),
     }).superRefine((value, ctx) => {
       if (value.otherEnabled && (!value.other || value.other.trim() === '')) {
         ctx.addIssue({

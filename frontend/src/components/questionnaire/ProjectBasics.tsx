@@ -1,5 +1,6 @@
 import { Controller, useFormContext, useWatch } from 'react-hook-form'
 
+import { QUESTIONNAIRE_LIMITS } from '@/lib/questionnaireLimits'
 import {
   FieldSet,
   FieldLegend,
@@ -40,6 +41,7 @@ function ProjectBasics() {
                 value={value ?? ''}
                 id={field.name}
                 type="text"
+                maxLength={QUESTIONNAIRE_LIMITS.project.name.max}
                 placeholder="Enter project or company name"
                 aria-invalid={fieldState.invalid}
                 className={
@@ -66,6 +68,7 @@ function ProjectBasics() {
               </FieldLabel>
 
               <RadioGroup
+                id={field.name}
                 value={field.value ?? ''}
                 onValueChange={(value) => {
                   field.onChange(value)
@@ -73,7 +76,7 @@ function ProjectBasics() {
                   if (value === 'one') {
                     setValue('project.siteRelationship', undefined, {
                       shouldDirty: true,
-                      shouldValidate: true,
+                      shouldValidate: false,
                     })
                   }
                 }}
@@ -107,6 +110,7 @@ function ProjectBasics() {
                 </FieldLabel>
 
                 <RadioGroup
+                  id={field.name}
                   value={field.value ?? ''}
                   onValueChange={field.onChange}
                 >
@@ -154,8 +158,8 @@ function ProjectBasics() {
                 id={field.name}
                 type="number"
                 inputMode="numeric"
-                min="1"
-                max="200"
+                min={QUESTIONNAIRE_LIMITS.project.totalUsers.min}
+                max={QUESTIONNAIRE_LIMITS.project.totalUsers.max}
                 step="1"
                 pattern="[0-9]*"
                 placeholder="Enter number of users"
@@ -173,16 +177,20 @@ function ProjectBasics() {
                     return
                   }
 
-                  const clampedValue = clampWholeNumberInput(pastedText.trim(), 1, 200)
+                  const sanitizedValue = clampWholeNumberInput(
+                    pastedText.trim(),
+                    QUESTIONNAIRE_LIMITS.project.totalUsers.min,
+                    QUESTIONNAIRE_LIMITS.project.totalUsers.max,
+                  )
 
-                  if (clampedValue === undefined) {
+                  if (sanitizedValue === undefined) {
                     event.preventDefault()
                     return
                   }
 
-                  if (Number(clampedValue) !== Number(pastedText.trim())) {
+                  if (Number(sanitizedValue) !== Number(pastedText.trim())) {
                     event.preventDefault()
-                    onChange(Number(clampedValue))
+                    onChange(Number(sanitizedValue))
                   }
                 }}
                 onChange={(event) => {
@@ -193,18 +201,22 @@ function ProjectBasics() {
                     return
                   }
 
-                  const clampedValue = clampWholeNumberInput(rawValue, 1, 200)
+                  const sanitizedValue = clampWholeNumberInput(
+                    rawValue,
+                    QUESTIONNAIRE_LIMITS.project.totalUsers.min,
+                    QUESTIONNAIRE_LIMITS.project.totalUsers.max,
+                  )
 
-                  if (clampedValue === undefined) {
+                  if (sanitizedValue === undefined) {
                     return
                   }
 
-                  if (Number(clampedValue) !== Number(rawValue)) {
-                    onChange(Number(clampedValue))
+                  if (Number(sanitizedValue) !== Number(rawValue)) {
+                    onChange(Number(sanitizedValue))
                     return
                   }
 
-                  onChange(clampedValue)
+                  onChange(sanitizedValue)
                 }}
               />
 

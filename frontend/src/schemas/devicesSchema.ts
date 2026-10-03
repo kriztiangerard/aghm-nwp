@@ -1,5 +1,7 @@
 import { z } from 'zod'
 
+import { QUESTIONNAIRE_LIMITS } from '../lib/questionnaireLimits'
+
 const requiredNumber = (
   message: string,
   minMessage: string,
@@ -67,20 +69,20 @@ export const devicesSchema = z.object({
   devices: z.object({
     wiredComputers: requiredNumber(
       'Wired computer count is required.',
-      'Wired computer count cannot be negative.',
+      `Wired computer count must be at least ${QUESTIONNAIRE_LIMITS.devices.wiredComputers.min}.`,
       'Wired computer count must be a whole number.',
-      0,
-      1500,
-      'Wired computer count must be 1,500 or fewer.'
+      QUESTIONNAIRE_LIMITS.devices.wiredComputers.min,
+      QUESTIONNAIRE_LIMITS.devices.wiredComputers.max,
+      `Wired computer count must be ${QUESTIONNAIRE_LIMITS.devices.wiredComputers.max.toLocaleString()} or fewer.`
     ),
 
     wifiDevices: requiredNumber(
       'Wireless device count is required.',
-      'Wireless device count cannot be negative.',
+      `Wireless device count must be at least ${QUESTIONNAIRE_LIMITS.devices.wifiDevices.min}.`,
       'Wireless device count must be a whole number.',
-      0,
-      2500,
-      'Wireless device count must be 2,500 or fewer.'
+      QUESTIONNAIRE_LIMITS.devices.wifiDevices.min,
+      QUESTIONNAIRE_LIMITS.devices.wifiDevices.max,
+      `Wireless device count must be ${QUESTIONNAIRE_LIMITS.devices.wifiDevices.max.toLocaleString()} or fewer.`
     ),
 
     voip: z.object({
@@ -90,11 +92,11 @@ export const devicesSchema = z.object({
 
       phoneCount: requiredOptionalCount(
         'Voice over internet protocol phone count is required.',
-        'Voice over internet protocol phone count cannot be negative.',
+        `Voice over internet protocol phone count must be at least ${QUESTIONNAIRE_LIMITS.devices.voipPhoneCount.min}.`,
         'Voice over internet protocol phone count must be a whole number.'
       )
-        .refine((value) => value === undefined || value <= 500, {
-          message: 'Voice over internet protocol phone count must be 500 or fewer.',
+        .refine((value) => value === undefined || value <= QUESTIONNAIRE_LIMITS.devices.voipPhoneCount.max, {
+          message: `Voice over internet protocol phone count must be ${QUESTIONNAIRE_LIMITS.devices.voipPhoneCount.max} or fewer.`,
         })
         .optional(),
     }).superRefine((value, ctx) => {
@@ -117,11 +119,11 @@ export const devicesSchema = z.object({
 
       cameraCount: requiredOptionalCount(
         'Internet protocol camera count is required.',
-        'Internet protocol camera count cannot be negative.',
+        `Internet protocol camera count must be at least ${QUESTIONNAIRE_LIMITS.devices.ipCameraCount.min}.`,
         'Internet protocol camera count must be a whole number.'
       )
-        .refine((value) => value === undefined || value <= 500, {
-          message: 'Internet protocol camera count must be 500 or fewer.',
+        .refine((value) => value === undefined || value <= QUESTIONNAIRE_LIMITS.devices.ipCameraCount.max, {
+          message: `Internet protocol camera count must be ${QUESTIONNAIRE_LIMITS.devices.ipCameraCount.max} or fewer.`,
         })
         .optional(),
     }).superRefine((value, ctx) => {

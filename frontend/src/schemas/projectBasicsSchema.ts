@@ -1,12 +1,14 @@
 import { z } from 'zod'
 
+import { QUESTIONNAIRE_LIMITS } from '../lib/questionnaireLimits'
+
 const requiredString = (message: string) =>
   z.preprocess(
     (value) =>
       value === undefined || value === null || value === ''
         ? ''
         : value,
-    z.string().trim().min(1, message)
+    z.string().trim().min(1, message).max(QUESTIONNAIRE_LIMITS.project.name.max, `Project or company name must be ${QUESTIONNAIRE_LIMITS.project.name.max} characters or fewer.`)
   )
 
 const requiredNumber = (
@@ -74,11 +76,11 @@ export const projectBasicsSchema = z.object({
 
     totalUsers: requiredNumber(
       'Total number of users is required.',
-      'Headcount must be between 1 and 200.',
-      'Headcount must be between 1 and 200.',
-      1,
-      200,
-      'Headcount must be between 1 and 200.'
+      `Headcount must be between ${QUESTIONNAIRE_LIMITS.project.totalUsers.min} and ${QUESTIONNAIRE_LIMITS.project.totalUsers.max}.`,
+      `Headcount must be between ${QUESTIONNAIRE_LIMITS.project.totalUsers.min} and ${QUESTIONNAIRE_LIMITS.project.totalUsers.max}.`,
+      QUESTIONNAIRE_LIMITS.project.totalUsers.min,
+      QUESTIONNAIRE_LIMITS.project.totalUsers.max,
+      `Headcount must be between ${QUESTIONNAIRE_LIMITS.project.totalUsers.min} and ${QUESTIONNAIRE_LIMITS.project.totalUsers.max}.`
     ),
   }).superRefine((value, ctx) => {
     if (value.numberOfSites === 'two_or_more' && !value.siteRelationship) {

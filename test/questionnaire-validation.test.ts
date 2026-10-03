@@ -1,3 +1,4 @@
+import { closeOpenSelectPortals } from '../frontend/src/lib/closeOpenSelectPortals'
 import { getSummarySections } from '../frontend/src/lib/summary'
 import {
   clampWholeNumberInput,
@@ -8,6 +9,30 @@ import { formatSelectLabel } from '../frontend/src/schemas/formatters'
 import { questionnaireSchema } from '../frontend/src/schemas/questionnaireSchema'
 
 describe('questionnaire validation messages', () => {
+  it('hides lingering Base UI select portals before the user can click submit', () => {
+    const portal = {
+      style: {},
+      setAttribute: jest.fn(),
+      querySelectorAll: jest.fn(() => [
+        {
+          style: {},
+          setAttribute: jest.fn(),
+          querySelectorAll: jest.fn(() => []),
+        },
+      ]),
+    }
+
+    const root = {
+      querySelectorAll: jest.fn(() => [portal]),
+    }
+
+    closeOpenSelectPortals(root as unknown as ParentNode)
+
+    expect(portal.style.pointerEvents).toBe('none')
+    expect(portal.style.display).toBe('none')
+    expect(portal.setAttribute).toHaveBeenCalledWith('data-base-ui-portal-closed', 'true')
+  })
+
   it('clears numeric inputs without leaving NaN stuck in the field', () => {
     expect(sanitizeNumberInput('')).toBeUndefined()
     expect(sanitizeNumberInput('250')).toBe(250)
@@ -24,6 +49,17 @@ describe('questionnaire validation messages', () => {
     })
 
     expect(changedValue).toBe(250)
+  })
+
+  it('rejects values above a field-specific maximum while typing', () => {
+    expect(clampWholeNumberInput('201', 1, 200)).toBeUndefined()
+
+    let changedValue: string | number | undefined
+    handleWholeNumberChange('201', (value) => {
+      changedValue = value
+    }, 1, 200)
+
+    expect(changedValue).toBeUndefined()
   })
 
   it('uses user-facing labels rather than raw enum values in summary output', () => {
@@ -257,6 +293,48 @@ describe('questionnaire validation messages', () => {
     )
   })
 
+  it('skips hidden or incomplete large-group room entries from the summary', () => {
+    const sections = getSummarySections({
+      physicalSpace: {
+        largeGroupRooms: {
+          hasLargeGroupRooms: false,
+          rooms: [{ floor: undefined, capacity: undefined }],
+        },
+      },
+    }, 'physicalSpace')
+
+    expect(sections).toHaveLength(1)
+    expect(sections[0].items).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ label: 'Large group room count' }),
+      ])
+    )
+  })
+
+  it('omits hidden device counts and descriptions from the summary when their parent settings are off', () => {
+    const sections = getSummarySections({
+      devices: {
+        voip: { enabled: false, phoneCount: 12 },
+        ipCameras: { enabled: false, cameraCount: 5 },
+        otherNetworkDevices: { enabled: false, description: 'Unused device' },
+      },
+    }, 'devices')
+
+    expect(sections).toHaveLength(1)
+    expect(sections[0].items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ label: 'Enabled', value: 'No' }),
+      ])
+    )
+    expect(sections[0].items).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ label: 'VoIP phone count' }),
+        expect.objectContaining({ label: 'IP camera count' }),
+        expect.objectContaining({ label: 'Other network usage' }),
+      ])
+    )
+  })
+
   it('groups multi-select application choices into a badge list', () => {
     const sections = getSummarySections({
       preferences: {
@@ -389,6 +467,130 @@ describe('questionnaire validation messages', () => {
         expect.objectContaining({ title: 'Network setup preferences' }),
       ])
     )
+  })
+
+  it('hides dependent existing-network details and skips validation when the answer is no or not sure', () => {
+    const noResult = questionnaireSchema.safeParse({
+      project: {
+        name: 'Example Business',
+        numberOfSites: 1,
+        siteRelationship: 'same_city',
+        totalUsers: 15,
+      },
+      physicalSpace: {
+        numberOfFloors: 2,
+        floorAreaPerFloor: 1500,
+        roomsPerFloor: 5,
+        largeGroupRooms: {
+          hasLargeGroupRooms: false,
+          rooms: undefined,
+        },
+      },
+      existingNetwork: {
+        equipmentStatus: 'none',
+        equipment: undefined,
+        existingCabling: undefined,
+      },
+      internet: {
+        currentSpeedMbps: 250,
+        connectionType: 'fiber',
+        downtimeImpact: 'same_day_matters',
+      },
+      devices: {
+        wiredComputers: 5,
+        wifiDevices: 10,
+        voip: { enabled: false, phoneCount: undefined },
+        ipCameras: { enabled: false, cameraCount: undefined },
+        otherNetworkDevices: { enabled: false, description: undefined },
+      },
+      preferences: {
+        guestWifi: true,
+        sensitiveData: 'yes',
+        applications: {
+          videoConferencing: true,
+          voipCalls: false,
+          posPayment: false,
+          cloudStorage: false,
+          businessSoftware: false,
+          videoStreaming: false,
+          securityCameraViewing: false,
+          basicBrowsingEmail: false,
+          otherEnabled: false,
+          other: '',
+        },
+        equipmentLocation: 'wall_cabinet',
+        managementPreference: 'dashboard',
+      },
+      businessContext: {
+        monthlyITBudget: '15000_40000',
+        ITSupport: 'in_house',
+        electricityReliability: 'stable',
+        expectedGrowth: false,
+      },
+    })
+
+    expect(noResult.success).toBe(true)
+
+    const unsureResult = questionnaireSchema.safeParse({
+      project: {
+        name: 'Example Business',
+        numberOfSites: 1,
+        siteRelationship: 'same_city',
+        totalUsers: 15,
+      },
+      physicalSpace: {
+        numberOfFloors: 2,
+        floorAreaPerFloor: 1500,
+        roomsPerFloor: 5,
+        largeGroupRooms: {
+          hasLargeGroupRooms: false,
+          rooms: undefined,
+        },
+      },
+      existingNetwork: {
+        equipmentStatus: 'not_sure',
+        equipment: undefined,
+        existingCabling: undefined,
+      },
+      internet: {
+        currentSpeedMbps: 250,
+        connectionType: 'fiber',
+        downtimeImpact: 'same_day_matters',
+      },
+      devices: {
+        wiredComputers: 5,
+        wifiDevices: 10,
+        voip: { enabled: false, phoneCount: undefined },
+        ipCameras: { enabled: false, cameraCount: undefined },
+        otherNetworkDevices: { enabled: false, description: undefined },
+      },
+      preferences: {
+        guestWifi: true,
+        sensitiveData: 'yes',
+        applications: {
+          videoConferencing: true,
+          voipCalls: false,
+          posPayment: false,
+          cloudStorage: false,
+          businessSoftware: false,
+          videoStreaming: false,
+          securityCameraViewing: false,
+          basicBrowsingEmail: false,
+          otherEnabled: false,
+          other: '',
+        },
+        equipmentLocation: 'wall_cabinet',
+        managementPreference: 'dashboard',
+      },
+      businessContext: {
+        monthlyITBudget: '15000_40000',
+        ITSupport: 'in_house',
+        electricityReliability: 'stable',
+        expectedGrowth: false,
+      },
+    })
+
+    expect(unsureResult.success).toBe(true)
   })
 
   it('allows skipping site relationship and rough estimates when the user is unsure', () => {

@@ -1,9 +1,9 @@
 import { mapFormToNetworkConfiguration } from '../../lib/network-config-mapper'
-import { useState } from 'react'
+import { closeOpenSelectPortals } from '../../lib/closeOpenSelectPortals'
+import { useEffect, useState } from 'react'
 import {
   FormProvider,
   useForm,
-  useFormContext,
   type FieldPath,
 } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -27,10 +27,11 @@ import InternetConnection from './InternetConnection'
 import Devices from './Devices'
 import NetworkSetupPreferences from './NetworkSetupPreferences'
 import BudgetBusinessContext from './BudgetBusinessContext'
+import OverallSummary from './OverallSummary'
 import SummaryPanel from './SummaryPanel'
 
 import { questionnaireSchema } from '../../schemas/questionnaireSchema'
-import { getSummarySections, SECTION_TITLES } from '../../lib/summary'
+import { SECTION_TITLES } from '../../lib/summary'
 
 const sectionSteps = [
   ProjectBasics,
@@ -40,67 +41,12 @@ const sectionSteps = [
   Devices,
   NetworkSetupPreferences,
   BudgetBusinessContext,
+  OverallSummary,
 ] as const
 
 const sectionKeys = Object.keys(SECTION_TITLES) as Array<keyof typeof SECTION_TITLES>
 
-const OverallSummary = () => {
-  const { watch } = useFormContext()
-  const formData = watch()
-  const sections = getSummarySections(formData)
-
-  return (
-    <div className="space-y-6">
-      <div className="space-y-2">
-        <h2 className="text-2xl font-semibold tracking-tight">Overall Network Planning Summary</h2>
-        <p className="text-sm text-muted-foreground">
-          Review the answers from every section before continuing.
-        </p>
-      </div>
-
-      {sections.length === 0 ? (
-        <div className="rounded-md border border-dashed border-border/70 bg-muted/30 p-4 text-sm text-muted-foreground">
-          Your answers will appear here
-        </div>
-      ) : (
-        <div className="space-y-6">
-          {sections.map((section) => (
-            <section key={section.title} className="space-y-3">
-              <h3 className="text-base font-semibold text-foreground">{section.title}</h3>
-              <dl className="space-y-3">
-                {section.items.map((item) => (
-                  <div key={`${section.title}-${item.label}`} className="space-y-1 border-b border-border/60 pb-2 last:border-b-0 last:pb-0">
-                    <dt className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
-                      {item.label}
-                    </dt>
-                    <dd>
-                      {Array.isArray(item.value) ? (
-                        <div className="flex flex-wrap gap-2">
-                          {item.value.map((valueItem) => (
-                            <span
-                              key={`${item.label}-${valueItem}`}
-                              className="inline-flex items-center rounded-full border border-primary/20 bg-primary/5 px-2.5 py-1 text-xs font-medium text-primary"
-                            >
-                              {valueItem}
-                            </span>
-                          ))}
-                        </div>
-                      ) : (
-                        <span className="text-sm text-foreground">{item.value}</span>
-                      )}
-                    </dd>
-                  </div>
-                ))}
-              </dl>
-            </section>
-          ))}
-        </div>
-      )}
-    </div>
-  )
-}
-
-const steps = [...sectionSteps, OverallSummary]
+const steps = [...sectionSteps]
 
 const fullSchema = questionnaireSchema
 
@@ -143,6 +89,20 @@ function Questionnaire() {
   const currentSectionKey = currentStep < sectionKeys.length ? sectionKeys[currentStep] : undefined
   const totalSteps = steps.length
 
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      closeOpenSelectPortals(document)
+      const active = document.activeElement
+      if (active instanceof HTMLElement) {
+        active.blur()
+      }
+    }
+  }, [currentStep])
+  const showSummaryPanel = currentStep < totalSteps - 1
+  const mainGridClass = showSummaryPanel
+    ? 'lg:grid-cols-[minmax(15rem,0.8fr)_minmax(0,1.4fr)] lg:gap-12'
+    : 'lg:grid-cols-1 lg:justify-center'
+
   /*
    * Paths aligned strictly with schema key locations:
    * Step 1 uses `project.*` namespace.
@@ -181,6 +141,7 @@ function Questionnaire() {
   ]
 
   const handleNext = async () => {
+    closeOpenSelectPortals(typeof document !== 'undefined' ? document : null)
     setSubmitError(null)
     form.clearErrors()
 
@@ -212,6 +173,7 @@ function Questionnaire() {
   }
 
   const handleBack = () => {
+    closeOpenSelectPortals(typeof document !== 'undefined' ? document : null)
     setSubmitError(null)
     form.clearErrors()
 
@@ -221,29 +183,37 @@ function Questionnaire() {
   }
 
   const onSubmit = async (data: FormOutput) => {
+    closeOpenSelectPortals(typeof document !== 'undefined' ? document : null)
     setSubmitError(null)
 
-    const apiUrl = import.meta.env.VITE_API_URL?.trim()
+    const configuredApiUrl = import.meta.env.VITE_API_URL?.trim()
+    const apiUrl = configuredApiUrl || 'http://localhost:8000'
 
-    if (!apiUrl) {
-      const missingApiMessage =
-        'No API endpoint is configured yet. Add VITE_API_URL in your environment to submit the questionnaire.'
-
+    if (!configuredApiUrl) {
       console.warn(
-        'VITE_API_URL is not configured. Submission is using placeholder mode.',
-        data,
+        '[Questionnaire] VITE_API_URL is not configured. Falling back to http://localhost:8000 for local development.',
+        { data },
       )
-
-      setSubmitError(missingApiMessage)
-      return
     }
 
     const payload = mapFormToNetworkConfiguration(data)
+    const requestUrl = `${apiUrl.replace(/\/$/, '')}/generate`
 
-    console.log('Network payload:', payload)
+    console.log('[Questionnaire] Using API URL:', requestUrl)
+
+    console.log('[Questionnaire] Network payload:', payload)
+    console.log('[Questionnaire] API URL:', requestUrl)
+    console.log('[Questionnaire] API request:', {
+      method: 'POST',
+      url: requestUrl,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      payload,
+    })
 
     try {
-      const response = await fetch(`${apiUrl}/generate`, {
+      const response = await fetch(requestUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -251,35 +221,50 @@ function Questionnaire() {
         body: JSON.stringify(payload),
       })
 
-      if (!response.ok) {
-        throw new Error(
-          `Submission failed with status ${response.status}`,
-        )
+      const responseText = await response.text()
+      let responseBody: unknown = responseText
+
+      try {
+        responseBody = JSON.parse(responseText)
+      } catch {
+        // Response body is not JSON; keep the plain text for debugging.
       }
 
-      const result = await response.json()
+      console.log('[Questionnaire] API response:', {
+        status: response.status,
+        statusText: response.statusText,
+        url: requestUrl,
+        body: responseBody,
+      })
 
-      console.log(
-        'Recommendation result:',
-        result,
-      )
-    } catch (err) {
-      const errorMessage =
-        err instanceof Error
-          ? err.message
-          : 'An unexpected error occurred.'
+      if (!response.ok) {
+        console.error('[Questionnaire] API request failed')
+        console.error('[Questionnaire] Error:', new Error(`HTTP ${response.status}: ${response.statusText}`))
+        console.error('[Questionnaire] API URL:', requestUrl)
+        setSubmitError('Unable to submit your questionnaire. Please check your connection and try again.')
+        return
+      }
 
-      setSubmitError(errorMessage)
+      console.log('[Questionnaire] Request succeeded')
+      console.log('Recommendation result:', responseBody)
+    } catch (error) {
+      const fetchError = error instanceof Error ? error : new Error('Unknown fetch error')
+
+      console.error('[Questionnaire] API request failed')
+      console.error('[Questionnaire] Error:', fetchError)
+      console.error('[Questionnaire] API URL:', requestUrl)
+
+      setSubmitError('Unable to submit your questionnaire. Please check your connection and try again.')
     }
   }
 
   return (
     <FormProvider {...form}>
       <main className="min-h-screen bg-muted/30 px-4 py-8 sm:px-8 sm:py-12">
-        <div className="mx-auto grid w-full max-w-6xl grid-cols-1 items-start gap-8 lg:grid-cols-[minmax(15rem,0.8fr)_minmax(0,1.4fr)] lg:gap-12">
-          <SummaryPanel sectionKey={currentSectionKey} />
+        <div className={`mx-auto grid w-full max-w-6xl grid-cols-1 items-start gap-8 ${mainGridClass}`}>
+          {showSummaryPanel && <SummaryPanel sectionKey={currentSectionKey} />}
 
-          <Card className="flex flex-col overflow-hidden lg:h-[calc(100dvh-6rem)] lg:min-h-[36rem]">
+          <Card className={`flex flex-col overflow-hidden lg:h-[calc(100dvh-6rem)] lg:min-h-[36rem] ${!showSummaryPanel ? 'mx-auto w-full max-w-5xl' : ''}`}>
             <form
               onSubmit={form.handleSubmit(onSubmit)}
               className="flex min-h-0 flex-1 flex-col lg:h-full"
@@ -322,7 +307,7 @@ function Questionnaire() {
 
                   <CurrentSection />
 
-                  <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+                  <div className="rounded-md border border-amber-200 bg-amber-50 px-2.5 py-2 text-[11px] font-normal leading-relaxed text-amber-900/90">
                     Please confirm exact quantities and placements with a qualified installer before purchasing.
                   </div>
 

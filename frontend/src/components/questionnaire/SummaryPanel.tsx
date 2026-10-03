@@ -40,8 +40,8 @@ function SummaryPanel({ sectionKey }: SummaryPanelProps) {
               </h3>
 
               <dl className="space-y-3">
-                {section.items.map((item) => (
-                  <div key={`${section.title}-${item.label}`} className="space-y-1">
+                {section.items.map((item, index) => (
+                  <div key={item.id ?? `${section.title}-${item.label}-${index}`} className="space-y-1">
                     <dt className="text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
                       {item.label}
                     </dt>

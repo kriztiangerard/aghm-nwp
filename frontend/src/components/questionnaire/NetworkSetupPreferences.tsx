@@ -1,5 +1,7 @@
+import { useEffect } from 'react'
 import { Controller, useFormContext, useWatch } from 'react-hook-form'
 
+import { QUESTIONNAIRE_LIMITS } from '@/lib/questionnaireLimits'
 import {
   FieldSet,
   FieldLegend,
@@ -16,11 +18,21 @@ import {
 import { Checkbox } from '@/components/ui/checkbox'
 
 function NetworkSetupPreferences() {
-  const { control } = useFormContext()
+  const { control, clearErrors, setValue } = useFormContext()
   const otherUsageEnabled = useWatch({
     control,
     name: 'preferences.applications.otherEnabled',
   })
+
+  useEffect(() => {
+    if (!otherUsageEnabled) {
+      setValue('preferences.applications.other', '', {
+        shouldDirty: true,
+        shouldValidate: false,
+      })
+      clearErrors(['preferences.applications.other'])
+    }
+  }, [clearErrors, otherUsageEnabled, setValue])
 
   const equipmentLocationLabels: Record<string, string> = {
     full_size_rack: 'Full-size rack in a dedicated closet/room',
@@ -169,6 +181,7 @@ function NetworkSetupPreferences() {
                   value={value ?? ''}
                   id={field.name}
                   type="text"
+                  maxLength={QUESTIONNAIRE_LIMITS.text.otherDescription.max}
                   placeholder="Enter other usage"
                   aria-invalid={fieldState.invalid}
                 />

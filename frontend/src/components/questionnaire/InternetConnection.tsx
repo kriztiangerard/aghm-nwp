@@ -1,5 +1,6 @@
 import { Controller, useFormContext } from 'react-hook-form'
 
+import { QUESTIONNAIRE_LIMITS } from '@/lib/questionnaireLimits'
 import {
   FieldSet,
   FieldLegend,
@@ -103,15 +104,26 @@ function InternetConnection() {
                 id={field.name}
                 type="number"
                 inputMode="numeric"
-                min="1"
-                max="1000000"
+                min={QUESTIONNAIRE_LIMITS.internet.currentSpeedMbps.min}
+                max={QUESTIONNAIRE_LIMITS.internet.currentSpeedMbps.max}
                 step="1"
                 placeholder="Enter a number in Mbps"
                 aria-invalid={fieldState.invalid}
                 onKeyDown={preventWholeNumberKeys}
-                onPaste={handleWholeNumberPaste}
+                onPaste={(event) => {
+                  handleWholeNumberPaste(
+                    event,
+                    QUESTIONNAIRE_LIMITS.internet.currentSpeedMbps.min,
+                    QUESTIONNAIRE_LIMITS.internet.currentSpeedMbps.max,
+                  )
+                }}
                 onChange={(event) => {
-                  handleWholeNumberChange(event.target.value, onChange)
+                  handleWholeNumberChange(
+                    event.target.value,
+                    onChange,
+                    QUESTIONNAIRE_LIMITS.internet.currentSpeedMbps.min,
+                    QUESTIONNAIRE_LIMITS.internet.currentSpeedMbps.max,
+                  )
                 }}
               />
 
