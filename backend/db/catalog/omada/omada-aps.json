@@ -23,7 +23,16 @@
       "supported_6ghz": true,
       "max_power_draw_w": 29,
       "power_method": "802.3bt/at PoE, 12V DC"
-    }
+    },
+    "capabilities": [
+      "ap",
+      "wifi7",
+      "mesh",
+      "vlan",
+      "qos",
+      "poe",
+      "wireless_access"
+    ]
   },
   {
     "vendor_id": 2,
@@ -47,7 +56,16 @@
       "supported_5ghz": true,
       "supported_6ghz": true,
       "power_method": "802.3at PoE"
-    }
+    },
+    "capabilities": [
+      "ap",
+      "wifi7",
+      "mesh",
+      "vlan",
+      "qos",
+      "poe",
+      "wireless_access"
+    ]
   },
   {
     "vendor_id": 2,
@@ -71,7 +89,16 @@
       "supported_5ghz": true,
       "supported_6ghz": false,
       "power_method": "802.3at PoE"
-    }
+    },
+    "capabilities": [
+      "ap",
+      "wifi7",
+      "mesh",
+      "vlan",
+      "qos",
+      "poe",
+      "wireless_access"
+    ]
   },
   {
     "vendor_id": 2,
@@ -95,7 +122,16 @@
       "supported_5ghz": true,
       "supported_6ghz": false,
       "power_method": "802.3at PoE"
-    }
+    },
+    "capabilities": [
+      "ap",
+      "wifi7",
+      "mesh",
+      "vlan",
+      "qos",
+      "poe",
+      "wireless_access"
+    ]
   },
   {
     "vendor_id": 2,
@@ -119,7 +155,16 @@
       "supported_5ghz": true,
       "supported_6ghz": false,
       "power_method": "802.3at PoE"
-    }
+    },
+    "capabilities": [
+      "ap",
+      "wifi7",
+      "mesh",
+      "vlan",
+      "qos",
+      "poe",
+      "wireless_access"
+    ]
   },
   {
     "vendor_id": 2,
@@ -143,7 +188,16 @@
       "supported_5ghz": true,
       "supported_6ghz": false,
       "power_method": "802.3at PoE+, DC"
-    }
+    },
+    "capabilities": [
+      "ap",
+      "wifi6",
+      "mesh",
+      "vlan",
+      "qos",
+      "poe",
+      "wireless_access"
+    ]
   },
   {
     "vendor_id": 2,
@@ -167,7 +221,16 @@
       "supported_5ghz": true,
       "supported_6ghz": false,
       "power_method": "802.3at PoE, DC"
-    }
+    },
+    "capabilities": [
+      "ap",
+      "wifi6",
+      "mesh",
+      "vlan",
+      "qos",
+      "poe",
+      "wireless_access"
+    ]
   },
   {
     "vendor_id": 2,
@@ -191,6 +254,15 @@
       "supported_5ghz": true,
       "supported_6ghz": false,
       "power_method": "802.3at PoE, DC"
-    }
+    },
+    "capabilities": [
+      "ap",
+      "wifi6",
+      "mesh",
+      "vlan",
+      "qos",
+      "poe",
+      "wireless_access"
+    ]
   }
 ]
