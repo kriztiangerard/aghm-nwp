@@ -1,5 +1,7 @@
+import { useEffect } from 'react'
 import { Controller, useFormContext, useWatch } from 'react-hook-form'
 
+import { QUESTIONNAIRE_LIMITS } from '@/lib/questionnaireLimits'
 import {
   FieldSet,
   FieldLegend,
@@ -15,11 +17,15 @@ import {
   SelectTrigger,
 } from '@/components/ui/form-ui'
 import { formatSelectLabel } from '@/lib/formatters'
+import {
+  handleWholeNumberChange,
+  handleWholeNumberPaste,
+  preventWholeNumberKeys,
+} from '@/lib/numberInput'
 
 export default function Devices() {
-  const { control } = useFormContext()
+  const { control, setValue, clearErrors } = useFormContext()
 
-  // 1. Optimized rendering using useWatch with targeted field names
   const [voipEnabled, ipCamerasEnabled, otherDevicesEnabled] = useWatch({
     control,
     name: [
@@ -29,14 +35,35 @@ export default function Devices() {
     ],
   })
 
-  // Helper for numeric input parsing to safely handle NaN / empty states
-  const handleNumberChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    onChange: (value: number | string) => void
-  ) => {
-    const val = e.target.valueAsNumber
-    onChange(Number.isNaN(val) ? '' : val)
-  }
+  useEffect(() => {
+    if (!voipEnabled) {
+      setValue('devices.voip.phoneCount', undefined, {
+        shouldDirty: true,
+        shouldValidate: false,
+      })
+      clearErrors(['devices.voip.phoneCount'])
+    }
+  }, [clearErrors, setValue, voipEnabled])
+
+  useEffect(() => {
+    if (!ipCamerasEnabled) {
+      setValue('devices.ipCameras.cameraCount', undefined, {
+        shouldDirty: true,
+        shouldValidate: false,
+      })
+      clearErrors(['devices.ipCameras.cameraCount'])
+    }
+  }, [clearErrors, ipCamerasEnabled, setValue])
+
+  useEffect(() => {
+    if (!otherDevicesEnabled) {
+      setValue('devices.otherNetworkDevices.description', undefined, {
+        shouldDirty: true,
+        shouldValidate: false,
+      })
+      clearErrors(['devices.otherNetworkDevices.description'])
+    }
+  }, [clearErrors, otherDevicesEnabled, setValue])
 
   return (
     <FieldSet>
@@ -49,19 +76,37 @@ export default function Devices() {
           control={control}
           render={({ field: { value, onChange, ...field }, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name}>How many wired computers are in use?</FieldLabel>
+              <FieldLabel htmlFor={field.name}>Roughly how many desktop or laptop computers will be wired directly into the network?</FieldLabel>
               <FieldDescription>
-                Include desktops and laptops that connect through Ethernet.
+                Include desktops and laptops that connect through Ethernet instead of Wi-Fi.
               </FieldDescription>
               <Input
                 {...field}
                 value={value ?? ''}
                 id={field.name}
                 type="number"
-                min="0"
+                inputMode="numeric"
+                min={QUESTIONNAIRE_LIMITS.devices.wiredComputers.min}
+                max={QUESTIONNAIRE_LIMITS.devices.wiredComputers.max}
+                step="1"
                 placeholder="Enter a number"
                 aria-invalid={fieldState.invalid}
-                onChange={(e) => handleNumberChange(e, onChange)}
+                onKeyDown={preventWholeNumberKeys}
+                onPaste={(e) =>
+                  handleWholeNumberPaste(
+                    e,
+                    QUESTIONNAIRE_LIMITS.devices.wiredComputers.min,
+                    QUESTIONNAIRE_LIMITS.devices.wiredComputers.max,
+                  )
+                }
+                onChange={(e) =>
+                  handleWholeNumberChange(
+                    e.target.value,
+                    onChange,
+                    QUESTIONNAIRE_LIMITS.devices.wiredComputers.min,
+                    QUESTIONNAIRE_LIMITS.devices.wiredComputers.max,
+                  )
+                }
               />
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
             </Field>
@@ -74,19 +119,37 @@ export default function Devices() {
           control={control}
           render={({ field: { value, onChange, ...field }, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name}>How many wireless devices are connected?</FieldLabel>
+              <FieldLabel htmlFor={field.name}>Roughly how many devices will connect over Wi-Fi?</FieldLabel>
               <FieldDescription>
-                Include phones, laptops, tablets, printers, and other devices that use Wi-Fi.
+                Include laptops, phones, tablets, and other devices that connect by Wi-Fi.
               </FieldDescription>
               <Input
                 {...field}
                 value={value ?? ''}
                 id={field.name}
                 type="number"
-                min="0"
+                inputMode="numeric"
+                min={QUESTIONNAIRE_LIMITS.devices.wifiDevices.min}
+                max={QUESTIONNAIRE_LIMITS.devices.wifiDevices.max}
+                step="1"
                 placeholder="Enter a number"
                 aria-invalid={fieldState.invalid}
-                onChange={(e) => handleNumberChange(e, onChange)}
+                onKeyDown={preventWholeNumberKeys}
+                onPaste={(e) =>
+                  handleWholeNumberPaste(
+                    e,
+                    QUESTIONNAIRE_LIMITS.devices.wifiDevices.min,
+                    QUESTIONNAIRE_LIMITS.devices.wifiDevices.max,
+                  )
+                }
+                onChange={(e) =>
+                  handleWholeNumberChange(
+                    e.target.value,
+                    onChange,
+                    QUESTIONNAIRE_LIMITS.devices.wifiDevices.min,
+                    QUESTIONNAIRE_LIMITS.devices.wifiDevices.max,
+                  )
+                }
               />
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
             </Field>
@@ -99,7 +162,7 @@ export default function Devices() {
           control={control}
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name}>Do you use voice over internet protocol phones?</FieldLabel>
+              <FieldLabel htmlFor={field.name}>Will you use internet-based desk phones (VoIP) instead of, or alongside, a traditional phone line?</FieldLabel>
               <FieldDescription>
                 This includes desk phones and other office phones that connect over the internet.
               </FieldDescription>
@@ -133,16 +196,34 @@ export default function Devices() {
             control={control}
             render={({ field: { value, onChange, ...field }, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor={field.name}>How many voice over internet protocol phones do you have?</FieldLabel>
+                <FieldLabel htmlFor={field.name}>How many VoIP phones will you have?</FieldLabel>
                 <Input
                   {...field}
                   value={value ?? ''}
                   id={field.name}
                   type="number"
-                  min="0"
+                  inputMode="numeric"
+                  min={QUESTIONNAIRE_LIMITS.devices.voipPhoneCount.min}
+                  max={QUESTIONNAIRE_LIMITS.devices.voipPhoneCount.max}
+                  step="1"
                   placeholder="Enter a number"
                   aria-invalid={fieldState.invalid}
-                  onChange={(e) => handleNumberChange(e, onChange)}
+                  onKeyDown={preventWholeNumberKeys}
+                  onPaste={(e) =>
+                    handleWholeNumberPaste(
+                      e,
+                      QUESTIONNAIRE_LIMITS.devices.voipPhoneCount.min,
+                      QUESTIONNAIRE_LIMITS.devices.voipPhoneCount.max,
+                    )
+                  }
+                  onChange={(e) =>
+                    handleWholeNumberChange(
+                      e.target.value,
+                      onChange,
+                      QUESTIONNAIRE_LIMITS.devices.voipPhoneCount.min,
+                      QUESTIONNAIRE_LIMITS.devices.voipPhoneCount.max,
+                    )
+                  }
                 />
                 {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
               </Field>
@@ -156,9 +237,9 @@ export default function Devices() {
           control={control}
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name}>Do you use internet protocol cameras?</FieldLabel>
+              <FieldLabel htmlFor={field.name}>Will you have security cameras connected to this network (IP cameras)?</FieldLabel>
               <FieldDescription>
-                This includes security cameras or monitoring cameras connected to your network.
+                This includes security or monitoring cameras connected to your network.
               </FieldDescription>
               <Select
                 value={field.value === undefined ? '' : field.value ? 'yes' : 'no'}
@@ -190,16 +271,34 @@ export default function Devices() {
             control={control}
             render={({ field: { value, onChange, ...field }, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor={field.name}>How many internet protocol cameras do you have?</FieldLabel>
+                <FieldLabel htmlFor={field.name}>Roughly how many cameras?</FieldLabel>
                 <Input
                   {...field}
                   value={value ?? ''}
                   id={field.name}
                   type="number"
-                  min="0"
+                  inputMode="numeric"
+                  min={QUESTIONNAIRE_LIMITS.devices.ipCameraCount.min}
+                  max={QUESTIONNAIRE_LIMITS.devices.ipCameraCount.max}
+                  step="1"
                   placeholder="Enter a number"
                   aria-invalid={fieldState.invalid}
-                  onChange={(e) => handleNumberChange(e, onChange)}
+                  onKeyDown={preventWholeNumberKeys}
+                  onPaste={(e) =>
+                    handleWholeNumberPaste(
+                      e,
+                      QUESTIONNAIRE_LIMITS.devices.ipCameraCount.min,
+                      QUESTIONNAIRE_LIMITS.devices.ipCameraCount.max,
+                    )
+                  }
+                  onChange={(e) =>
+                    handleWholeNumberChange(
+                      e.target.value,
+                      onChange,
+                      QUESTIONNAIRE_LIMITS.devices.ipCameraCount.min,
+                      QUESTIONNAIRE_LIMITS.devices.ipCameraCount.max,
+                    )
+                  }
                 />
                 {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
               </Field>
@@ -214,10 +313,10 @@ export default function Devices() {
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
               <FieldLabel htmlFor={field.name}>
-                Do you have other network-connected devices?
+                Any other network-connected devices?
               </FieldLabel>
               <FieldDescription>
-                Include devices such as printers, smart sensors, displays, or other equipment on your network.
+                Examples include door access control, point-of-sale systems, printers, or smart building sensors.
               </FieldDescription>
               <Select
                 value={field.value === undefined ? '' : field.value ? 'yes' : 'no'}
@@ -255,6 +354,7 @@ export default function Devices() {
                   value={value ?? ''}
                   id={field.name}
                   type="text"
+                  maxLength={QUESTIONNAIRE_LIMITS.text.otherDescription.max}
                   placeholder="Enter names or descriptions"
                   aria-invalid={fieldState.invalid}
                 />

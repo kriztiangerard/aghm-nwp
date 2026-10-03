@@ -1,10 +1,14 @@
 import { z } from 'zod'
 
+import { QUESTIONNAIRE_LIMITS } from '../lib/questionnaireLimits'
+
 const requiredNumber = (
   message: string,
   minMessage: string,
   intMessage: string,
-  minimum = 1
+  minimum = 1,
+  maximum?: number,
+  maxMessage?: string
 ) =>
   z.preprocess(
     (value) =>
@@ -17,6 +21,9 @@ const requiredNumber = (
       .refine((value) => !Number.isNaN(value), { message })
       .refine((value) => Number.isInteger(value), { message: intMessage })
       .refine((value) => value >= minimum, { message: minMessage })
+      .refine((value) => maximum === undefined || value <= maximum, {
+        message: maxMessage ?? `Value must be at most ${maximum}.`,
+      })
   )
 
 const requiredBoolean = (message: string) =>
@@ -34,20 +41,34 @@ export const physicalSpaceSchema = z.object({
   physicalSpace: z.object({
     numberOfFloors: requiredNumber(
       'Number of floors is required.',
-      'Number of floors must be at least 1.',
-      'Number of floors must be a whole number.'
+      `Number of floors must be at least ${QUESTIONNAIRE_LIMITS.physicalSpace.numberOfFloors.min}.`,
+      'Number of floors must be a whole number.',
+      QUESTIONNAIRE_LIMITS.physicalSpace.numberOfFloors.min,
+      QUESTIONNAIRE_LIMITS.physicalSpace.numberOfFloors.max,
+      `Number of floors must be ${QUESTIONNAIRE_LIMITS.physicalSpace.numberOfFloors.max} or fewer.`
     ),
 
-    floorAreaPerFloor: requiredNumber(
-      'Approximate floor area per floor is required.',
-      'Floor area must be greater than 0.',
-      'Approximate floor area per floor must be a whole number.'
+    floorAreaPerFloor: z.preprocess(
+      (value) =>
+        value === undefined || value === null || value === ''
+          ? undefined
+          : value,
+      z.union([
+        z.coerce.number()
+          .int('Approximate floor area per floor must be a whole number.')
+          .min(QUESTIONNAIRE_LIMITS.physicalSpace.floorAreaPerFloor.min, `Floor area must be at least ${QUESTIONNAIRE_LIMITS.physicalSpace.floorAreaPerFloor.min}.`)
+          .max(QUESTIONNAIRE_LIMITS.physicalSpace.floorAreaPerFloor.max, `Approximate floor area per floor must be ${QUESTIONNAIRE_LIMITS.physicalSpace.floorAreaPerFloor.max.toLocaleString()} sqm or less.`),
+        z.undefined(),
+      ])
     ),
 
     roomsPerFloor: requiredNumber(
       'Number of rooms/work areas per floor is required.',
-      'Number of rooms/work areas per floor must be at least 1.',
-      'Number of rooms/work areas per floor must be a whole number.'
+      `Number of rooms/work areas per floor must be at least ${QUESTIONNAIRE_LIMITS.physicalSpace.roomsPerFloor.min}.`,
+      'Number of rooms/work areas per floor must be a whole number.',
+      QUESTIONNAIRE_LIMITS.physicalSpace.roomsPerFloor.min,
+      QUESTIONNAIRE_LIMITS.physicalSpace.roomsPerFloor.max,
+      `Number of rooms/work areas per floor must be ${QUESTIONNAIRE_LIMITS.physicalSpace.roomsPerFloor.max} or fewer.`
     ),
 
     largeGroupRooms: z.object({
@@ -60,14 +81,20 @@ export const physicalSpaceSchema = z.object({
           z.object({
             floor: requiredNumber(
               'Room floor is required.',
-              'Room floor must be at least 1.',
-              'Room floor must be a whole number.'
+              `Room floor must be at least ${QUESTIONNAIRE_LIMITS.physicalSpace.largeGroupRooms.floor.min}.`,
+              'Room floor must be a whole number.',
+              QUESTIONNAIRE_LIMITS.physicalSpace.largeGroupRooms.floor.min,
+              QUESTIONNAIRE_LIMITS.physicalSpace.numberOfFloors.max,
+              `Room floor must be ${QUESTIONNAIRE_LIMITS.physicalSpace.numberOfFloors.max} or fewer.`
             ),
 
             capacity: requiredNumber(
               'Room capacity is required.',
-              'Room capacity must be at least 1.',
-              'Room capacity must be a whole number.'
+              `Room capacity must be at least ${QUESTIONNAIRE_LIMITS.physicalSpace.largeGroupRooms.capacity.min}.`,
+              'Room capacity must be a whole number.',
+              QUESTIONNAIRE_LIMITS.physicalSpace.largeGroupRooms.capacity.min,
+              QUESTIONNAIRE_LIMITS.physicalSpace.largeGroupRooms.capacity.max,
+              `Room capacity must be ${QUESTIONNAIRE_LIMITS.physicalSpace.largeGroupRooms.capacity.max} or fewer.`
             ),
           })
         )

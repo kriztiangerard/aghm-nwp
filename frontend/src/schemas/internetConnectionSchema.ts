@@ -1,5 +1,7 @@
 import { z } from 'zod'
 
+import { QUESTIONNAIRE_LIMITS } from '../lib/questionnaireLimits'
+
 const requiredEnum = <T extends readonly [string, ...string[]]>(
   values: T,
   message: string
@@ -14,34 +16,20 @@ const requiredEnum = <T extends readonly [string, ...string[]]>(
     })
   )
 
-const requiredNumber = (
-  message: string,
-  minMessage: string,
-  intMessage: string,
-  minimum = 1
-) =>
-  z.preprocess(
-    (value) =>
-      value === undefined ||
-      value === null ||
-      value === '' ||
-      (typeof value === 'number' && Number.isNaN(value))
-        ? '__MISSING__'
-        : value,
-    z
-      .union([z.coerce.number(), z.literal('__MISSING__')])
-      .refine((value) => value !== '__MISSING__', { message })
-      .refine((value) => !Number.isNaN(value), { message })
-      .refine((value) => Number.isInteger(value), { message: intMessage })
-      .refine((value) => value >= minimum, { message: minMessage })
-  )
-
 export const internetConnectionSchema = z.object({
   internet: z.object({
-    currentSpeedMbps: requiredNumber(
-      'Current internet speed is required.',
-      'Current internet speed must be at least 1 Mbps.',
-      'Current internet speed must be a whole number.'
+    currentSpeedMbps: z.preprocess(
+      (value) =>
+        value === undefined || value === null || value === ''
+          ? undefined
+          : value,
+      z.union([
+        z.coerce.number()
+          .int('Current internet speed must be a whole number.')
+          .min(QUESTIONNAIRE_LIMITS.internet.currentSpeedMbps.min, `Current internet speed must be at least ${QUESTIONNAIRE_LIMITS.internet.currentSpeedMbps.min} Mbps.`)
+          .max(QUESTIONNAIRE_LIMITS.internet.currentSpeedMbps.max, `Current internet speed must be ${QUESTIONNAIRE_LIMITS.internet.currentSpeedMbps.max.toLocaleString()} Mbps or less.`),
+        z.undefined(),
+      ])
     ),
 
     connectionType: requiredEnum(

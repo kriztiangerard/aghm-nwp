@@ -4,10 +4,13 @@ import type { QuestionnaireData } from '../schemas/questionnaireSchema'
 export function mapFormToNetworkConfiguration(
   data: QuestionnaireData,
 ): NetworkConfiguration {
+  const numberOfSites =
+    data.project.numberOfSites === 'two_or_more' ? 2 : 1
+
   return {
     project: {
       name: data.project.name,
-      numberOfSites: data.project.numberOfSites,
+      numberOfSites,
 
       siteRelationship: data.project.siteRelationship as
         | 'same_city'

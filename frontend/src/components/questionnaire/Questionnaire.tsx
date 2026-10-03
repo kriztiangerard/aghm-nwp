@@ -1,4 +1,6 @@
-import { useState } from 'react'
+import { mapFormToNetworkConfiguration } from '../../lib/network-config-mapper'
+import { closeOpenSelectPortals } from '../../lib/closeOpenSelectPortals'
+import { useEffect, useState } from 'react'
 import {
   FormProvider,
   useForm,
@@ -25,11 +27,13 @@ import InternetConnection from './InternetConnection'
 import Devices from './Devices'
 import NetworkSetupPreferences from './NetworkSetupPreferences'
 import BudgetBusinessContext from './BudgetBusinessContext'
+import OverallSummary from './OverallSummary'
 import SummaryPanel from './SummaryPanel'
 
 import { questionnaireSchema } from '../../schemas/questionnaireSchema'
+import { SECTION_TITLES } from '../../lib/summary'
 
-const steps = [
+const sectionSteps = [
   ProjectBasics,
   PhysicalSpace,
   ExistingEnvironment,
@@ -37,7 +41,12 @@ const steps = [
   Devices,
   NetworkSetupPreferences,
   BudgetBusinessContext,
-]
+  OverallSummary,
+] as const
+
+const sectionKeys = Object.keys(SECTION_TITLES) as Array<keyof typeof SECTION_TITLES>
+
+const steps = [...sectionSteps]
 
 const fullSchema = questionnaireSchema
 
@@ -71,14 +80,28 @@ function Questionnaire() {
         },
       },
 
-      businessContext: {
-        expectedGrowth: false,
-      },
+      businessContext: {},
     },
   })
 
   const { isSubmitting } = form.formState
   const CurrentSection = steps[currentStep]
+  const currentSectionKey = currentStep < sectionKeys.length ? sectionKeys[currentStep] : undefined
+  const totalSteps = steps.length
+
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      closeOpenSelectPortals(document)
+      const active = document.activeElement
+      if (active instanceof HTMLElement) {
+        active.blur()
+      }
+    }
+  }, [currentStep])
+  const showSummaryPanel = currentStep < totalSteps - 1
+  const mainGridClass = showSummaryPanel
+    ? 'lg:grid-cols-[minmax(15rem,0.8fr)_minmax(0,1.4fr)] lg:gap-12'
+    : 'lg:grid-cols-1 lg:justify-center'
 
   /*
    * Paths aligned strictly with schema key locations:
@@ -118,6 +141,7 @@ function Questionnaire() {
   ]
 
   const handleNext = async () => {
+    closeOpenSelectPortals(typeof document !== 'undefined' ? document : null)
     setSubmitError(null)
     form.clearErrors()
 
@@ -126,9 +150,13 @@ function Questionnaire() {
     // Dynamically validate details array only if large rooms are selected in Step 2
     if (
       currentStep === 1 &&
-      form.getValues('physicalSpace.largeGroupRooms.hasLargeGroupRooms' as FormField) === true
+      form.getValues(
+        'physicalSpace.largeGroupRooms.hasLargeGroupRooms' as FormField,
+      ) === true
     ) {
-      currentFields.push('physicalSpace.largeGroupRooms.rooms' as FormField)
+      currentFields.push(
+        'physicalSpace.largeGroupRooms.rooms' as FormField,
+      )
     }
 
     const isValid = await form.trigger(currentFields, {
@@ -145,6 +173,7 @@ function Questionnaire() {
   }
 
   const handleBack = () => {
+    closeOpenSelectPortals(typeof document !== 'undefined' ? document : null)
     setSubmitError(null)
     form.clearErrors()
 
@@ -154,69 +183,93 @@ function Questionnaire() {
   }
 
   const onSubmit = async (data: FormOutput) => {
+    closeOpenSelectPortals(typeof document !== 'undefined' ? document : null)
     setSubmitError(null)
 
-    const apiUrl = import.meta.env.VITE_API_URL?.trim()
+    const configuredApiUrl = import.meta.env.VITE_API_URL?.trim()
+    const apiUrl = configuredApiUrl || 'http://localhost:8000'
 
-    if (!apiUrl) {
-      const missingApiMessage =
-        'No API endpoint is configured yet. Add VITE_API_URL in your environment to submit the questionnaire.'
-
+    if (!configuredApiUrl) {
       console.warn(
-        'VITE_API_URL is not configured. Submission is using placeholder mode.',
-        data,
+        '[Questionnaire] VITE_API_URL is not configured. Falling back to http://localhost:8000 for local development.',
+        { data },
       )
-
-      setSubmitError(missingApiMessage)
-      return
     }
 
+    const payload = mapFormToNetworkConfiguration(data)
+    const requestUrl = `${apiUrl.replace(/\/$/, '')}/generate`
+
+    console.log('[Questionnaire] Using API URL:', requestUrl)
+
+    console.log('[Questionnaire] Network payload:', payload)
+    console.log('[Questionnaire] API URL:', requestUrl)
+    console.log('[Questionnaire] API request:', {
+      method: 'POST',
+      url: requestUrl,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      payload,
+    })
+
     try {
-      const response = await fetch(`${apiUrl}/generate`, {
+      const response = await fetch(requestUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify(payload),
+      })
+
+      const responseText = await response.text()
+      let responseBody: unknown = responseText
+
+      try {
+        responseBody = JSON.parse(responseText)
+      } catch {
+        // Response body is not JSON; keep the plain text for debugging.
+      }
+
+      console.log('[Questionnaire] API response:', {
+        status: response.status,
+        statusText: response.statusText,
+        url: requestUrl,
+        body: responseBody,
       })
 
       if (!response.ok) {
-        throw new Error(
-          `Submission failed with status ${response.status}`,
-        )
+        console.error('[Questionnaire] API request failed')
+        console.error('[Questionnaire] Error:', new Error(`HTTP ${response.status}: ${response.statusText}`))
+        console.error('[Questionnaire] API URL:', requestUrl)
+        setSubmitError('Unable to submit your questionnaire. Please check your connection and try again.')
+        return
       }
 
-      const result = await response.json()
+      console.log('[Questionnaire] Request succeeded')
+      console.log('Recommendation result:', responseBody)
+    } catch (error) {
+      const fetchError = error instanceof Error ? error : new Error('Unknown fetch error')
 
-      console.log(
-        'Recommendation result:',
-        result,
-      )
-    } catch (err) {
-      const errorMessage =
-        err instanceof Error
-          ? err.message
-          : 'An unexpected error occurred.'
+      console.error('[Questionnaire] API request failed')
+      console.error('[Questionnaire] Error:', fetchError)
+      console.error('[Questionnaire] API URL:', requestUrl)
 
-      setSubmitError(errorMessage)
+      setSubmitError('Unable to submit your questionnaire. Please check your connection and try again.')
     }
   }
 
   return (
     <FormProvider {...form}>
       <main className="min-h-screen bg-muted/30 px-4 py-8 sm:px-8 sm:py-12">
-        <div className="mx-auto grid w-full max-w-6xl grid-cols-1 items-start gap-8 lg:grid-cols-[minmax(15rem,0.8fr)_minmax(0,1.4fr)] lg:gap-12">
+        <div className={`mx-auto grid w-full max-w-6xl grid-cols-1 items-start gap-8 ${mainGridClass}`}>
+          {showSummaryPanel && <SummaryPanel sectionKey={currentSectionKey} />}
 
-          <SummaryPanel />
-
-          <Card className="flex flex-col overflow-hidden lg:h-[calc(100dvh-6rem)] lg:min-h-[36rem]">
-
+          <Card className={`flex flex-col overflow-hidden lg:h-[calc(100dvh-6rem)] lg:min-h-[36rem] ${!showSummaryPanel ? 'mx-auto w-full max-w-5xl' : ''}`}>
             <form
               onSubmit={form.handleSubmit(onSubmit)}
               className="flex min-h-0 flex-1 flex-col lg:h-full"
               aria-labelledby="questionnaire-title"
             >
-
               <CardHeader className="shrink-0">
                 <h1
                   id="questionnaire-title"
@@ -228,13 +281,13 @@ function Questionnaire() {
                 <div className="space-y-2 pt-2">
                   <Progress
                     value={
-                      ((currentStep + 1) / steps.length) * 100
+                      ((currentStep + 1) / totalSteps) * 100
                     }
-                    aria-label={`Step ${currentStep + 1} of ${steps.length}`}
+                    aria-label={`Step ${currentStep + 1} of ${totalSteps}`}
                   />
 
                   <p className="text-sm text-muted-foreground">
-                    Step {currentStep + 1} of {steps.length}
+                    Step {currentStep + 1} of {totalSteps}
                   </p>
                 </div>
               </CardHeader>
@@ -243,7 +296,6 @@ function Questionnaire() {
 
               <ScrollArea className="min-h-0 lg:h-0 lg:flex-1">
                 <CardContent className="space-y-6 pt-6">
-
                   {submitError && (
                     <div
                       role="alert"
@@ -255,13 +307,16 @@ function Questionnaire() {
 
                   <CurrentSection />
 
+                  <div className="rounded-md border border-amber-200 bg-amber-50 px-2.5 py-2 text-[11px] font-normal leading-relaxed text-amber-900/90">
+                    Please confirm exact quantities and placements with a qualified installer before purchasing.
+                  </div>
+
                 </CardContent>
               </ScrollArea>
 
               <Separator />
 
               <CardContent className="flex shrink-0 justify-between py-4">
-
                 <Button
                   type="button"
                   variant="outline"
@@ -274,7 +329,7 @@ function Questionnaire() {
                   Back
                 </Button>
 
-                {currentStep < steps.length - 1 ? (
+                {currentStep < totalSteps - 1 ? (
                   <Button
                     type="button"
                     onClick={handleNext}
@@ -292,10 +347,8 @@ function Questionnaire() {
                       : 'Submit'}
                   </Button>
                 )}
-
               </CardContent>
             </form>
-
           </Card>
         </div>
       </main>
