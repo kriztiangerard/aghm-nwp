@@ -10,3 +10,6 @@ cdk.out
 # Environment variables
 .env
 .env.local
+
+# RDS SSL certificate
+global-bundle.pem
