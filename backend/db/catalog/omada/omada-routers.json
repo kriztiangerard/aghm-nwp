@@ -1,0 +1,393 @@
+[
+  {
+    "vendor_id": 2,
+    "sku": "ER706WP-4G",
+    "price": null,
+    "name": "Omada ER706WP-4G",
+    "description": "Omada VPN router with 4G LTE support, PoE+ ports, and multi-WAN connectivity.",
+    "is_rack_mountable": true,
+    "u_height": 0,
+    "lifecycle_status": "active",
+    "eos_date": null,
+    "eol_date": null,
+    "category": "gateway_router",
+    "gateway_router_specs": {
+      "wan_ports": 4,
+      "lan_ports": 4,
+      "max_throughput_mbps": 1000,
+      "max_power_draw_w": 64.9,
+      "vpn_supported": true,
+      "sfp_ports": 1,
+      "sfp_form_factor": "SFP"
+    },
+    "firewall_specs": {
+      "firewall_throughputs_mbps": 229,
+      "vpn_throughput_mbps": 670,
+      "max_concurrent_sessions": 150000,
+      "wan_ports": 4,
+      "lan_ports": 4,
+      "max_power_draw_w": 64.9
+    },
+    "capabilities": [
+      "router",
+      "firewall"
+    ]
+  },
+  {
+    "vendor_id": 2,
+    "sku": "ER7412-M2",
+    "price": null,
+    "name": "Omada ER7412-M2",
+    "description": "Omada multi-gigabit VPN router designed for high-performance business networks.",
+    "is_rack_mountable": true,
+    "u_height": 1,
+    "lifecycle_status": "active",
+    "eos_date": null,
+    "eol_date": null,
+    "category": "gateway_router",
+    "gateway_router_specs": {
+      "wan_ports": 12,
+      "lan_ports": 0,
+      "max_throughput_mbps": 10000,
+      "max_power_draw_w": 30,
+      "vpn_supported": true
+    },
+    "firewall_specs": {
+      "firewall_throughputs_mbps": 2248,
+      "vpn_throughput_mbps": 1133,
+      "max_concurrent_sessions": 1000000,
+      "wan_ports": 12,
+      "lan_ports": 0,
+      "max_power_draw_w": 30
+    },
+    "capabilities": [
+      "router",
+      "firewall"
+    ]
+  },
+  {
+    "vendor_id": 2,
+    "sku": "ER605W",
+    "price": null,
+    "name": "Omada ER605W",
+    "description": "Wireless Omada VPN router with multi-WAN connectivity for small business networks.",
+    "is_rack_mountable": false,
+    "u_height": 0,
+    "lifecycle_status": "active",
+    "eos_date": null,
+    "eol_date": null,
+    "category": "gateway_router",
+    "gateway_router_specs": {
+      "wan_ports": 3,
+      "lan_ports": 2,
+      "max_throughput_mbps": 1000,
+      "max_power_draw_w": 9,
+      "vpn_supported": true
+    },
+    "firewall_specs": {
+      "firewall_throughputs_mbps": 175,
+      "vpn_throughput_mbps": 185,
+      "max_concurrent_sessions": 50000,
+      "wan_ports": 3,
+      "lan_ports": 2,
+      "max_power_draw_w": 9
+    },
+    "capabilities": [
+      "router",
+      "firewall"
+    ]
+  },
+  {
+    "vendor_id": 2,
+    "sku": "ER707-M2",
+    "price": null,
+    "name": "Omada ER707-M2",
+    "description": "Multi-gigabit Omada VPN router with high-performance security and multi-WAN capabilities.",
+    "is_rack_mountable": false,
+    "u_height": 0,
+    "lifecycle_status": "active",
+    "eos_date": "2025-11-16",
+    "eol_date": "2028-11-16",
+    "category": "gateway_router",
+    "gateway_router_specs": {
+      "wan_ports": 4,
+      "lan_ports": 4,
+      "max_throughput_mbps": 2500,
+      "max_power_draw_w": 14.2,
+      "vpn_supported": true
+    },
+    "firewall_specs": {
+      "firewall_throughputs_mbps": 208,
+      "vpn_throughput_mbps": 673,
+      "max_concurrent_sessions": 500000,
+      "wan_ports": 4,
+      "lan_ports": 4,
+      "max_power_draw_w": 14.2
+    },
+    "capabilities": [
+      "router",
+      "firewall"
+    ]
+  },
+  {
+    "vendor_id": 2,
+    "sku": "ER8411",
+    "price": null,
+    "name": "Omada ER8411",
+    "description": "High-performance Omada VPN router with multi-gigabit connectivity and advanced network security.",
+    "is_rack_mountable": true,
+    "u_height": 1,
+    "lifecycle_status": "active",
+    "eos_date": "2026-10-15",
+    "eol_date": "2029-10-15",
+    "category": "gateway_router",
+    "gateway_router_specs": {
+      "wan_ports": 8,
+      "lan_ports": 8,
+      "max_throughput_mbps": 10000,
+      "max_power_draw_w": 26.36,
+      "vpn_supported": true
+    },
+    "firewall_specs": {
+      "firewall_throughputs_mbps": 9388,
+      "vpn_throughput_mbps": 3099,
+      "max_concurrent_sessions": 2300000,
+      "wan_ports": 8,
+      "lan_ports": 8,
+      "max_power_draw_w": 26.36
+    },
+    "capabilities": [
+      "router",
+      "firewall"
+    ]
+  },
+  {
+    "vendor_id": 2,
+    "sku": "ER7406",
+    "price": null,
+    "name": "Omada ER7406",
+    "description": "Omada VPN router with multi-WAN connectivity, high-performance security, and USB connectivity.",
+    "is_rack_mountable": true,
+    "u_height": 1,
+    "lifecycle_status": "active",
+    "eos_date": "2026-06-29",
+    "eol_date": "2029-06-29",
+    "category": "gateway_router",
+    "gateway_router_specs": {
+      "wan_ports": 6,
+      "lan_ports": 6,
+      "max_throughput_mbps": 1000,
+      "max_power_draw_w": 7.5,
+      "vpn_supported": true
+    },
+    "firewall_specs": {
+      "firewall_throughputs_mbps": 918,
+      "vpn_throughput_mbps": 885,
+      "max_concurrent_sessions": 150000,
+      "wan_ports": 6,
+      "lan_ports": 6,
+      "max_power_draw_w": 7.5
+    },
+    "capabilities": [
+      "router",
+      "firewall"
+    ]
+  },
+  {
+    "vendor_id": 2,
+    "sku": "ER605",
+    "price": null,
+    "name": "TP-Link Omada ER605 (TL-R605)",
+    "description": "Multi-WAN VPN router with gigabit ports for Omada business networks.",
+    "is_rack_mountable": false,
+    "u_height": 0,
+    "lifecycle_status": "active",
+    "eos_date": null,
+    "eol_date": null,
+    "category": "gateway_router",
+    "gateway_router_specs": {
+      "wan_ports": 2,
+      "lan_ports": 3,
+      "max_throughput_mbps": 1000,
+      "max_power_draw_w": 7.94,
+      "vpn_supported": true
+    },
+    "firewall_specs": {
+      "firewall_throughputs_mbps": 905,
+      "vpn_throughput_mbps": 123,
+      "max_concurrent_sessions": 150000,
+      "wan_ports": 2,
+      "lan_ports": 3,
+      "max_power_draw_w": 7.94
+    },
+    "capabilities": [
+      "router",
+      "firewall"
+    ]
+  },
+  {
+    "vendor_id": 2,
+    "sku": "ER7206",
+    "price": null,
+    "name": "Omada ER7206",
+    "description": "Gigabit Omada VPN router with multi-WAN connectivity and advanced security features.",
+    "is_rack_mountable": true,
+    "u_height": 1,
+    "lifecycle_status": "active",
+    "eos_date": null,
+    "eol_date": null,
+    "category": "gateway_router",
+    "gateway_router_specs": {
+      "wan_ports": 2,
+      "lan_ports": 4,
+      "max_throughput_mbps": 1000,
+      "max_power_draw_w": 7.5,
+      "vpn_supported": true
+    },
+    "firewall_specs": {
+      "firewall_throughputs_mbps": 933,
+      "vpn_throughput_mbps": 341,
+      "max_concurrent_sessions": 150000,
+      "wan_ports": 2,
+      "lan_ports": 4,
+      "max_power_draw_w": 7.5
+    },
+    "capabilities": [
+      "router",
+      "firewall"
+    ]
+  },
+  {
+    "vendor_id": 2,
+    "sku": "ER7212PC",
+    "price": null,
+    "name": "Omada ER7212PC",
+    "description": "Integrated Omada router, PoE switch, and hardware controller in a single device.",
+    "is_rack_mountable": false,
+    "u_height": 0,
+    "lifecycle_status": "active",
+    "eos_date": null,
+    "eol_date": null,
+    "category": "gateway_router",
+    "gateway_router_specs": {
+      "wan_ports": 4,
+      "lan_ports": 0,
+      "max_throughput_mbps": 1000,
+      "max_power_draw_w": 12,
+      "vpn_supported": true,
+      "sfp_ports": 2,
+      "sfp_form_factor": "SFP"
+    },
+    "switch_specs": {
+      "port_count": 8,
+      "poe_ports": 8,
+      "poe_budget_w": 64,
+      "layer": 2
+    },
+    "controller_specs": {
+      "controller_type": "integrated",
+      "max_managed_aps": 22,
+      "max_managed_switches": 22,
+      "max_managed_gateways": 2,
+      "max_managed_aps_and_switches": 22
+    },
+    "capabilities": [
+      "router",
+      "switch",
+      "controller"
+    ]
+  },
+  {
+    "vendor_id": 2,
+    "sku": "Fusion-2.5G",
+    "price": null,
+    "name": "Omada Fusion 2.5G",
+    "description": "Omada gateway with 2.5Gbps Ethernet connectivity and multi-WAN support.",
+    "is_rack_mountable": false,
+    "u_height": 0,
+    "lifecycle_status": "active",
+    "eos_date": null,
+    "eol_date": null,
+    "category": "gateway_router",
+    "gateway_router_specs": {
+      "wan_ports": 4,
+      "lan_ports": 4,
+      "max_throughput_mbps": 2500,
+      "max_power_draw_w": 8.18,
+      "vpn_supported": true
+    },
+    "firewall_specs": {
+      "firewall_throughputs_mbps": 2183,
+      "vpn_throughput_mbps": 1023,
+      "wan_ports": 4,
+      "lan_ports": 4,
+      "max_power_draw_w": 8.18
+    },
+    "capabilities": [
+      "router",
+      "firewall"
+    ]
+  },
+  {
+    "vendor_id": 2,
+    "sku": "Fusion-G+",
+    "price": null,
+    "name": "Omada Fusion G+",
+    "description": "Omada gateway with a 2.5Gbps WAN port, gigabit WAN/LAN ports, and integrated cloud management.",
+    "is_rack_mountable": false,
+    "u_height": 0,
+    "lifecycle_status": "active",
+    "eos_date": null,
+    "eol_date": null,
+    "category": "gateway_router",
+    "gateway_router_specs": {
+      "wan_ports": 5,
+      "lan_ports": 4,
+      "max_throughput_mbps": 2500,
+      "max_power_draw_w": 6.18,
+      "vpn_supported": true
+    },
+    "firewall_specs": {
+      "firewall_throughputs_mbps": 2183,
+      "vpn_throughput_mbps": 1023,
+      "wan_ports": 5,
+      "lan_ports": 4,
+      "max_power_draw_w": 6.18
+    },
+    "capabilities": [
+      "router",
+      "firewall"
+    ]
+  },
+  {
+    "vendor_id": 2,
+    "sku": "Fusion-2.5G-PoE",
+    "price": null,
+    "name": "Omada Fusion 2.5G PoE",
+    "description": "Omada gateway with 2.5Gbps connectivity and integrated PoE functionality.",
+    "is_rack_mountable": false,
+    "u_height": 0,
+    "lifecycle_status": "active",
+    "eos_date": null,
+    "eol_date": null,
+    "category": "gateway_router",
+    "gateway_router_specs": {
+      "wan_ports": 4,
+      "lan_ports": 4,
+      "max_throughput_mbps": 2500,
+      "max_power_draw_w": 131,
+      "vpn_supported": true
+    },
+    "firewall_specs": {
+      "firewall_throughputs_mbps": 2183,
+      "vpn_throughput_mbps": 1023,
+      "wan_ports": 4,
+      "lan_ports": 4,
+      "max_power_draw_w": 131
+    },
+    "capabilities": [
+      "router",
+      "firewall"
+    ]
+  }
+]
