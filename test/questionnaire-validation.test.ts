@@ -9,28 +9,34 @@ import { formatSelectLabel } from '../frontend/src/schemas/formatters'
 import { questionnaireSchema } from '../frontend/src/schemas/questionnaireSchema'
 
 describe('questionnaire validation messages', () => {
-  it('hides lingering Base UI select portals before the user can click submit', () => {
-    const portal = {
-      style: {},
-      setAttribute: jest.fn(),
-      querySelectorAll: jest.fn(() => [
-        {
-          style: {},
-          setAttribute: jest.fn(),
-          querySelectorAll: jest.fn(() => []),
-        },
-      ]),
+  it('closes open selects without leaving their portals unclickable', () => {
+    const trigger = { click: jest.fn() }
+    const listbox = {
+      removeAttribute: jest.fn(),
+      style: { removeProperty: jest.fn() },
     }
-
+    const portal = {
+      removeAttribute: jest.fn(),
+      style: { removeProperty: jest.fn() },
+      querySelectorAll: jest.fn(() => [listbox]),
+    }
     const root = {
-      querySelectorAll: jest.fn(() => [portal]),
+      querySelectorAll: jest.fn((selector: string) =>
+        selector.includes('select-trigger') ? [trigger] : [portal],
+      ),
     }
 
     closeOpenSelectPortals(root as unknown as ParentNode)
 
-    expect(portal.style.pointerEvents).toBe('none')
-    expect(portal.style.display).toBe('none')
-    expect(portal.setAttribute).toHaveBeenCalledWith('data-base-ui-portal-closed', 'true')
+    expect(trigger.click).toHaveBeenCalledTimes(1)
+    expect(portal.removeAttribute).toHaveBeenCalledWith(
+      'data-base-ui-portal-closed',
+    )
+    expect(portal.style.removeProperty).toHaveBeenCalledWith('pointer-events')
+    expect(portal.style.removeProperty).toHaveBeenCalledWith('display')
+    expect(listbox.removeAttribute).toHaveBeenCalledWith('aria-hidden')
+    expect(listbox.style.removeProperty).toHaveBeenCalledWith('pointer-events')
+    expect(listbox.style.removeProperty).toHaveBeenCalledWith('display')
   })
 
   it('clears numeric inputs without leaving NaN stuck in the field', () => {

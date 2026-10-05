@@ -3,18 +3,27 @@ export const closeOpenSelectPortals = (root: ParentNode | null = typeof document
     return
   }
 
-  root.querySelectorAll('[data-base-ui-portal]').forEach((portal) => {
-    const portalElement = portal as HTMLElement
+  root
+    .querySelectorAll<HTMLElement>(
+      '[data-slot="select-trigger"][aria-expanded="true"]'
+    )
+    .forEach((trigger) => trigger.click())
 
-    portalElement.setAttribute('data-base-ui-portal-closed', 'true')
-    portalElement.style.pointerEvents = 'none'
-    portalElement.style.display = 'none'
+  root
+    .querySelectorAll<HTMLElement>(
+      '[data-base-ui-portal-closed="true"]'
+    )
+    .forEach((portal) => {
+      portal.removeAttribute('data-base-ui-portal-closed')
+      portal.style.removeProperty('pointer-events')
+      portal.style.removeProperty('display')
 
-    portalElement.querySelectorAll('[role="listbox"], [role="option"]').forEach((item) => {
-      const itemElement = item as HTMLElement
-      itemElement.setAttribute('aria-hidden', 'true')
-      itemElement.style.pointerEvents = 'none'
-      itemElement.style.display = 'none'
-    })
+      portal
+        .querySelectorAll<HTMLElement>('[role="listbox"], [role="option"]')
+        .forEach((item) => {
+          item.removeAttribute('aria-hidden')
+          item.style.removeProperty('pointer-events')
+          item.style.removeProperty('display')
+        })
   })
 }
