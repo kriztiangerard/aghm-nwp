@@ -214,6 +214,9 @@ function PhysicalSpace() {
               <FieldLabel htmlFor={field.name}>
                 Roughly how many separate rooms or work areas per floor?
               </FieldLabel>
+              <FieldDescription>
+                Exclude small closets and restrooms. Include large open areas that are divided into separate work areas.
+              </FieldDescription>
 
               <Input
                 {...field}

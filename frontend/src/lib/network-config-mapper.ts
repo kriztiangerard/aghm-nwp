@@ -39,6 +39,7 @@ export function mapFormToNetworkConfiguration(
             routerModem: data.existingNetwork.equipment.routerModem,
 
             switches: data.existingNetwork.equipment.switches
+              ?.quantity
               ? {
                   quantity:
                     data.existingNetwork.equipment.switches.quantity as
@@ -50,7 +51,7 @@ export function mapFormToNetworkConfiguration(
               : undefined,
 
             wifiAccessPoints:
-              data.existingNetwork.equipment.wifiAccessPoints
+              data.existingNetwork.equipment.wifiAccessPoints?.quantity
                 ? {
                     quantity:
                       data.existingNetwork.equipment.wifiAccessPoints
@@ -63,10 +64,10 @@ export function mapFormToNetworkConfiguration(
                 : undefined,
 
             cablingAlreadyRun:
-              data.existingNetwork.equipment.cablingAlreadyRun,
+              data.existingNetwork.equipment.cablingAlreadyRun ?? false,
 
             otherOrUnknown:
-              data.existingNetwork.equipment.otherOrUnknown,
+              data.existingNetwork.equipment.otherOrUnknown ?? false,
           }
         : undefined,
 

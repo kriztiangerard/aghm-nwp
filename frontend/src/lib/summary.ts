@@ -176,6 +176,16 @@ const formatValue = (key: string, value: unknown): string | string[] => {
     const normalized = value.trim()
     if (!normalized) return ''
 
+    if (key === 'newSites') {
+      const siteCountLabels: Record<string, string> = {
+        none: 'None',
+        one: '1',
+        two_or_more: '2+',
+      }
+
+      return siteCountLabels[normalized] ?? normalized
+    }
+
     if (VALUE_OVERRIDES[normalized]) {
       return VALUE_OVERRIDES[normalized]
     }
@@ -195,6 +205,41 @@ const flattenSummaryItems = (obj: Record<string, unknown>, parentKey = ''): Summ
 
   Object.entries(obj).forEach(([key, value]) => {
     if (value === undefined || value === null || value === '') return
+
+    if (key === 'equipment' && typeof value === 'object' && !Array.isArray(value)) {
+      const equipment = value as Record<string, unknown>
+      const availableEquipment = [
+        ['routerModem', 'Router / Modem'],
+        ['switches', 'Switch'],
+        ['wifiAccessPoints', 'Wi-Fi Access Point'],
+        ['cablingAlreadyRun', 'Cabling already run'],
+        ['otherOrUnknown', 'Other / not sure'],
+      ].flatMap(([equipmentKey, label]) => {
+        const selectedEquipment = equipment[equipmentKey]
+        if (!selectedEquipment) return []
+
+        const quantity =
+          typeof selectedEquipment === 'object'
+            ? (selectedEquipment as Record<string, unknown>).quantity
+            : undefined
+        const quantityLabel =
+          typeof quantity === 'string' ? formatValue('quantity', quantity) : ''
+
+        return [
+          `${label}${quantityLabel ? ` (${quantityLabel})` : ''}`,
+        ]
+      })
+
+      if (availableEquipment.length > 0) {
+        items.push({
+          id: 'equipment.available',
+          label: 'Available equipment',
+          value: availableEquipment,
+        })
+      }
+
+      return
+    }
 
     if (key === 'applications' && typeof value === 'object' && !Array.isArray(value)) {
       const applicationValues = Object.entries(value as Record<string, unknown>)
@@ -261,7 +306,7 @@ const flattenSummaryItems = (obj: Record<string, unknown>, parentKey = ''): Summ
 }
 
 export const getSummarySections = (
-  values: Record<string, any> | undefined,
+  values: Record<string, unknown> | undefined,
   sectionKey?: keyof typeof SECTION_TITLES,
 ): SummarySection[] => {
   if (!values || typeof values !== 'object') return []

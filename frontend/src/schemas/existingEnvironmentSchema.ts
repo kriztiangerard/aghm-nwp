@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-const requiredEnum = <T extends readonly [string, ...string[]]>(
+const requiredEnum = <T extends [string, ...string[]]>(
   values: T,
   message: string
 ) =>
@@ -10,23 +10,11 @@ const requiredEnum = <T extends readonly [string, ...string[]]>(
         ? undefined
         : value,
     z.enum(values, {
-      error: message,
+      message,
     })
   )
 
-const requiredBoolean = (message: string) =>
-  z.preprocess(
-    (value) =>
-      value === undefined || value === null || value === ''
-        ? '__MISSING__'
-        : value,
-    z
-      .union([z.boolean(), z.literal('__MISSING__')])
-      .refine((value) => value !== '__MISSING__', { message })
-  )
-
-export const existingEnvironmentSchema = z
-  .object({
+export const existingEnvironmentObjectSchema = z.object({
     existingNetwork: z.object({
       equipmentStatus: requiredEnum(
         ['none', 'yes', 'not_sure'],
@@ -35,31 +23,27 @@ export const existingEnvironmentSchema = z
 
       equipment: z
         .object({
-          routerModem: requiredBoolean('Router or modem status is required.'),
+          routerModem: z.boolean().optional().default(false),
 
           switches: z
             .object({
-              quantity: requiredEnum(
-                ['1', '2-3', 'more_than_3', 'not_sure'],
-                'Switch quantity is required.'
-              ),
-            })
+              quantity: z.enum(
+                ['1', '2-3', 'more_than_3', 'not_sure'] as const,
+              ).optional(),
+})
             .optional(),
 
           wifiAccessPoints: z
             .object({
-              quantity: requiredEnum(
-                ['1', '2-3', 'more_than_3', 'not_sure'],
-                'Wi-Fi access point quantity is required.'
-              ),
+              quantity: z.enum(
+                ['1', '2-3', 'more_than_3', 'not_sure'] as const,
+              ).optional(),
             })
             .optional(),
 
-          cablingAlreadyRun: requiredBoolean('Cabling status is required.'),
+          cablingAlreadyRun: z.boolean().optional().default(false),
 
-          otherOrUnknown: requiredBoolean(
-            'Other or unknown network status is required.'
-          ),
+          otherOrUnknown: z.boolean().optional().default(false),
         })
         .optional(),
 
@@ -69,70 +53,56 @@ export const existingEnvironmentSchema = z
       ).optional(),
     }),
   })
-  .superRefine((value, ctx) => {
-    if (value.existingNetwork.equipmentStatus !== 'yes') {
-      return
-    }
 
-    const equipment = value.existingNetwork.equipment
+export const refineExistingEnvironment = (
+  value: z.infer<typeof existingEnvironmentObjectSchema>,
+  ctx: z.RefinementCtx
+) => {
+  if (value.existingNetwork.equipmentStatus !== 'yes') {
+    return
+  }
 
-    if (!equipment) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['existingNetwork', 'equipment'],
-        message: 'Existing network equipment details are required when equipment is present on site.',
-      })
-      return
-    }
+  const equipment = value.existingNetwork.equipment
 
-    if (equipment.routerModem === undefined) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['existingNetwork', 'equipment', 'routerModem'],
-        message: 'Router or modem status is required.',
-      })
-    }
+  if (!equipment) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['existingNetwork', 'equipment'],
+      message: 'Existing network equipment details are required when equipment is present on site.',
+    })
+    return
+  }
 
-    if (!equipment.switches || equipment.switches.quantity === undefined) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['existingNetwork', 'equipment', 'switches', 'quantity'],
-        message: 'Switch quantity is required.',
-      })
-    }
+  if (equipment.switches && equipment.switches.quantity === undefined) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['existingNetwork', 'equipment', 'switches', 'quantity'],
+      message: 'Switch quantity is required.',
+    })
+  }
 
-    if (!equipment.wifiAccessPoints || equipment.wifiAccessPoints.quantity === undefined) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['existingNetwork', 'equipment', 'wifiAccessPoints', 'quantity'],
-        message: 'Wi-Fi access point quantity is required.',
-      })
-    }
+  if (
+    equipment.wifiAccessPoints &&
+    equipment.wifiAccessPoints.quantity === undefined
+  ) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['existingNetwork', 'equipment', 'wifiAccessPoints', 'quantity'],
+      message: 'Wi-Fi access point quantity is required.',
+    })
+  }
 
-    if (equipment.cablingAlreadyRun === undefined) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['existingNetwork', 'equipment', 'cablingAlreadyRun'],
-        message: 'Cabling status is required.',
-      })
-    }
+  if (value.existingNetwork.existingCabling === undefined) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['existingNetwork', 'existingCabling'],
+      message: 'Existing cabling type is required.',
+    })
+  }
+}
 
-    if (equipment.otherOrUnknown === undefined) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['existingNetwork', 'equipment', 'otherOrUnknown'],
-        message: 'Other or unknown network status is required.',
-      })
-    }
-
-    if (value.existingNetwork.existingCabling === undefined) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['existingNetwork', 'existingCabling'],
-        message: 'Existing cabling type is required.',
-      })
-    }
-  })
+export const existingEnvironmentSchema =
+  existingEnvironmentObjectSchema.superRefine(refineExistingEnvironment)
 
 export type ExistingEnvironmentData = z.infer<
   typeof existingEnvironmentSchema

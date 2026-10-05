@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { Controller, useFormContext, useWatch } from 'react-hook-form'
 
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   FieldSet,
   FieldLegend,
@@ -23,6 +24,14 @@ function ExistingEnvironment() {
     name: 'existingNetwork.equipmentStatus',
   })
   const showEquipmentDetails = equipmentStatus === 'yes'
+  const switches = useWatch({
+    control,
+    name: 'existingNetwork.equipment.switches',
+  })
+  const wifiAccessPoints = useWatch({
+    control,
+    name: 'existingNetwork.equipment.wifiAccessPoints',
+  })
 
   useEffect(() => {
     if (!showEquipmentDetails) {
@@ -48,6 +57,34 @@ function ExistingEnvironment() {
       ])
     }
   }, [clearErrors, setValue, showEquipmentDetails])
+
+  const deviceList = [
+    {
+      name: 'existingNetwork.equipment.routerModem',
+      label: 'Router / Modem',
+      hasQuantity: false,
+    },
+    {
+      name: 'existingNetwork.equipment.switches',
+      label: 'Switch',
+      hasQuantity: true,
+    },
+    {
+      name: 'existingNetwork.equipment.wifiAccessPoints',
+      label: 'Wi-Fi Access Point',
+      hasQuantity: true,
+    },
+    {
+      name: 'existingNetwork.equipment.cablingAlreadyRun',
+      label: 'Cabling already run',
+      hasQuantity: false,
+    },
+    {
+      name: 'existingNetwork.equipment.otherOrUnknown',
+      label: 'Other / not sure',
+      hasQuantity: false,
+    },
+  ] as const
 
   return (
     <FieldSet>
@@ -105,253 +142,142 @@ function ExistingEnvironment() {
 
         {showEquipmentDetails && (
           <>
-            <Controller
-              name="existingNetwork.equipment.routerModem"
-              control={control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor={field.name}>
-                    Roughly what do you have? (check all that apply)
-                  </FieldLabel>
-
-                  <FieldDescription>
-                    This refers to the main equipment that connects your
-                    site to the internet.
-                  </FieldDescription>
-
-                  <Select
-                    value={field.value === undefined ? '' : field.value ? 'yes' : 'no'}
-                    onValueChange={(value) =>
-                      field.onChange(value === 'yes')
-                    }
-                  >
-                    <SelectTrigger
-                      id={field.name}
-                      aria-invalid={fieldState.invalid}
-                      className="text-sm"
-                    >
-                      {field.value !== undefined ? (
-                        <span className="flex-1 text-left text-sm leading-normal">
-                          {formatSelectLabel(field.value)}
-                        </span>
-                      ) : (
-                        <span className="text-muted-foreground text-sm leading-normal">
-                          Select an answer
-                        </span>
-                      )}
-                    </SelectTrigger>
-
-                    <SelectContent>
-                      <SelectItem value="no">No</SelectItem>
-                      <SelectItem value="yes">Yes</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
+            <Field>
+              <FieldLabel>
+                Roughly what do you have? (check all that apply)
+              </FieldLabel>
+              <FieldDescription>
+                Select the network equipment already in use at your site.
+              </FieldDescription>
+              {deviceList.map(({ name, label, hasQuantity }) => (
+                <Controller
+                  key={name}
+                  name={name}
+                  control={control}
+                  render={({ field }) => (
+                    <Field orientation="horizontal">
+                      <Checkbox
+                        id={name}
+                        checked={!!field.value}
+                        onCheckedChange={(checked) => {
+                          const selected = Boolean(checked)
+                          if (hasQuantity) {
+                            field.onChange(selected ? { quantity: undefined } : undefined)
+                            if (!selected) {
+                              const quantityName = `${name}.quantity`
+                              setValue(quantityName, undefined, {
+                                shouldDirty: true,
+                                shouldValidate: false,
+                              })
+                              clearErrors(quantityName)
+                            }
+                          } else {
+                            field.onChange(selected)
+                          }
+                        }}
+                      />
+                      <FieldLabel htmlFor={name}>{label}</FieldLabel>
+                    </Field>
                   )}
-                </Field>
-              )}
-            />
+                />
+              ))}
+            </Field>
 
-            <Controller
-              name="existingNetwork.equipment.switches.quantity"
-              control={control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor={field.name}>
-                    How many network switches do you already have?
-                  </FieldLabel>
+            {Boolean(switches) && (
+              <Controller
+                name="existingNetwork.equipment.switches.quantity"
+                control={control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor={field.name}>
+                      Roughly how many switches?
+                    </FieldLabel>
 
-                  <FieldDescription>
-                    Switches connect devices within your network and help
-                    route traffic between them.
-                  </FieldDescription>
-
-                  <Select
-                    value={field.value ?? ''}
-                    onValueChange={field.onChange}
-                  >
-                    <SelectTrigger
-                      id={field.name}
-                      aria-invalid={fieldState.invalid}
-                      className="text-sm"
+                    <Select
+                      value={field.value ?? ''}
+                      onValueChange={field.onChange}
                     >
-                      {field.value ? (
-                        <span className="flex-1 text-left text-sm leading-normal">
-                          {formatSelectLabel(field.value)}
-                        </span>
-                      ) : (
-                        <span className="text-muted-foreground text-sm leading-normal">
-                          Select a quantity
-                        </span>
-                      )}
-                    </SelectTrigger>
+                      <SelectTrigger
+                        id={field.name}
+                        aria-invalid={fieldState.invalid}
+                        className="text-sm"
+                      >
+                        {field.value ? (
+                          <span className="flex-1 text-left text-sm leading-normal">
+                            {formatSelectLabel(field.value)}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground text-sm leading-normal">
+                            Select a quantity
+                          </span>
+                        )}
+                      </SelectTrigger>
 
-                    <SelectContent>
-                      <SelectItem value="1">1</SelectItem>
-                      <SelectItem value="2-3">2–3</SelectItem>
-                      <SelectItem value="more_than_3">
-                        More than 3
-                      </SelectItem>
-                      <SelectItem value="not_sure">
-                        Not sure
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
+                      <SelectContent>
+                        <SelectItem value="1">1</SelectItem>
+                        <SelectItem value="2-3">2–3</SelectItem>
+                        <SelectItem value="more_than_3">
+                          More than 3
+                        </SelectItem>
+                        <SelectItem value="not_sure">Not sure</SelectItem>
+                      </SelectContent>
+                    </Select>
 
-                  {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
-                  )}
-                </Field>
-              )}
-            />
+                    {fieldState.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
+                  </Field>
+                )}
+              />
+            )}
 
-            <Controller
-              name="existingNetwork.equipment.wifiAccessPoints.quantity"
-              control={control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor={field.name}>
-                    How many Wi-Fi access points do you already have?
-                  </FieldLabel>
+            {Boolean(wifiAccessPoints) && (
+              <Controller
+                name="existingNetwork.equipment.wifiAccessPoints.quantity"
+                control={control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor={field.name}>
+                      Roughly how many WiFi access points?
+                    </FieldLabel>
 
-                  <FieldDescription>
-                    These are the wireless devices that extend Wi-Fi
-                    coverage across your space.
-                  </FieldDescription>
-
-                  <Select
-                    value={field.value ?? ''}
-                    onValueChange={field.onChange}
-                  >
-                    <SelectTrigger
-                      id={field.name}
-                      aria-invalid={fieldState.invalid}
-                      className="text-sm"
+                    <Select
+                      value={field.value ?? ''}
+                      onValueChange={field.onChange}
                     >
-                      {field.value ? (
-                        <span className="flex-1 text-left text-sm leading-normal">
-                          {formatSelectLabel(field.value)}
-                        </span>
-                      ) : (
-                        <span className="text-muted-foreground text-sm leading-normal">
-                          Select a quantity
-                        </span>
-                      )}
-                    </SelectTrigger>
+                      <SelectTrigger
+                        id={field.name}
+                        aria-invalid={fieldState.invalid}
+                        className="text-sm"
+                      >
+                        {field.value ? (
+                          <span className="flex-1 text-left text-sm leading-normal">
+                            {formatSelectLabel(field.value)}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground text-sm leading-normal">
+                            Select a quantity
+                          </span>
+                        )}
+                      </SelectTrigger>
 
-                    <SelectContent>
-                      <SelectItem value="1">1</SelectItem>
-                      <SelectItem value="2-3">2–3</SelectItem>
-                      <SelectItem value="more_than_3">
-                        More than 3
-                      </SelectItem>
-                      <SelectItem value="not_sure">
-                        Not sure
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
+                      <SelectContent>
+                        <SelectItem value="1">1</SelectItem>
+                        <SelectItem value="2-3">2–3</SelectItem>
+                        <SelectItem value="more_than_3">
+                          More than 3
+                        </SelectItem>
+                        <SelectItem value="not_sure">Not sure</SelectItem>
+                      </SelectContent>
+                    </Select>
 
-                  {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
-                  )}
-                </Field>
-              )}
-            />
-
-            <Controller
-              name="existingNetwork.equipment.cablingAlreadyRun"
-              control={control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor={field.name}>
-                    Is there existing network cabling in the walls or ceiling?
-                  </FieldLabel>
-
-                  <Select
-                    value={field.value === undefined ? '' : field.value ? 'yes' : 'no'}
-                    onValueChange={(value) =>
-                      field.onChange(value === 'yes')
-                    }
-                  >
-                    <SelectTrigger
-                      id={field.name}
-                      aria-invalid={fieldState.invalid}
-                      className="text-sm"
-                    >
-                      {field.value !== undefined ? (
-                        <span className="flex-1 text-left text-sm leading-normal">
-                          {formatSelectLabel(field.value)}
-                        </span>
-                      ) : (
-                        <span className="text-muted-foreground text-sm leading-normal">
-                          Select an answer
-                        </span>
-                      )}
-                    </SelectTrigger>
-
-                    <SelectContent>
-                      <SelectItem value="no">No</SelectItem>
-                      <SelectItem value="yes">Yes</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
-                  )}
-                </Field>
-              )}
-            />
-
-            <Controller
-              name="existingNetwork.equipment.otherOrUnknown"
-              control={control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor={field.name}>
-                    Do you have other existing network equipment?
-                  </FieldLabel>
-
-                  <FieldDescription>
-                    Select Yes if you have equipment that is not listed
-                    above or you are unsure what equipment you have.
-                  </FieldDescription>
-
-                  <Select
-                    value={field.value === undefined ? '' : field.value ? 'yes' : 'no'}
-                    onValueChange={(value) =>
-                      field.onChange(value === 'yes')
-                    }
-                  >
-                    <SelectTrigger
-                      id={field.name}
-                      aria-invalid={fieldState.invalid}
-                      className="text-sm"
-                    >
-                      {field.value !== undefined ? (
-                        <span className="flex-1 text-left text-sm leading-normal">
-                          {formatSelectLabel(field.value)}
-                        </span>
-                      ) : (
-                        <span className="text-muted-foreground text-sm leading-normal">
-                          Select an answer
-                        </span>
-                      )}
-                    </SelectTrigger>
-
-                    <SelectContent>
-                      <SelectItem value="no">No</SelectItem>
-                      <SelectItem value="yes">Yes</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
-                  )}
-                </Field>
-              )}
-            />
+                    {fieldState.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
+                  </Field>
+                )}
+              />
+            )}
 
             <Controller
               name="existingNetwork.existingCabling"
