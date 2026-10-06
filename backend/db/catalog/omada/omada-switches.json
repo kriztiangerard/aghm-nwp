@@ -256,8 +256,8 @@
     "is_rack_mountable": false,
     "u_height": 0,
     "lifecycle_status": "sunsetting",
-    "eos_date": "2025-2-5",
-    "eol_date": "2028-2-5",
+    "eos_date": "2025-02-05",
+    "eol_date": "2028-02-05",
     "switch_specs": {
       "port_count": 6,
       "poe_ports": 4,
@@ -673,8 +673,7 @@
       "poe_ports": 4,
       "poe_budget_w": 62,
       "layer": 2,
-      "sfp_ports": 0,
-      "sfp_form_factor": null
+      "sfp_ports": 0
     }
   },
   {
@@ -745,8 +744,7 @@
       "poe_ports": 0,
       "poe_budget_w": 0,
       "layer": 2,
-      "sfp_ports": 0,
-      "sfp_form_factor": null
+      "sfp_ports": 0
     }
   },
   {
@@ -817,8 +815,7 @@
       "poe_ports": 8,
       "poe_budget_w": 64,
       "layer": 2,
-      "sfp_ports": 0,
-      "sfp_form_factor": null
+      "sfp_ports": 0
     }
   },
   {
@@ -841,8 +838,7 @@
       "poe_ports": 0,
       "poe_budget_w": 0,
       "layer": 2,
-      "sfp_ports": 0,
-      "sfp_form_factor": null
+      "sfp_ports": 0
     }
   }
 ]
