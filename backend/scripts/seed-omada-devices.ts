@@ -1,333 +1,229 @@
 import "dotenv/config";
-import { readFile } from "node:fs/promises";
-import path from "node:path";
 import type { PoolClient } from "pg";
-
-import { deviceSchemas } from "../db/catalog/schema/generated-schema";
 import { pool } from "../src/config/database";
 
-type JsonRecord = Record<string, unknown>;
-type DeviceCategory = "gateway_router" | "switch" | "ap";
+import routers from "../db/catalog/omada/omada-routers.json";
+import switches from "../db/catalog/omada/omada-switches.json";
+import aps from "../db/catalog/omada/omada-aps.json";
 
-type CatalogFile = {
-  fileName: string;
-  category: DeviceCategory;
-  subtypeTable: "GatewayRouter" | "Switch" | "AP" | "Firewall";
-  subtypeFields: readonly string[];
-};
-
-type SeedCounts = {
-  inserted: number;
-  updated: number;
-  skipped: number;
-};
-
-class DatabaseSeedError extends Error {
-  constructor(cause: unknown) {
-    super("Database write failed.", { cause });
-    this.name = "DatabaseSeedError";
-  }
-}
-
-const catalogFiles: readonly CatalogFile[] = [
-  {
-    fileName: "omada-routers.json",
-    category: "gateway_router",
-    subtypeTable: "GatewayRouter",
-    subtypeFields: [
-      "wan_ports",
-      "lan_ports",
-      "max_throughput_mbps",
-      "max_power_draw_w",
-      "vpn_supported",
-      "sfp_ports",
-      "sfp_form_factor",
+async function insertDevice(client: PoolClient, device: any): Promise<number> {
+  const result = await client.query(
+    `
+      INSERT INTO device (
+        vendor_id,
+        sku,
+        price,
+        name,
+        description,
+        is_rack_mountable,
+        u_height,
+        lifecycle_status,
+        eos_date,
+        eol_date
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      RETURNING device_id
+    `,
+    [
+      device.vendor_id,
+      device.sku,
+      device.price,
+      device.name,
+      device.description,
+      device.is_rack_mountable,
+      device.u_height,
+      device.lifecycle_status,
+      device.eos_date,
+      device.eol_date,
     ],
-  },
-  {
-    fileName: "omada-switches.json",
-    category: "switch",
-    subtypeTable: "Switch",
-    subtypeFields: [
-      "port_count",
-      "poe_ports",
-      "poe_budget_w",
-      "switching_capacity_gbps",
-      "layer",
-      "max_power_draw_w",
-      "sfp_ports",
-      "sfp_form_factor",
-    ],
-  },
-  {
-    fileName: "omada-aps.json",
-    category: "ap",
-    subtypeTable: "AP",
-    subtypeFields: [
-      "wifi_standard",
-      "max_concurrent_clients",
-      "max_data_rate_mbps",
-      "supported_24ghz",
-      "supported_5ghz",
-      "supported_6ghz",
-      "max_power_draw_w",
-      "power_method",
-    ],
-  },
-];
+  );
 
-const deviceFields = [
-  "vendor_id",
-  "sku",
-  "price",
-  "price_updated_at",
-  "name",
-  "description",
-  "is_rack_mountable",
-  "u_height",
-  "lifecycle_status",
-  "eos_date",
-  "eol_date",
-] as const;
-
-const firewallFields = [
-  "firewall_throughputs_mbps",
-  "vpn_throughput_mbps",
-  "max_concurrent_sessions",
-  "wan_ports",
-  "lan_ports",
-  "max_power_draw_w",
-] as const;
-
-const isRecord = (value: unknown): value is JsonRecord =>
-  value !== null && typeof value === "object" && !Array.isArray(value);
-
-function formatValidationIssues(
-  issues: unknown[],
-  category: DeviceCategory
-): string[] {
-  return issues.flatMap((issue) => {
-    if (!isRecord(issue)) {
-      return ["invalid schema value"];
-    }
-
-    if (issue.code === "invalid_union" && Array.isArray(issue.errors)) {
-      const categoryBranch = issue.errors.find(
-        (branch) =>
-          Array.isArray(branch) &&
-          !branch.some(
-            (nestedIssue) =>
-              isRecord(nestedIssue) &&
-              Array.isArray(nestedIssue.path) &&
-              nestedIssue.path[0] === "category"
-          )
-      );
-      const selectedIssues = Array.isArray(categoryBranch)
-        ? categoryBranch
-        : issue.errors.flat();
-      return formatValidationIssues(selectedIssues, category);
-    }
-
-    const path = Array.isArray(issue.path)
-      ? issue.path.filter((part): part is string => typeof part === "string")
-      : [];
-    const message =
-      typeof issue.message === "string" ? issue.message : "invalid schema value";
-    return [`${path.join(".") || category}: ${message}`];
-  });
+  return result.rows[0].device_id;
 }
 
-function getCatalogCapabilities(
-  entry: JsonRecord,
-  source: string
-): string[] {
-  const capabilities = entry.capabilities;
-  if (capabilities === undefined) {
-    return [];
-  }
-
-  if (
-    !Array.isArray(capabilities) ||
-    !capabilities.every(
-      (capability) =>
-        typeof capability === "string" && capability.trim().length > 0
-    )
-  ) {
-    throw new Error(`${source}: capabilities must be an array of non-empty strings.`);
-  }
-
-  if (new Set(capabilities).size !== capabilities.length) {
-    throw new Error(`${source}: capabilities must not contain duplicates.`);
-  }
-
-  return capabilities;
-}
-
-function validateEntry(
-  value: unknown,
-  source: string,
-  expectedCategory: DeviceCategory
-): { entry: JsonRecord; capabilities: string[] } {
-  if (!isRecord(value)) {
-    throw new Error(`${source}: catalog entry must be a JSON object.`);
-  }
-
-  if (value.category !== expectedCategory) {
-    throw new Error(
-      `${source}: expected category "${expectedCategory}", received "${String(value.category)}".`
-    );
-  }
-
-  const capabilities = getCatalogCapabilities(value, source);
-  // Catalog tags exceed the fixed capability enum and are resolved separately.
-  const { capabilities: _capabilities, ...entryForValidation } = value;
-  const parsed = deviceSchemas.safeParse(entryForValidation);
-
-  if (!parsed.success) {
-    const details = formatValidationIssues(
-      parsed.error.issues,
-      expectedCategory
-    ).join("; ");
-    throw new Error(`${source}: ${details}`);
-  }
-
-  if (typeof value.sku !== "string" || !value.sku.trim()) {
-    throw new Error(`${source}: sku must be a non-empty string.`);
-  }
-
-  return { entry: value, capabilities };
-}
-
-async function upsertDevice(): {
-  /*INSERT HERE */
-}
-
-async function upsertSubtype() {
-  /*INSERT HERE */
-}
-
-async function upsertCapabilities(
+async function insertGatewayRouterSpecs(
   client: PoolClient,
   deviceId: number,
-  capabilities: readonly string[]
+  specs: any,
 ): Promise<void> {
-  const capabilityIds: number[] = [];
-
-  for (const capability of capabilities) {
-    const result = await client.query<{ capability_id: number }>(
-      `INSERT INTO "Capability" ("capability_desc")
-       VALUES ($1)
-       ON CONFLICT ("capability_desc") DO UPDATE
-       SET "capability_desc" = EXCLUDED."capability_desc"
-       RETURNING "capability_id"`,
-      [capability]
-    );
-
-    const capabilityId = result.rows[0]?.capability_id;
-    if (capabilityId === undefined) {
-      throw new Error(`Capability upsert returned no id for "${capability}".`);
-    }
-    capabilityIds.push(capabilityId);
-  }
-
   await client.query(
-    `DELETE FROM "DeviceCapability"
-     WHERE "device_id" = $1
-       AND NOT ("capability_id" = ANY($2::int[]))`,
-    [deviceId, capabilityIds]
+    `
+      INSERT INTO gateway_router_specifications (
+        device_id,
+        wan_ports,
+        lan_ports,
+        max_throughput_mbps,
+        max_power_draw_w,
+        vpn_supported,
+        sfp_ports,
+        sfp_form_factor
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+    `,
+    [
+      deviceId,
+      specs.wan_ports,
+      specs.lan_ports,
+      specs.max_throughput_mbps,
+      specs.max_power_draw_w,
+      specs.vpn_supported,
+      specs.sfp_ports ?? null,
+      specs.sfp_form_factor ?? null,
+    ],
   );
-
-  for (const capabilityId of capabilityIds) {
-    await client.query(
-      `INSERT INTO "DeviceCapability" ("device_id", "capability_id")
-       VALUES ($1, $2)
-       ON CONFLICT ("device_id", "capability_id") DO NOTHING`,
-      [deviceId, capabilityId]
-    );
-  }
 }
 
-async function seedEntry(
-  file: CatalogFile,
-  source: string,
-  value: unknown
-): Promise<"inserted" | "updated"> {
-  const { entry, capabilities } = validateEntry(
-    value,
-    source,
-    file.category
+async function insertSwitchSpecs(
+  client: PoolClient,
+  deviceId: number,
+  specs: any,
+): Promise<void> {
+  await client.query(
+    `
+      INSERT INTO switch_specifications (
+        device_id,
+        port_count,
+        poe_ports,
+        poe_budget_w,
+        switching_capacity_gbps,
+        layer,
+        max_power_draw_w,
+        sfp_ports,
+        sfp_form_factor
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+    `,
+    [
+      deviceId,
+      specs.port_count,
+      specs.poe_ports,
+      specs.poe_budget_w,
+      specs.switching_capacity_gbps,
+      specs.layer,
+      specs.max_power_draw_w ?? null,
+      specs.sfp_ports ?? null,
+      specs.sfp_form_factor ?? null,
+    ],
   );
-  let client: PoolClient;
-  try {
-    client = await pool.connect();
-  } catch (error) {
-    throw new DatabaseSeedError(error);
+}
+
+async function insertApSpecs(
+  client: PoolClient,
+  deviceId: number,
+  specs: any,
+): Promise<void> {
+  await client.query(
+    `
+      INSERT INTO ap_specifications (
+        device_id,
+        wifi_standard,
+        max_concurrent_clients,
+        max_data_rate_mbps,
+        supported_24ghz,
+        supported_5ghz,
+        supported_6ghz,
+        max_power_draw_w,
+        power_method
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+    `,
+    [
+      deviceId,
+      specs.wifi_standard,
+      specs.max_concurrent_clients ?? null,
+      specs.max_data_rate_mbps,
+      specs.supported_24ghz,
+      specs.supported_5ghz,
+      specs.supported_6ghz,
+      specs.max_power_draw_w ?? null,
+      specs.power_method ?? null,
+    ],
+  );
+}
+
+async function insertFirewallSpecs(
+  client: PoolClient,
+  deviceId: number,
+  specs: any,
+): Promise<void> {
+  await client.query(
+    `
+      INSERT INTO firewall_specifications (
+        device_id,
+        firewall_throughputs_mbps,
+        vpn_throughput_mbps,
+        max_concurrent_sessions,
+        wan_ports,
+        lan_ports,
+        max_power_draw_w
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
+    `,
+    [
+      deviceId,
+      specs.firewall_throughputs_mbps,
+      specs.vpn_throughput_mbps,
+      specs.max_concurrent_sessions,
+      specs.wan_ports,
+      specs.lan_ports,
+      specs.max_power_draw_w,
+    ],
+  );
+}
+
+async function insertDeviceWithSpecs(
+  client: PoolClient,
+  device: any,
+): Promise<number> {
+  const deviceId = await insertDevice(client, device);
+
+  if (device.category === "gateway_router") {
+    await insertGatewayRouterSpecs(
+      client,
+      deviceId,
+      device.gateway_router_specs,
+    );
+
+    if (device.firewall_specs) {
+      await insertFirewallSpecs(
+        client,
+        deviceId,
+        device.firewall_specs,
+      );
+    }
+  } else if (device.category === "switch") {
+    await insertSwitchSpecs(
+      client,
+      deviceId,
+      device.switch_specs,
+    );
+  } else if (device.category === "ap") {
+    await insertApSpecs(
+      client,
+      deviceId,
+      device.ap_specs,
+    );
   }
-  let transactionStarted = false;
+
+  return deviceId;
+}
+
+async function seedOneDevice(device: any): Promise<number> {
+  const client = await pool.connect();
 
   try {
     await client.query("BEGIN");
-    transactionStarted = true;
 
-    /*MAKE SURE UPSERTS ARE COMPATIBLE W THIS */
-
-    const { deviceId, inserted } = await upsertDevice(client, entry);
-    await upsertSubtype(
-      client,
-      deviceId,
-      file.subtypeTable,
-      file.subtypeFields,
-      entry[`${file.category === "gateway_router" ? "gateway_router" : file.category}_specs`]
-    );
-    await upsertCapabilities(client, deviceId, capabilities);
-
-    if (file.category === "gateway_router" && entry.firewall_specs) {
-      await upsertFirewallSpecs(client, deviceId, entry.firewall_specs);
-    }
-
+    const deviceId = await insertDeviceWithSpecs(client, device);
 
     await client.query("COMMIT");
-    transactionStarted = false;
-    return inserted ? "inserted" : "updated";
+
+    return deviceId;
   } catch (error) {
-    if (transactionStarted) {
-      try {
-        await client.query("ROLLBACK");
-      } catch (rollbackError) {
-        console.error(`${source}: rollback failed:`, rollbackError);
-      }
-    }
-    throw new DatabaseSeedError(error);
+    await client.query("ROLLBACK");
+    throw error;
   } finally {
     client.release();
-  }
-}
-
-async function upsertFirewallSpecs(): {
-  /*INSERT FIREWALL HELPER HERE */
-}
-
-async function readCatalogFile(
-  file: CatalogFile,
-  counts: SeedCounts
-): Promise<unknown[]> {
-  const filePath = path.resolve(
-    process.cwd(),
-    "backend/db/catalog/omada",
-    file.fileName
-  );
-
-  try {
-    const text = await readFile(filePath, "utf8");
-    const parsed: unknown = JSON.parse(text);
-    if (!Array.isArray(parsed)) {
-      throw new Error("catalog root must be a JSON array.");
-    }
-    return parsed;
-  } catch (error) {
-    counts.skipped += 1;
-    console.error(`${file.fileName}: unable to read catalog:`, error);
-    return [];
   }
 }
 
@@ -358,13 +254,23 @@ async function main() {
     }
   }
 
-  console.log("Device catalog seeding summary:");
-  console.log(`  Inserted: ${counts.inserted}`);
-  console.log(`  Updated: ${counts.updated}`);
-  console.log(`  Skipped: ${counts.skipped}`);
-  if (databaseFailure) {
-    process.exitCode = 1;
-  }
+  console.log("Database connection successful.");
+  console.log("Database time:", result.rows[0].now);
+
+  const devices = [
+    ...routers,
+    ...switches,
+    ...aps,
+  ];
+
+  console.log(`Loaded ${routers.length} routers.`);
+  console.log(`Loaded ${switches.length} switches.`);
+  console.log(`Loaded ${aps.length} access points.`);
+  console.log(`Loaded ${devices.length} devices total.`);
+
+  const deviceId = await seedOneDevice(routers[0]);
+
+  console.log(`Inserted device with ID: ${deviceId}`);
 }
 
 main()
