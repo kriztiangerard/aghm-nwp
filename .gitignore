@@ -12,3 +12,6 @@ cdk.out
 .env.local
 
 global-bundle.pem
+
+#other scripts
+apply-productlines.js

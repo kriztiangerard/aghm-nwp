@@ -28,6 +28,11 @@
         },
         "eos_date": { "type": ["string", "null"], "format": "date" },
         "eol_date": { "type": ["string", "null"], "format": "date" },
+        "product_line": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Name of the product line this device belongs to. The seed script resolves it to Device.product_line_id by matching (vendor_id, category, name) against product_lines.json, and the catalog export flattens that line's line_rank and name onto the CatalogSku. Required for gateway_router, ap and switch devices, because the High-Performance plan picks its SKU from the next line up (by line_rank) compared with the Cost-Efficient plan. Omit for controllers, racks and standalone firewalls."
+        },
         "capabilities": {
           "type": "array",
           "uniqueItems": true,
@@ -197,7 +202,7 @@
               "$ref": "#/$defs/controllerSpecs"
             }
           },
-          "required": ["category", "gateway_router_specs"],
+          "required": ["category", "gateway_router_specs", "product_line"],
           "if": { "required": ["switch_specs"] },
           "then": {
             "properties": {
@@ -219,7 +224,7 @@
             "category": { "const": "switch" },
             "switch_specs": { "$ref": "#/$defs/switchSpecs" }
           },
-          "required": ["category", "switch_specs"]
+          "required": ["category", "switch_specs", "product_line"]
         }
       ]
     },
@@ -233,7 +238,7 @@
             "category": { "const": "ap" },
             "ap_specs": { "$ref": "#/$defs/apSpecs" }
           },
-          "required": ["category", "ap_specs"]
+          "required": ["category", "ap_specs", "product_line"]
         }
       ]
     },
@@ -268,7 +273,7 @@
     },
 
     "controllerDevice": {
-      "description": "A network controller (hardware appliance, self-hosted software, or cloud license). Only relevant for vendors with need_controller = true.",
+      "description": "A network controller (hardware appliance, self-hosted software, or cloud license). Only relevant for vendors with need_controller = true. Controllers are chosen by sizing, not by product line, so product_line is omitted.",
       "allOf": [
         { "$ref": "#/$defs/coreDevice" },
         {

@@ -2,6 +2,7 @@
   {
     "vendor_id": 2,
     "category": "ap",
+    "product_line": "Wi-Fi 7 BE15000",
     "capabilities": [
       "ap"
     ],
@@ -28,6 +29,7 @@
   {
     "vendor_id": 2,
     "category": "ap",
+    "product_line": "Wi-Fi 7 BE11000",
     "capabilities": [
       "ap"
     ],
@@ -52,6 +54,7 @@
   {
     "vendor_id": 2,
     "category": "ap",
+    "product_line": "Wi-Fi 7 BE5000",
     "capabilities": [
       "ap"
     ],
@@ -76,6 +79,7 @@
   {
     "vendor_id": 2,
     "category": "ap",
+    "product_line": "Wi-Fi 7 BE5000",
     "capabilities": [
       "ap"
     ],
@@ -100,6 +104,7 @@
   {
     "vendor_id": 2,
     "category": "ap",
+    "product_line": "Wi-Fi 7 BE5000",
     "capabilities": [
       "ap"
     ],
@@ -124,6 +129,7 @@
   {
     "vendor_id": 2,
     "category": "ap",
+    "product_line": "Wi-Fi 6 AX6000",
     "capabilities": [
       "ap"
     ],
@@ -148,6 +154,7 @@
   {
     "vendor_id": 2,
     "category": "ap",
+    "product_line": "Wi-Fi 6 AX1800",
     "capabilities": [
       "ap"
     ],
@@ -172,6 +179,7 @@
   {
     "vendor_id": 2,
     "category": "ap",
+    "product_line": "Wi-Fi 6 AX3000",
     "capabilities": [
       "ap"
     ],

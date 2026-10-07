@@ -11,6 +11,7 @@
     "eos_date": null,
     "eol_date": null,
     "category": "gateway_router",
+    "product_line": "Gigabit VPN Routers",
     "gateway_router_specs": {
       "wan_ports": 4,
       "lan_ports": 4,
@@ -45,6 +46,7 @@
     "eos_date": null,
     "eol_date": null,
     "category": "gateway_router",
+    "product_line": "10G VPN Routers",
     "gateway_router_specs": {
       "wan_ports": 12,
       "lan_ports": 0,
@@ -77,6 +79,7 @@
     "eos_date": null,
     "eol_date": null,
     "category": "gateway_router",
+    "product_line": "Entry VPN Routers",
     "gateway_router_specs": {
       "wan_ports": 3,
       "lan_ports": 2,
@@ -109,6 +112,7 @@
     "eos_date": "2025-11-16",
     "eol_date": "2028-11-16",
     "category": "gateway_router",
+    "product_line": "2.5G Gateways",
     "gateway_router_specs": {
       "wan_ports": 4,
       "lan_ports": 4,
@@ -141,6 +145,7 @@
     "eos_date": "2026-10-15",
     "eol_date": "2029-10-15",
     "category": "gateway_router",
+    "product_line": "10G High-Throughput VPN Routers",
     "gateway_router_specs": {
       "wan_ports": 8,
       "lan_ports": 8,
@@ -173,6 +178,7 @@
     "eos_date": "2026-06-29",
     "eol_date": "2029-06-29",
     "category": "gateway_router",
+    "product_line": "Gigabit VPN Routers",
     "gateway_router_specs": {
       "wan_ports": 6,
       "lan_ports": 6,
@@ -205,6 +211,7 @@
     "eos_date": null,
     "eol_date": null,
     "category": "gateway_router",
+    "product_line": "Entry VPN Routers",
     "gateway_router_specs": {
       "wan_ports": 2,
       "lan_ports": 3,
@@ -237,6 +244,7 @@
     "eos_date": null,
     "eol_date": null,
     "category": "gateway_router",
+    "product_line": "Gigabit VPN Routers",
     "gateway_router_specs": {
       "wan_ports": 2,
       "lan_ports": 4,
@@ -269,6 +277,7 @@
     "eos_date": null,
     "eol_date": null,
     "category": "gateway_router",
+    "product_line": "Gigabit VPN Routers",
     "gateway_router_specs": {
       "wan_ports": 4,
       "lan_ports": 0,
@@ -309,6 +318,7 @@
     "eos_date": null,
     "eol_date": null,
     "category": "gateway_router",
+    "product_line": "2.5G Gateways",
     "gateway_router_specs": {
       "wan_ports": 4,
       "lan_ports": 4,
@@ -340,6 +350,7 @@
     "eos_date": null,
     "eol_date": null,
     "category": "gateway_router",
+    "product_line": "2.5G Gateways",
     "gateway_router_specs": {
       "wan_ports": 5,
       "lan_ports": 4,
@@ -371,6 +382,7 @@
     "eos_date": null,
     "eol_date": null,
     "category": "gateway_router",
+    "product_line": "2.5G Gateways",
     "gateway_router_specs": {
       "wan_ports": 4,
       "lan_ports": 4,
