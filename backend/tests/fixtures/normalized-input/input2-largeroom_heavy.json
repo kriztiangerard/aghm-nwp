@@ -1,0 +1,56 @@
+{
+  "contractVersion": 1,
+  "locations": "one",
+  "floors": 2,
+  "floorAreaM2": [
+    350,
+    300
+  ],
+  "roomsPerFloor": 6,
+  "largeRooms": [
+    {
+      "floor": 1,
+      "occupancy": 60
+    },
+    {
+      "floor": 1,
+      "occupancy": 40
+    },
+    {
+      "floor": 2,
+      "occupancy": 80
+    },
+    {
+      "floor": 2,
+      "occupancy": 30
+    }
+  ],
+  "wiredPcs": 10,
+  "wifiDevices": 150,
+  "voipPhones": 0,
+  "cameras": 6,
+  "otherDevices": [],
+  "existingEquipment": "no",
+  "existingCabling": "cat5e_cat6",
+  "internetMbps": 300,
+  "connection": "fiber",
+  "downtime": "sameDay",
+  "guestWifi": true,
+  "sensitiveData": false,
+  "apps": [
+    "videoConferencing",
+    "streaming",
+    "cloudStorage",
+    "cameraViewing"
+  ],
+  "housing": "wall",
+  "monthlyBudgetBand": "15to40k",
+  "itSupport": "outside",
+  "power": "frequent",
+  "growth": {
+    "expected": true,
+    "band": "31+",
+    "newSites": 0
+  },
+  "management": "dashboard"
+}
