@@ -14,7 +14,6 @@ export type SummarySection = {
 const LABEL_OVERRIDES: Record<string, string> = {
   name: 'Project or company name',
   numberOfSites: 'Number of business locations',
-  siteRelationship: 'Site locations',
   totalUsers: 'Total number of users',
   numberOfFloors: 'Number of floors',
   floorAreaPerFloor: 'Approximate floor area per floor',
@@ -61,10 +60,6 @@ const LABEL_OVERRIDES: Record<string, string> = {
 const VALUE_OVERRIDES: Record<string, string> = {
   one: 'One site',
   two_or_more: 'Two or more sites',
-  same_city: 'Same city',
-  different_city: 'Different city',
-  same_country: 'Same country',
-  different_countries: 'Different countries',
   national: 'National',
   multi_site: 'Multi-site',
   fiber: 'Fiber',

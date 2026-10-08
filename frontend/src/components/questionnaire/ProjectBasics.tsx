@@ -1,4 +1,4 @@
-import { Controller, useFormContext, useWatch } from 'react-hook-form'
+import { Controller, useFormContext } from 'react-hook-form'
 
 import { QUESTIONNAIRE_LIMITS } from '@/lib/questionnaireLimits'
 import {
@@ -10,17 +10,18 @@ import {
   FieldDescription,
   FieldError,
   Input,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
 } from '@/components/ui/form-ui'
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import {
   clampWholeNumberInput,
   preventWholeNumberKeys,
 } from '@/lib/numberInput'
 
 function ProjectBasics() {
-  const { control, setValue } = useFormContext()
-  const numberOfSites = useWatch({ control, name: 'project.numberOfSites' })
-  const isMultiSite = numberOfSites === 'two_or_more'
+  const { control } = useFormContext()
 
   return (
     <FieldSet>
@@ -33,7 +34,7 @@ function ProjectBasics() {
             control={control}
             render={({ field: { value, ...field }, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor={field.name}>
+                <FieldLabel htmlFor={field.name} required>
                   Project or company name
                 </FieldLabel>
 
@@ -64,7 +65,7 @@ function ProjectBasics() {
             control={control}
             render={({ field: { value, onChange, ...field }, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor={field.name}>
+                <FieldLabel htmlFor={field.name} required>
                   Employee headcount
                 </FieldLabel>
 
@@ -155,7 +156,7 @@ function ProjectBasics() {
           control={control}
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name}>
+              <FieldLabel htmlFor={field.name} required>
                 Number of business locations
               </FieldLabel>
 
@@ -163,30 +164,27 @@ function ProjectBasics() {
                   The plan this questionnaire will generate covers one site, regardless of the number of business locations. For another site, repeat this questionnaire.
               </FieldDescription>  
 
-              <RadioGroup
-                id={field.name}
+              <Select
                 value={field.value ?? ''}
-                onValueChange={(value) => {
-                  field.onChange(value)
-
-                  if (value === 'one') {
-                    setValue('project.siteRelationship', undefined, {
-                      shouldDirty: true,
-                      shouldValidate: false,
-                    })
-                  }
-                }}
+                onValueChange={field.onChange}
               >
-                <label className="flex items-center gap-3 rounded-md border p-3 text-sm">
-                  <RadioGroupItem value="one" id="project-number-of-sites-one" />
-                  <span>One site</span>
-                </label>
-
-                <label className="flex items-center gap-3 rounded-md border p-3 text-sm">
-                  <RadioGroupItem value="two_or_more" id="project-number-of-sites-two-or-more" />
-                  <span>Two or more sites</span>
-                </label>
-              </RadioGroup>
+                <SelectTrigger
+                  id={field.name}
+                  aria-invalid={fieldState.invalid}
+                >
+                  {field.value ? (
+                    <span className="flex-1 text-left">
+                      {field.value === 'one' ? 'One site' : 'Two or more sites'}
+                    </span>
+                  ) : (
+                    <span className="text-muted-foreground">Select an option</span>
+                  )}
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="one">One site</SelectItem>
+                  <SelectItem value="two_or_more">Two or more sites</SelectItem>
+                </SelectContent>
+              </Select>
 
               {fieldState.invalid && (
                 <FieldError errors={[fieldState.error]} />
@@ -195,44 +193,6 @@ function ProjectBasics() {
           )}
         />
 
-        {isMultiSite && (
-          <Controller
-            name="project.siteRelationship"
-            control={control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor={field.name}>
-                  Where are these sites located?
-                </FieldLabel>
-
-                <RadioGroup
-                  id={field.name}
-                  value={field.value ?? ''}
-                  onValueChange={field.onChange}
-                >
-                  <label className="flex items-center gap-3 rounded-md border p-3 text-sm">
-                    <RadioGroupItem value="same_city" id="project-site-relationship-same-city" />
-                    <span>Same city</span>
-                  </label>
-
-                  <label className="flex items-center gap-3 rounded-md border p-3 text-sm">
-                    <RadioGroupItem value="same_country" id="project-site-relationship-same-country" />
-                    <span>Same country</span>
-                  </label>
-
-                  <label className="flex items-center gap-3 rounded-md border p-3 text-sm">
-                    <RadioGroupItem value="different_countries" id="project-site-relationship-different-countries" />
-                    <span>Different countries</span>
-                  </label>
-                </RadioGroup>
-
-                {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
-                )}
-              </Field>
-            )}
-          />
-        )}
       </FieldGroup>
     </FieldSet>
   )

@@ -76,7 +76,7 @@ export default function Devices() {
           control={control}
           render={({ field: { value, onChange, ...field }, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name}>Roughly how many desktop or laptop computers will be wired directly into the network?</FieldLabel>
+              <FieldLabel htmlFor={field.name} required>Roughly how many desktop or laptop computers will be wired directly into the network?</FieldLabel>
               <FieldDescription>
                 Include desktops and laptops that connect through Ethernet instead of Wi-Fi.
               </FieldDescription>
@@ -119,7 +119,7 @@ export default function Devices() {
           control={control}
           render={({ field: { value, onChange, ...field }, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name}>Roughly how many devices will connect over Wi-Fi?</FieldLabel>
+              <FieldLabel htmlFor={field.name} required>Roughly how many devices will connect over Wi-Fi?</FieldLabel>
               <FieldDescription>
                 Include laptops, phones, tablets, and other devices that connect by Wi-Fi.
               </FieldDescription>
@@ -162,7 +162,7 @@ export default function Devices() {
           control={control}
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name}>Will you use internet-based desk phones (VoIP) instead of, or alongside, a traditional phone line?</FieldLabel>
+              <FieldLabel htmlFor={field.name} required>Will you use internet-based desk phones (VoIP) instead of, or alongside, a traditional phone line?</FieldLabel>
               <FieldDescription>
                 This includes desk phones and other office phones that connect over the internet.
               </FieldDescription>
@@ -196,7 +196,7 @@ export default function Devices() {
             control={control}
             render={({ field: { value, onChange, ...field }, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor={field.name}>How many VoIP phones will you have?</FieldLabel>
+                <FieldLabel htmlFor={field.name} required>How many VoIP phones will you have?</FieldLabel>
                 <Input
                   {...field}
                   value={value ?? ''}
@@ -237,7 +237,7 @@ export default function Devices() {
           control={control}
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name}>Will you have security cameras connected to this network (IP cameras)?</FieldLabel>
+              <FieldLabel htmlFor={field.name} required>Will you have security cameras connected to this network (IP cameras)?</FieldLabel>
               <FieldDescription>
                 This includes security or monitoring cameras connected to your network.
               </FieldDescription>
@@ -271,7 +271,7 @@ export default function Devices() {
             control={control}
             render={({ field: { value, onChange, ...field }, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor={field.name}>Roughly how many cameras?</FieldLabel>
+                <FieldLabel htmlFor={field.name} required>Roughly how many cameras?</FieldLabel>
                 <Input
                   {...field}
                   value={value ?? ''}
@@ -312,7 +312,7 @@ export default function Devices() {
           control={control}
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name}>
+              <FieldLabel htmlFor={field.name} required>
                 Any other network-connected devices?
               </FieldLabel>
               <FieldDescription>
@@ -348,7 +348,7 @@ export default function Devices() {
             control={control}
             render={({ field: { value, ...field }, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor={field.name}>List the other network-connected devices</FieldLabel>
+                <FieldLabel htmlFor={field.name} required>List the other network-connected devices</FieldLabel>
                 <Input
                   {...field}
                   value={value ?? ''}

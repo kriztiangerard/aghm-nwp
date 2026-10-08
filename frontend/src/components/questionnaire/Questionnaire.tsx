@@ -123,7 +123,6 @@ function Questionnaire() {
     [
       'project.name' as FormField,
       'project.numberOfSites' as FormField,
-      'project.siteRelationship' as FormField,
       'project.totalUsers' as FormField,
     ],
 

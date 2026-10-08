@@ -35,7 +35,7 @@ function InternetConnection() {
           control={control}
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name}>
+              <FieldLabel htmlFor={field.name} required>
                 What type of internet connection do you have or plan to get?
               </FieldLabel>
 
@@ -139,7 +139,7 @@ function InternetConnection() {
           control={control}
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name}>
+              <FieldLabel htmlFor={field.name} required>
                 If your internet went down for an hour, how much would it hurt the business?
               </FieldLabel>
 

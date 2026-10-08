@@ -11,13 +11,6 @@ export function mapFormToNetworkConfiguration(
     project: {
       name: data.project.name,
       numberOfSites,
-
-      siteRelationship: data.project.siteRelationship as
-        | 'same_city'
-        | 'same_country'
-        | 'different_countries'
-        | undefined,
-
       totalUsers: data.project.totalUsers,
     },
 

@@ -69,7 +69,7 @@ function NetworkSetupPreferences() {
           control={control}
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name}>Do you need Guest Wi-Fi?</FieldLabel>
+              <FieldLabel htmlFor={field.name} required>Do you need Guest Wi-Fi?</FieldLabel>
               <Select
                 value={field.value === undefined ? '' : field.value ? 'yes' : 'no'}
                 onValueChange={(val) => field.onChange(val === 'yes')}
@@ -99,7 +99,7 @@ function NetworkSetupPreferences() {
           control={control}
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name}>Will this network handle sensitive data?</FieldLabel>
+              <FieldLabel htmlFor={field.name} required>Will this network handle sensitive data?</FieldLabel>
               <Select
                 value={field.value ?? ''}
                 onValueChange={field.onChange}
@@ -175,7 +175,7 @@ function NetworkSetupPreferences() {
             control={control}
             render={({ field: { value, ...field }, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor={field.name}>Tell us what other network usage you have</FieldLabel>
+                <FieldLabel htmlFor={field.name} required>Tell us what other network usage you have</FieldLabel>
                 <Input
                   {...field}
                   value={value ?? ''}
@@ -197,7 +197,7 @@ function NetworkSetupPreferences() {
           control={control}
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name}>
+              <FieldLabel htmlFor={field.name} required>
                 Where will the main network equipment (switches, router) be housed?
               </FieldLabel>
               <Select
@@ -232,7 +232,7 @@ function NetworkSetupPreferences() {
           control={control}
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name}>
+              <FieldLabel htmlFor={field.name} required>
                 How would you like to manage the network day-to-day?
               </FieldLabel>
               <Select

@@ -59,21 +59,6 @@ export const projectBasicsSchema = z.object({
         })
     ),
 
-    siteRelationship: z
-      .preprocess(
-        (value) =>
-          value === undefined || value === null || value === ''
-            ? '__MISSING__'
-            : value,
-        z
-          .union([
-            z.enum(['same_city', 'same_country', 'different_countries']),
-            z.literal('__MISSING__'),
-          ])
-      )
-      .optional()
-      .transform((value) => (value === '__MISSING__' ? undefined : value)),
-
     totalUsers: requiredNumber(
       'Total number of users is required.',
       `Headcount must be between ${QUESTIONNAIRE_LIMITS.project.totalUsers.min} and ${QUESTIONNAIRE_LIMITS.project.totalUsers.max}.`,
@@ -82,14 +67,6 @@ export const projectBasicsSchema = z.object({
       QUESTIONNAIRE_LIMITS.project.totalUsers.max,
       `Headcount must be between ${QUESTIONNAIRE_LIMITS.project.totalUsers.min} and ${QUESTIONNAIRE_LIMITS.project.totalUsers.max}.`
     ),
-  }).superRefine((value, ctx) => {
-    if (value.numberOfSites === 'two_or_more' && !value.siteRelationship) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['siteRelationship'],
-        message: 'Business location relationship is required when more than one site is selected.',
-      })
-    }
   }),
 })
 

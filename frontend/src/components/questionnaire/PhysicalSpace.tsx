@@ -104,7 +104,7 @@ function PhysicalSpace() {
             fieldState,
           }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name}>
+              <FieldLabel htmlFor={field.name} required>
                 Number of floors this network will cover
               </FieldLabel>
 
@@ -211,7 +211,7 @@ function PhysicalSpace() {
             fieldState,
           }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name}>
+              <FieldLabel htmlFor={field.name} required>
                 Roughly how many separate rooms or work areas per floor?
               </FieldLabel>
               <FieldDescription>
@@ -262,7 +262,7 @@ function PhysicalSpace() {
           control={control}
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name}>
+              <FieldLabel htmlFor={field.name} required>
                 Are there any rooms where large groups of people will congregate?
               </FieldLabel>
 
@@ -334,7 +334,7 @@ function PhysicalSpace() {
                       fieldState,
                     }) => (
                       <Field data-invalid={fieldState.invalid}>
-                        <FieldLabel htmlFor={field.name}>
+                        <FieldLabel htmlFor={field.name} required>
                           Floor
                         </FieldLabel>
 
@@ -413,7 +413,7 @@ function PhysicalSpace() {
                           fieldState.invalid
                         }
                       >
-                        <FieldLabel htmlFor={field.name}>
+                        <FieldLabel htmlFor={field.name} required>
                           Capacity (people)
                         </FieldLabel>
 

@@ -96,7 +96,7 @@ function ExistingEnvironment() {
           control={control}
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name}>
+              <FieldLabel htmlFor={field.name} required>
                 Is there existing network equipment on site?
               </FieldLabel>
 
@@ -189,7 +189,7 @@ function ExistingEnvironment() {
                 control={control}
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor={field.name}>
+                    <FieldLabel htmlFor={field.name} required>
                       Roughly how many switches?
                     </FieldLabel>
 
@@ -237,7 +237,7 @@ function ExistingEnvironment() {
                 control={control}
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor={field.name}>
+                    <FieldLabel htmlFor={field.name} required>
                       Roughly how many WiFi access points?
                     </FieldLabel>
 
@@ -284,7 +284,7 @@ function ExistingEnvironment() {
               control={control}
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor={field.name}>
+                  <FieldLabel htmlFor={field.name} required>
                     What type of network cabling is already installed?
                   </FieldLabel>
 

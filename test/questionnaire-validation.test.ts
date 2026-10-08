@@ -421,7 +421,6 @@ describe('questionnaire validation messages', () => {
       project: {
         name: 'Acme Logistics',
         numberOfSites: 'two_or_more',
-        siteRelationship: 'different_countries',
         totalUsers: 50,
       },
       physicalSpace: {
@@ -453,7 +452,6 @@ describe('questionnaire validation messages', () => {
         items: expect.arrayContaining([
           expect.objectContaining({ label: 'Project or company name', value: 'Acme Logistics' }),
           expect.objectContaining({ label: 'Number of business locations', value: 'Two or more sites' }),
-          expect.objectContaining({ label: 'Site locations', value: 'Different countries' }),
           expect.objectContaining({ label: 'Total number of users', value: '50 people' }),
         ]),
       }),
@@ -599,7 +597,7 @@ describe('questionnaire validation messages', () => {
     expect(unsureResult.success).toBe(true)
   })
 
-  it('allows skipping site relationship and rough estimates when the user is unsure', () => {
+  it('allows multiple locations and rough estimates when the user is unsure', () => {
     const result = questionnaireSchema.safeParse({
       project: {
         name: 'Example Business',

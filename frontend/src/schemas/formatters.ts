@@ -1,7 +1,4 @@
 const CUSTOM_SELECT_LABELS: Record<string, string> = {
-  same_city: 'Same city',
-  same_country: 'Same country',
-  different_countries: 'Different countries',
   in_house: 'In-house IT',
   outside: 'Outside person/company',
   none: 'No',
