@@ -3,12 +3,6 @@ export interface NetworkConfiguration {
   project: {
     name: string;
     numberOfSites: number;
-
-    siteRelationship?:
-      | "same_city"
-      | "same_country"
-      | "different_countries";
-
     totalUsers: number;
   };
 
