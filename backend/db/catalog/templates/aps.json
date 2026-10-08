@@ -1,0 +1,27 @@
+[
+  {
+    "vendor_id": 0,
+    "sku": "",
+    "price": 0,
+    "price_updated_at": "",
+    "name": "",
+    "description": "",
+    "image_key": "",
+    "is_rack_mountable": false,
+    "u_height": 0,
+    "lifecycle_status": "active",
+    "eos_date": null,
+    "eol_date": null,
+    "category": "ap",
+    "ap_specs": {
+      "wifi_standard": 0,
+      "max_concurrent_clients": 0,
+      "max_data_rate_mbps": 0,
+      "supported_24ghz": false,
+      "supported_5ghz": false,
+      "supported_6ghz": false,
+      "max_power_draw_w": 0,
+      "power_method": ""
+    }
+  }
+]
