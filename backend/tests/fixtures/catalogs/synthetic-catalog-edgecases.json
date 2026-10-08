@@ -1,0 +1,190 @@
+[
+  {
+    "vendor_id": 999,
+    "sku": "SYN-GW-001",
+    "price": 12500,
+    "name": "Standard Synthetic Gateway",
+    "description": "Standard valid gateway with standard WAN/LAN ports.",
+    "is_rack_mountable": true,
+    "u_height": 1,
+    "lifecycle_status": "active",
+    "category": "gateway_router",
+    "gateway_router_specs": {
+      "wan_ports": 1,
+      "lan_ports": 4,
+      "vpn_supported": true,
+      "max_throughput_mbps": 850
+    }
+  },
+  {
+    "vendor_id": 999,
+    "sku": "SYN-GW-002",
+    "price": 0,
+    "name": "Zero-Price Edge Gateway",
+    "description": "Edge case: price is exactly 0. High throughput, VPN enabled.",
+    "is_rack_mountable": true,
+    "u_height": 1,
+    "lifecycle_status": "active",
+    "category": "gateway_router",
+    "gateway_router_specs": {
+      "wan_ports": 2,
+      "lan_ports": 2,
+      "vpn_supported": true,
+      "max_throughput_mbps": 1200
+    }
+  },
+  {
+    "vendor_id": 999,
+    "sku": "SYN-GW-003",
+    "price": 25000,
+    "name": "Multi-Role Gateway Router",
+    "description": "Dual-role edge case: Gateway with integrated switch and controller. lan_ports must be 0 in the gateway block per schema if switch_specs exists.",
+    "is_rack_mountable": true,
+    "u_height": 1,
+    "lifecycle_status": "active",
+    "capabilities": ["router", "switch", "controller"],
+    "category": "gateway_router",
+    "gateway_router_specs": {
+      "wan_ports": 2,
+      "lan_ports": 0,
+      "vpn_supported": true
+    },
+    "switch_specs": {
+      "port_count": 8,
+      "layer": 2,
+      "poe_ports": 8,
+      "poe_budget_w": 120
+    },
+    "controller_specs": {
+      "controller_type": "integrated",
+      "max_managed_aps": 20,
+      "max_managed_switches": 10,
+      "max_managed_gateways": 1
+    }
+  },
+  {
+    "vendor_id": 999,
+    "sku": "SYN-SW-001",
+    "price": 18000,
+    "name": "Standard PoE Switch",
+    "description": "Standard valid 8-port PoE switch.",
+    "is_rack_mountable": true,
+    "u_height": 1,
+    "lifecycle_status": "active",
+    "category": "switch",
+    "switch_specs": {
+      "port_count": 8,
+      "layer": 2,
+      "poe_ports": 8,
+      "poe_budget_w": 120
+    }
+  },
+  {
+    "vendor_id": 999,
+    "sku": "SYN-SW-002",
+    "price": 22000,
+    "name": "Null Budget Edge Switch",
+    "description": "Edge case: PoE ports exist but poe_budget_w is omitted to test fallback logic (since schema demands integer, omitted simulates null).",
+    "is_rack_mountable": true,
+    "u_height": 1,
+    "lifecycle_status": "active",
+    "category": "switch",
+    "switch_specs": {
+      "port_count": 16,
+      "layer": 2,
+      "poe_ports": 16
+    }
+  },
+  {
+    "vendor_id": 999,
+    "sku": "SYN-SW-003",
+    "price": null,
+    "name": "Price-on-Request Core Switch",
+    "description": "Edge case: price is null (price on request), requires SFP conditional block validation.",
+    "is_rack_mountable": true,
+    "u_height": 1,
+    "lifecycle_status": "active",
+    "category": "switch",
+    "switch_specs": {
+      "port_count": 24,
+      "layer": 3,
+      "poe_ports": 0,
+      "poe_budget_w": 0,
+      "sfp_ports": 4,
+      "sfp_form_factor": "SFP+"
+    }
+  },
+  {
+    "vendor_id": 999,
+    "sku": "SYN-AP-001",
+    "price": 5500,
+    "name": "Standard Wi-Fi 6 AP",
+    "description": "Standard valid Wi-Fi 6 Access Point.",
+    "is_rack_mountable": false,
+    "u_height": 0,
+    "lifecycle_status": "active",
+    "category": "ap",
+    "ap_specs": {
+      "wifi_standard": 6,
+      "supported_24ghz": true,
+      "supported_5ghz": true,
+      "supported_6ghz": false,
+      "max_power_draw_w": 12.5,
+      "power_method": "PoE+"
+    }
+  },
+  {
+    "vendor_id": 999,
+    "sku": "SYN-AP-002",
+    "price": 8500,
+    "name": "Standard Wi-Fi 7 AP",
+    "description": "High performance Wi-Fi 7 Access Point.",
+    "is_rack_mountable": false,
+    "u_height": 0,
+    "lifecycle_status": "active",
+    "category": "ap",
+    "ap_specs": {
+      "wifi_standard": 7,
+      "supported_24ghz": true,
+      "supported_5ghz": true,
+      "supported_6ghz": true,
+      "max_power_draw_w": 22.0,
+      "power_method": "PoE++"
+    }
+  },
+  {
+    "vendor_id": 999,
+    "sku": "SYN-AP-003",
+    "price": 4000,
+    "name": "Missing Power Draw AP",
+    "description": "Edge case: missing max_power_draw_w to test budget failure.",
+    "is_rack_mountable": false,
+    "u_height": 0,
+    "lifecycle_status": "sunsetting",
+    "category": "ap",
+    "ap_specs": {
+      "wifi_standard": 5,
+      "supported_24ghz": true,
+      "supported_5ghz": true,
+      "supported_6ghz": false
+    }
+  },
+  {
+    "vendor_id": 999,
+    "sku": "SYN-CTL-001",
+    "price": 0,
+    "name": "Synthetic Cloud Controller",
+    "description": "Software/Cloud controller license.",
+    "is_rack_mountable": false,
+    "u_height": 0,
+    "lifecycle_status": "active",
+    "category": "controller",
+    "controller_specs": {
+      "controller_type": "software",
+      "max_managed_aps": 500,
+      "max_managed_switches": 100,
+      "max_managed_gateways": 50,
+      "lan_ports": 0
+    }
+  }
+]

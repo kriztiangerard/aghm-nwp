@@ -11,6 +11,12 @@ Tests and fixtures live outside it, in `backend/tests/`, so they are not zipped.
 5. **Never drop silently.** Record assumptions with `addLedger`, advisories with `addFlag`, and gaps with `addUnmet`.
 6. **Contracts are frozen on Day 1** (`contracts.js`). Changes need both sides' approval.
 
+### Contract Bumping (Versioning)
+*   **Major bump (e.g., v1 to v2):** When a required field is removed, renamed, or changed in a way that breaks backwards compatibility with existing engine steps.
+*   **Minor bump (e.g., v1.0 to v1.1):** When a new optional or required field is added, but existing steps will not break if they ignore it.
+*   **Patch bump:** Not typically used for data contracts unless fixing a typo in a documentation field that does not affect runtime logic.
+
+
 ## Ownership (sprint tracks)
 | Track | Stories | Files |
 |---|---|---|

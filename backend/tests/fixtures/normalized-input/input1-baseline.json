@@ -1,0 +1,42 @@
+{
+  "contractVersion": 1,
+  "locations": "one",
+  "floors": 1,
+  "floorArea": [
+    180
+  ],
+  "roomsPerFloor": 8,
+  "largeRooms": [],
+  "wiredPcs": 12,
+  "wifiDevices": 30,
+  "voipPhones": 0,
+  "cameras": 4,
+  "otherDevices": [
+    {
+      "enabled": true,
+      "description": "Example device"
+    }
+  ],
+  "existingEquipment": "no",
+  "existingCabling": "none",
+  "internetMbps": 200,
+  "connection": "fiber",
+  "downtime": "sameDay",
+  "guestWifi": true,
+  "sensitiveData": false,
+  "apps": [
+    "videoConferencing",
+    "cloudStorage",
+    "cameraViewing"
+  ],
+  "housing": "wall",
+  "monthlyBudgetBand": "under15k",
+  "itSupport": "outside",
+  "power": "stable",
+  "growth": {
+    "expected": false,
+    "band": null,
+    "newSites": 0
+  },
+  "management": "dashboard"
+}

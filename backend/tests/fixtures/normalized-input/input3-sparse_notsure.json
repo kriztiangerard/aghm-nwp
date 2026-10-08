@@ -1,0 +1,33 @@
+{
+  "contractVersion": 1,
+  "locations": "one",
+  "floors": 1,
+  "floorAreaM2": [
+    105
+  ],
+  "roomsPerFloor": 6,
+  "largeRooms": [],
+  "wiredPcs": 5,
+  "wifiDevices": 15,
+  "voipPhones": 0,
+  "cameras": 0,
+  "otherDevices": [],
+  "existingEquipment": "notSure",
+  "existingCabling": "unknownType",
+  "internetMbps": null,
+  "connection": "notChecked",
+  "downtime": "sameDay",
+  "guestWifi": false,
+  "sensitiveData": true,
+  "apps": [],
+  "housing": "notSure",
+  "monthlyBudgetBand": "under15k",
+  "itSupport": "none",
+  "power": "stable",
+  "growth": {
+    "expected": false,
+    "band": null,
+    "newSites": 0
+  },
+  "management": "notSure"
+}
