@@ -5,7 +5,8 @@
     "build": "tsc",
     "watch": "tsc -w",
     "test": "jest",
-    "cdk": "cdk"
+    "cdk": "cdk",
+    "api": "node backend/server.js"
   },
   "devDependencies": {
     "@swc/core": "^1.15.0",
@@ -28,8 +29,8 @@
   },
   "allowScripts": {
     "@parcel/watcher@2.6.0": true,
-    "@swc/core@1.16.2": true,
     "esbuild@0.28.2": true,
-    "unrs-resolver@1.12.2": true
+    "unrs-resolver@1.12.2": true,
+    "@swc/core@1.16.1": true
   }
 }
