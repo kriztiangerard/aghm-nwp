@@ -228,9 +228,31 @@ async function seedOneDevice(device: any): Promise<number> {
 }
 
 async function main() {
-  console.log("Starting device seeding...");
+  const counts: SeedCounts = { inserted: 0, updated: 0, skipped: 0 };
+  let databaseFailure = false;
 
-  const result = await pool.query("SELECT NOW()");
+  console.log("Starting Omada device catalog seeding...");
+
+  for (const file of catalogFiles) {
+    const entries = await readCatalogFile(file, counts);
+
+    for (const [index, entry] of entries.entries()) {
+      const source = `${file.fileName}[${index}]`;
+      try {
+        const outcome = await seedEntry(file, source, entry);
+        counts[outcome] += 1;
+        console.log(`${source}: ${outcome} ${String(
+          isRecord(entry) ? entry.sku : "entry"
+        )}`);
+      } catch (error) {
+        counts.skipped += 1;
+        if (error instanceof DatabaseSeedError) {
+          databaseFailure = true;
+        }
+        console.error(`${source}: skipped:`, error);
+      }
+    }
+  }
 
   console.log("Database connection successful.");
   console.log("Database time:", result.rows[0].now);
@@ -253,8 +275,8 @@ async function main() {
 
 main()
   .catch((error) => {
-    console.error("Database connection failed:", error);
-    process.exit(1);
+    console.error("Device catalog seeding failed:", error);
+    process.exitCode = 1;
   })
   .finally(async () => {
     await pool.end();

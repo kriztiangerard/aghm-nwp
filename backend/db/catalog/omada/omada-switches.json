@@ -2,6 +2,7 @@
   {
     "vendor_id": 2,
     "category": "switch",
+    "product_line": "L3 Managed (SG6xxx/SX6xxx)",
     "capabilities": [
       "switch"
     ],
@@ -27,6 +28,7 @@
   {
     "vendor_id": 2,
     "category": "switch",
+    "product_line": "L3 Managed (SG6xxx/SX6xxx)",
     "capabilities": [
       "switch"
     ],
@@ -51,6 +53,7 @@
   {
     "vendor_id": 2,
     "category": "switch",
+    "product_line": "L3 Managed (SG6xxx/SX6xxx)",
     "capabilities": [
       "switch"
     ],
@@ -75,6 +78,7 @@
   {
     "vendor_id": 2,
     "category": "switch",
+    "product_line": "Lite L3 Managed (SG5xxx)",
     "capabilities": [
       "switch"
     ],
@@ -99,6 +103,7 @@
   {
     "vendor_id": 2,
     "category": "switch",
+    "product_line": "Lite L3 Managed (SG5xxx)",
     "capabilities": [
       "switch"
     ],
@@ -123,6 +128,7 @@
   {
     "vendor_id": 2,
     "category": "switch",
+    "product_line": "L2+ Managed (SG3xxx/SX3xxx)",
     "capabilities": [
       "switch"
     ],
@@ -148,6 +154,7 @@
   {
     "vendor_id": 2,
     "category": "switch",
+    "product_line": "L2+ Managed (SG3xxx/SX3xxx)",
     "capabilities": [
       "switch"
     ],
@@ -173,6 +180,7 @@
   {
     "vendor_id": 2,
     "category": "switch",
+    "product_line": "L2+ Managed (SG3xxx/SX3xxx)",
     "capabilities": [
       "switch"
     ],
@@ -198,6 +206,7 @@
   {
     "vendor_id": 2,
     "category": "switch",
+    "product_line": "L2+ Managed (SG3xxx/SX3xxx)",
     "capabilities": [
       "switch"
     ],
@@ -222,6 +231,7 @@
   {
     "vendor_id": 2,
     "category": "switch",
+    "product_line": "L2+ Managed (SG3xxx/SX3xxx)",
     "capabilities": [
       "switch"
     ],
@@ -246,6 +256,7 @@
   {
     "vendor_id": 2,
     "category": "switch",
+    "product_line": "L2+ Managed (SG3xxx/SX3xxx)",
     "capabilities": [
       "switch"
     ],
@@ -270,6 +281,7 @@
   {
     "vendor_id": 2,
     "category": "switch",
+    "product_line": "Smart (SG2xxx)",
     "capabilities": [
       "switch"
     ],
@@ -294,6 +306,7 @@
   {
     "vendor_id": 2,
     "category": "switch",
+    "product_line": "L2+ Managed (SG3xxx/SX3xxx)",
     "capabilities": [
       "switch"
     ],
@@ -319,6 +332,7 @@
   {
     "vendor_id": 2,
     "category": "switch",
+    "product_line": "L2+ Managed (SG3xxx/SX3xxx)",
     "capabilities": [
       "switch"
     ],
@@ -344,6 +358,7 @@
   {
     "vendor_id": 2,
     "category": "switch",
+    "product_line": "L2+ Managed (SG3xxx/SX3xxx)",
     "capabilities": [
       "switch"
     ],
@@ -368,6 +383,7 @@
   {
     "vendor_id": 2,
     "category": "switch",
+    "product_line": "L2+ Managed (SG3xxx/SX3xxx)",
     "capabilities": [
       "switch"
     ],
@@ -392,6 +408,7 @@
   {
     "vendor_id": 2,
     "category": "switch",
+    "product_line": "L2+ Managed (SG3xxx/SX3xxx)",
     "capabilities": [
       "switch"
     ],
@@ -416,6 +433,7 @@
   {
     "vendor_id": 2,
     "category": "switch",
+    "product_line": "L2+ Managed (SG3xxx/SX3xxx)",
     "capabilities": [
       "switch"
     ],
@@ -440,6 +458,7 @@
   {
     "vendor_id": 2,
     "category": "switch",
+    "product_line": "L2+ Managed (SG3xxx/SX3xxx)",
     "capabilities": [
       "switch"
     ],
@@ -464,6 +483,7 @@
   {
     "vendor_id": 2,
     "category": "switch",
+    "product_line": "L2+ Managed (SG3xxx/SX3xxx)",
     "capabilities": [
       "switch"
     ],
@@ -488,6 +508,7 @@
   {
     "vendor_id": 2,
     "category": "switch",
+    "product_line": "L2+ Managed (SG3xxx/SX3xxx)",
     "capabilities": [
       "switch"
     ],
@@ -512,6 +533,7 @@
   {
     "vendor_id": 2,
     "category": "switch",
+    "product_line": "L2+ Managed (SG3xxx/SX3xxx)",
     "capabilities": [
       "switch"
     ],
@@ -536,6 +558,7 @@
   {
     "vendor_id": 2,
     "category": "switch",
+    "product_line": "L2+ Managed (SG3xxx/SX3xxx)",
     "capabilities": [
       "switch"
     ],
@@ -560,6 +583,7 @@
   {
     "vendor_id": 2,
     "category": "switch",
+    "product_line": "Smart (SG2xxx)",
     "capabilities": [
       "switch"
     ],
@@ -584,6 +608,7 @@
   {
     "vendor_id": 2,
     "category": "switch",
+    "product_line": "Smart (SG2xxx)",
     "capabilities": [
       "switch"
     ],
@@ -608,6 +633,7 @@
   {
     "vendor_id": 2,
     "category": "switch",
+    "product_line": "Smart (SG2xxx)",
     "capabilities": [
       "switch"
     ],
@@ -632,6 +658,7 @@
   {
     "vendor_id": 2,
     "category": "switch",
+    "product_line": "Smart (SG2xxx)",
     "capabilities": [
       "switch"
     ],
@@ -656,6 +683,7 @@
   {
     "vendor_id": 2,
     "category": "switch",
+    "product_line": "Smart (SG2xxx)",
     "capabilities": [
       "switch"
     ],
@@ -679,6 +707,7 @@
   {
     "vendor_id": 2,
     "category": "switch",
+    "product_line": "Easy Managed (ES2xx)",
     "capabilities": [
       "switch"
     ],
@@ -703,6 +732,7 @@
   {
     "vendor_id": 2,
     "category": "switch",
+    "product_line": "Easy Managed (ES2xx)",
     "capabilities": [
       "switch"
     ],
@@ -727,6 +757,7 @@
   {
     "vendor_id": 2,
     "category": "switch",
+    "product_line": "Easy Managed (ES2xx)",
     "capabilities": [
       "switch"
     ],
@@ -750,6 +781,7 @@
   {
     "vendor_id": 2,
     "category": "switch",
+    "product_line": "Easy Managed (ES2xx)",
     "capabilities": [
       "switch"
     ],
@@ -774,6 +806,7 @@
   {
     "vendor_id": 2,
     "category": "switch",
+    "product_line": "Easy Managed (ES2xx)",
     "capabilities": [
       "switch"
     ],
@@ -798,6 +831,7 @@
   {
     "vendor_id": 2,
     "category": "switch",
+    "product_line": "Easy Managed (ES2xx)",
     "capabilities": [
       "switch"
     ],
@@ -821,6 +855,7 @@
   {
     "vendor_id": 2,
     "category": "switch",
+    "product_line": "Easy Managed (ES2xx)",
     "capabilities": [
       "switch"
     ],

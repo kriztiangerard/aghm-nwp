@@ -5,7 +5,9 @@
     "build": "tsc",
     "watch": "tsc -w",
     "test": "jest",
-    "cdk": "cdk"
+    "cdk": "cdk",
+    "generate:device-schemas": "tsx backend/scripts/generate-device-schema.ts",
+    "seed:devices": "tsx backend/scripts/seed-omada-devices.ts"
   },
   "devDependencies": {
     "@swc/core": "^1.15.0",
@@ -23,8 +25,10 @@
     "aws-cdk-lib": "^2.265.0",
     "constructs": "^10.5.0",
     "dotenv": "^18.0.4",
+    "json-schema-to-zod": "^2.8.1",
     "pg": "^8.23.0",
-    "tailwindcss": "^4.3.3"
+    "tailwindcss": "^4.3.3",
+    "zod": "^4.5.4"
   },
   "allowScripts": {
     "@parcel/watcher@2.6.0": true,
