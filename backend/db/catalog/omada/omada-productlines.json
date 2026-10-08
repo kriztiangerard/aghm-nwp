@@ -1,0 +1,114 @@
+[
+  {
+    "vendor_id": 2,
+    "category": "switch",
+    "name": "Easy Managed (ES2xx)",
+    "line_rank": 1,
+    "source_note": "Entry managed tier by model series (ES2xx), following TP-Link's switch-series tiering."
+  },
+  {
+    "vendor_id": 2,
+    "category": "switch",
+    "name": "Smart (SG2xxx)",
+    "line_rank": 2,
+    "source_note": "Smart series (SG2xxx). TP-Link groups SG2xxx with SG3xxx as L2+; splitting them is the team's judgment so the High-Performance step is not too large."
+  },
+  {
+    "vendor_id": 2,
+    "category": "switch",
+    "name": "L2+ Managed (SG3xxx/SX3xxx)",
+    "line_rank": 3,
+    "source_note": "L2+ Managed tier by model series (SG3xxx and SX3xxx), following TP-Link's switch-series tiering."
+  },
+  {
+    "vendor_id": 2,
+    "category": "switch",
+    "name": "Lite L3 Managed (SG5xxx)",
+    "line_rank": 4,
+    "source_note": "Lite L3 tier by model series (SG5xxx), following TP-Link's switch-series tiering."
+  },
+  {
+    "vendor_id": 2,
+    "category": "switch",
+    "name": "L3 Managed (SG6xxx/SX6xxx)",
+    "line_rank": 5,
+    "source_note": "L3 tier by model series (SG6xxx and SX6xxx), following TP-Link's switch-series tiering."
+  },
+  {
+    "vendor_id": 2,
+    "category": "gateway_router",
+    "name": "Entry VPN Routers",
+    "line_rank": 1,
+    "source_note": "Derived from this catalog: lowest vpn_throughput_mbps (123 and 185). Not a TP-Link-published ladder."
+  },
+  {
+    "vendor_id": 2,
+    "category": "gateway_router",
+    "name": "Gigabit VPN Routers",
+    "line_rank": 2,
+    "source_note": "Derived from this catalog: 1000 Mbps max_throughput_mbps, vpn_throughput_mbps 341 to 885. Not a TP-Link-published ladder."
+  },
+  {
+    "vendor_id": 2,
+    "category": "gateway_router",
+    "name": "2.5G Gateways",
+    "line_rank": 3,
+    "source_note": "Derived from this catalog: 2500 Mbps max_throughput_mbps. Not a TP-Link-published ladder."
+  },
+  {
+    "vendor_id": 2,
+    "category": "gateway_router",
+    "name": "10G VPN Routers",
+    "line_rank": 4,
+    "source_note": "Derived from this catalog: 10000 Mbps max_throughput_mbps, vpn_throughput_mbps 1133. Not a TP-Link-published ladder."
+  },
+  {
+    "vendor_id": 2,
+    "category": "gateway_router",
+    "name": "10G High-Throughput VPN Routers",
+    "line_rank": 5,
+    "source_note": "Derived from this catalog: 10000 Mbps max_throughput_mbps with the highest vpn_throughput_mbps (3099). Not a TP-Link-published ladder."
+  },
+  {
+    "vendor_id": 2,
+    "category": "ap",
+    "name": "Wi-Fi 6 AX1800",
+    "line_rank": 1,
+    "source_note": "Derived from this catalog: Wi-Fi standard first, then max_data_rate_mbps. Not a TP-Link-published ladder."
+  },
+  {
+    "vendor_id": 2,
+    "category": "ap",
+    "name": "Wi-Fi 6 AX3000",
+    "line_rank": 2,
+    "source_note": "Derived from this catalog: Wi-Fi standard first, then max_data_rate_mbps. Not a TP-Link-published ladder."
+  },
+  {
+    "vendor_id": 2,
+    "category": "ap",
+    "name": "Wi-Fi 6 AX6000",
+    "line_rank": 3,
+    "source_note": "Derived from this catalog: Wi-Fi standard first, then max_data_rate_mbps. Not a TP-Link-published ladder."
+  },
+  {
+    "vendor_id": 2,
+    "category": "ap",
+    "name": "Wi-Fi 7 BE5000",
+    "line_rank": 4,
+    "source_note": "Derived from this catalog: Wi-Fi standard first, then max_data_rate_mbps. Not a TP-Link-published ladder."
+  },
+  {
+    "vendor_id": 2,
+    "category": "ap",
+    "name": "Wi-Fi 7 BE11000",
+    "line_rank": 5,
+    "source_note": "Derived from this catalog: Wi-Fi standard first, then max_data_rate_mbps. Not a TP-Link-published ladder."
+  },
+  {
+    "vendor_id": 2,
+    "category": "ap",
+    "name": "Wi-Fi 7 BE15000",
+    "line_rank": 6,
+    "source_note": "Derived from this catalog: Wi-Fi standard first, then max_data_rate_mbps. Not a TP-Link-published ladder."
+  }
+]

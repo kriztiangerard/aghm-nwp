@@ -1,0 +1,25 @@
+[
+  {
+    "vendor_id": 0,
+    "sku": "",
+    "price": 0,
+    "price_updated_at": "",
+    "name": "",
+    "description": "",
+    "image_key": "",
+    "is_rack_mountable": false,
+    "u_height": 0,
+    "lifecycle_status": "active",
+    "eos_date": null,
+    "eol_date": null,
+    "category": "switch",
+    "switch_specs": {
+      "port_count": 0,
+      "poe_ports": 0,
+      "poe_budget_w": 0,
+      "switching_capacity_gbps": 0,
+      "layer": 2,
+      "max_power_draw_w": 0
+    }
+  }
+]

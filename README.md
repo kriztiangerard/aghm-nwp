@@ -46,6 +46,13 @@ Open `.env` and configure the required environment variables.
 
 **Important:** Do not commit `.env` to the repository. Environment files may contain credentials, API keys, database information, or other sensitive configuration.
 
+### Seed the Hardware Catalog
+With the catalog tables available and `DATABASE_URL` configured, run:
+
+- `npm run seed:devices`
+
+The seeder upserts router, switch, and access-point records by SKU, resolves capability descriptions, and reports inserted, updated, and skipped counts. Invalid catalog entries are logged and skipped so the remaining entries can still be processed.
+
 ### 5. Run the Application
 Run the application using the appropriate `npm` script:
 
