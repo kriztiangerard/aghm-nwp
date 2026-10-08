@@ -12,3 +12,5 @@ cdk.out
 
 # RDS SSL certificate
 global-bundle.pem
+
+apply-productlines.js

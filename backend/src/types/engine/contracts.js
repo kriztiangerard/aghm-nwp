@@ -1,7 +1,7 @@
 'use strict';
 // NWP-ENGINE-001 — hand-off shapes between steps. Frozen at the end of Day 1.
 // A change needs a pull request approved by the producer and consumer owners; bump CONTRACT_VERSION if incompatible.
-const CONTRACT_VERSION = 1;
+const CONTRACT_VERSION = 2; // 2: Corrections to the requirements and selection result shapes, plus new fields in normalized input.
 
 /**
  * @typedef {Object} NormalizedInput   // output of NWP-ENGINE-002
@@ -12,7 +12,7 @@ const CONTRACT_VERSION = 1;
  * @property {number} roomsPerFloor
  * @property {{floor:number, occupancy:number}[]} largeRooms
  * @property {number} wiredPcs @property {number} wifiDevices @property {number} voipPhones @property {number} cameras
- * @property {{cls:string, count:number, poe:boolean}[]} otherDevices
+ * @property {{hasOtherDevices:boolean, description:string}} otherDevices
  * @property {'yes'|'no'|'notSure'} existingEquipment
  * @property {'none'|'cat5e_cat6'|'fiber'|'unknownType'} existingCabling
  * @property {number|null} internetMbps
@@ -32,7 +32,9 @@ const CONTRACT_VERSION = 1;
  * @typedef {Object} Requirements      // output of NWP-ENGINE-003/004/005, one slice each
  * // 003: g, securityTier, vlans, qos, redundancy, backupAdvice, vpnTunnelsNeeded {CE,HP}, requiredMbps, throughputMetric
  * // 004: wireless { standard, ceiling, CE:{total, perFloor[]}, HP:{total, perFloor[]} }
- * // 005: backbone, cat5eFlag, edgePorts, poeEdgePorts, otherPoeLoadW, flags
+ * // 005: backbone, edgePorts, poeEdgePorts, otherPoeLoadW, upsRecommendation, upsRecommendationLevel, flags
+ * @property {string} upsRecommendation
+ * @property {'prominent'|'advisory'} upsRecommendationLevel
  */
 
 /**
@@ -83,10 +85,11 @@ const REQUIREMENT_FIELDS = new Set([
     'throughputMetric',
     'wireless',
     'backbone',
-    'cat5eFlag',
     'edgePorts',
     'poeEdgePorts',
     'otherPoeLoadW',
+    'upsRecommendation',
+    'upsRecommendationLevel',
     'flags'
 ]);
 
@@ -148,23 +151,15 @@ function validateNormalizedInput(input) {
         }
     });
 
-    if (!Array.isArray(input.otherDevices)) {
-        throw new ValidationError('otherDevices', 'Must be an array.');
+    if (!isPlainObject(input.otherDevices)) {
+        throw new ValidationError('otherDevices', 'Must be an object with a boolean hasOtherDevices flag and a free-text description.');
     }
-    input.otherDevices.forEach((device, index) => {
-        if (!isPlainObject(device)) {
-            throw new ValidationError(`otherDevices[${index}]`, 'Each other device record must be an object.');
-        }
-        if (typeof device.cls !== 'string' || device.cls.trim().length === 0) {
-            throw new ValidationError(`otherDevices[${index}].cls`, 'Class name must be a non-empty string.');
-        }
-        if (!Number.isInteger(device.count) || device.count < 0) {
-            throw new ValidationError(`otherDevices[${index}].count`, 'Count must be a non-negative integer.');
-        }
-        if (typeof device.poe !== 'boolean') {
-            throw new ValidationError(`otherDevices[${index}].poe`, 'POE flag must be a boolean.');
-        }
-    });
+    if (typeof input.otherDevices.hasOtherDevices !== 'boolean') {
+        throw new ValidationError('otherDevices.hasOtherDevices', 'Must be a boolean.');
+    }
+    if (typeof input.otherDevices.description !== 'string') {
+        throw new ValidationError('otherDevices.description', 'Description must be a free-text string.');
+    }
 
     if (!VALID_EXISTING_EQUIPMENT.has(input.existingEquipment)) {
         throw new ValidationError('existingEquipment', 'Must be yes, no, or notSure.');
@@ -254,14 +249,17 @@ function validateRequirements(reqs) {
     if (reqs.backbone !== undefined && !['string', 'number', 'object'].includes(typeof reqs.backbone)) {
         throw new ValidationError('backbone', 'Has an invalid type.');
     }
-    if (reqs.cat5eFlag !== undefined && typeof reqs.cat5eFlag !== 'boolean') {
-        throw new ValidationError('cat5eFlag', 'Must be a boolean when present.');
-    }
     ['edgePorts', 'poeEdgePorts', 'otherPoeLoadW'].forEach((key) => {
         if (reqs[key] !== undefined && (!Number.isFinite(reqs[key]) || reqs[key] < 0)) {
             throw new ValidationError(key, 'Must be a non-negative number when present.');
         }
     });
+    if (reqs.upsRecommendation !== undefined && typeof reqs.upsRecommendation !== 'string') {
+        throw new ValidationError('upsRecommendation', 'Must be a string when present.');
+    }
+    if (reqs.upsRecommendationLevel !== undefined && !['prominent', 'advisory'].includes(reqs.upsRecommendationLevel)) {
+        throw new ValidationError('upsRecommendationLevel', 'Must be prominent or advisory when present.');
+    }
 
     if (reqs.wireless !== undefined) {
         if (!isPlainObject(reqs.wireless)) {
@@ -345,4 +343,3 @@ function validateSelectionResult(result) {
 }
 
 module.exports = { CONTRACT_VERSION, ValidationError, validateNormalizedInput, validateRequirements, validateSelectionResult };
-

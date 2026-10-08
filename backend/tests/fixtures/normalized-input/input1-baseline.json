@@ -13,9 +13,8 @@
   "cameras": 4,
   "otherDevices": [
     {
-      "cls": "printer",
-      "count": 1,
-      "poe": false
+      "enabled": true,
+      "description": "Example device"
     }
   ],
   "existingEquipment": "no",
