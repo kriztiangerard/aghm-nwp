@@ -13,16 +13,7 @@
   "voipPhones": 25,
   "cameras": 8,
   "otherDevices": [
-    {
-      "cls": "pos",
-      "count": 2,
-      "poe": false
-    },
-    {
-      "cls": "doorAccess",
-      "count": 4,
-      "poe": true
-    }
+    
   ],
   "existingEquipment": "yes",
   "existingCabling": "fiber",

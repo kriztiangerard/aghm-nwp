@@ -32,8 +32,9 @@ const CONTRACT_VERSION = 2; // 2: Corrections to the requirements and selection 
  * @typedef {Object} Requirements      // output of NWP-ENGINE-003/004/005, one slice each
  * // 003: g, securityTier, vlans, qos, redundancy, backupAdvice, vpnTunnelsNeeded {CE,HP}, requiredMbps, throughputMetric
  * // 004: wireless { standard, ceiling, CE:{total, perFloor[]}, HP:{total, perFloor[]} }
- * // 005: backbone, edgePorts, poeEdgePorts, otherPoeLoadW, upsRecommendation, flags
+ * // 005: backbone, edgePorts, poeEdgePorts, otherPoeLoadW, upsRecommendation, upsRecommendationLevel, flags
  * @property {string} upsRecommendation
+ * @property {'prominent'|'advisory'} upsRecommendationLevel
  */
 
 /**
@@ -88,6 +89,7 @@ const REQUIREMENT_FIELDS = new Set([
     'poeEdgePorts',
     'otherPoeLoadW',
     'upsRecommendation',
+    'upsRecommendationLevel',
     'flags'
 ]);
 
@@ -254,6 +256,9 @@ function validateRequirements(reqs) {
     });
     if (reqs.upsRecommendation !== undefined && typeof reqs.upsRecommendation !== 'string') {
         throw new ValidationError('upsRecommendation', 'Must be a string when present.');
+    }
+    if (reqs.upsRecommendationLevel !== undefined && !['prominent', 'advisory'].includes(reqs.upsRecommendationLevel)) {
+        throw new ValidationError('upsRecommendationLevel', 'Must be prominent or advisory when present.');
     }
 
     if (reqs.wireless !== undefined) {
