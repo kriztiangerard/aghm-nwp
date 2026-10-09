@@ -15,18 +15,11 @@ function deriveDeviceRequirements(input, ctx) {
       ? 'fiber'
       : 'copper';
 
-  const poeEdgePorts =
-  input.voipPhones +
-  input.cameras +
-  input.otherDevices
-    .filter((device) => {
-      if (params.Q17_POE_DEFAULTS[device.cls] !== undefined) {
-        return params.Q17_POE_DEFAULTS[device.cls];
-      }
+  const horizontalCablingOptions = ['Cat5e', 'Cat6', 'Cat6a'];
 
-      return device.poe === true || device.poe === 'not_sure';
-    })
-    .reduce((total, device) => total + device.count, 0);
+  const poeEdgePorts =
+    input.voipPhones +
+    input.cameras;
 
   const otherPoeLoadW =
     poeEdgePorts * params.POE_CLASS_W.af;
@@ -39,17 +32,22 @@ function deriveDeviceRequirements(input, ctx) {
     );
   }
 
+  if (input.otherDevices.hasOtherDevices) {
+    addFlag(
+      ctx,
+      'other-devices-not-sized',
+      'Other devices reported but not sized.',
+    );
+  }
+
   return {
     backbone,
+    horizontalCablingOptions,
     cat5eFlag: false,
     edgePorts:
       input.wiredPcs +
       input.voipPhones +
-      input.cameras +
-      input.otherDevices.reduce(
-        (total, device) => total + device.count,
-        0,
-      ),
+      input.cameras,
     poeEdgePorts,
     otherPoeLoadW,
     flags: ctx.flags,

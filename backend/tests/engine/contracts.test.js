@@ -6,7 +6,7 @@ const {
     validateRequirements, 
     validateSelectionResult, 
     ValidationError 
-} = require('../../src/engine/contracts.js');
+} = require('../../src/types/engine/contracts.js');
 
 /* This test suite is designed to validate the contract functions in the engine module.
    To be done by the assigned QA dev.

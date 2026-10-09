@@ -1,8 +1,8 @@
 {
-  "contractVersion": 1,
+  "contractVersion": 2,
   "locations": "one",
   "floors": 1,
-  "floorAreaM2": [
+  "floorArea": [
     105
   ],
   "roomsPerFloor": 6,
@@ -11,7 +11,10 @@
   "wifiDevices": 15,
   "voipPhones": 0,
   "cameras": 0,
-  "otherDevices": [],
+  "otherDevices": {
+  "hasOtherDevices": false,
+  "description": ""
+  },
   "existingEquipment": "notSure",
   "existingCabling": "unknownType",
   "internetMbps": null,

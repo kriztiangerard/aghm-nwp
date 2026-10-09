@@ -1,6 +1,7 @@
 'use strict';
 
 const test = require('node:test');
+
 const assert = require('node:assert');
 
 const { deriveDeviceRequirements } =
@@ -21,7 +22,10 @@ function makeInput(overrides = {}) {
     wifiDevices: 0,
     voipPhones: 0,
     cameras: 0,
-    otherDevices: [],
+    otherDevices: {
+      hasOtherDevices: false,
+      description: '',
+    },
     existingEquipment: 'no',
     existingCabling: 'none',
     internetMbps: null,
@@ -44,7 +48,8 @@ function makeInput(overrides = {}) {
   };
 }
 
-test('Q4 = 2 floors derives fiber backbone', () => {
+
+test('Q4 = 2 floors derives fiber backbone and supported copper horizontal cabling', () => {
   const ctx = createCtx();
 
   const result = deriveDeviceRequirements(
@@ -56,9 +61,15 @@ test('Q4 = 2 floors derives fiber backbone', () => {
   );
 
   assert.strictEqual(result.backbone, 'fiber');
+
+  assert.deepStrictEqual(result.horizontalCablingOptions, [
+    'Cat5e',
+    'Cat6',
+    'Cat6a',
+  ]);
 });
 
-test('wired devices and other devices produce the correct edge port count', () => {
+test('wired devices produce the correct edge port count', () => {
   const ctx = createCtx();
 
   const result = deriveDeviceRequirements(
@@ -66,18 +77,14 @@ test('wired devices and other devices produce the correct edge port count', () =
       wiredPcs: 20,
       voipPhones: 5,
       cameras: 4,
-      otherDevices: [
-        { cls: 'door_controller', count: 2, poe: true },
-        { cls: 'network_printer', count: 1, poe: false },
-      ],
     }),
     ctx,
   );
 
-  assert.strictEqual(result.edgePorts, 32);
+  assert.strictEqual(result.edgePorts, 29);
 });
 
-test('PoE devices produce the correct PoE port count and load', () => {
+test('PoE devices produce the correct PoE port count', () => {
   const ctx = createCtx();
 
   const result = deriveDeviceRequirements(
@@ -85,49 +92,26 @@ test('PoE devices produce the correct PoE port count and load', () => {
       wiredPcs: 20,
       voipPhones: 5,
       cameras: 4,
-      otherDevices: [
-        { cls: 'door_controller', count: 2, poe: true },
-        { cls: 'network_printer', count: 1, poe: false },
-      ],
     }),
     ctx,
   );
 
-  assert.strictEqual(result.poeEdgePorts, 11);
-  assert.strictEqual(result.otherPoeLoadW, 169.4);
+  assert.strictEqual(result.poeEdgePorts, 9);
 });
 
-test('Q17 class defaults determine PoE status', () => {
+test('PoE devices produce the correct PoE load', () => {
   const ctx = createCtx();
 
   const result = deriveDeviceRequirements(
     makeInput({
-      otherDevices: [
-        { cls: 'door_controller', count: 2, poe: false },
-        { cls: 'network_printer', count: 1, poe: true },
-        { cls: 'smart_sensor', count: 3, poe: false },
-        { cls: 'pos_terminal', count: 2, poe: true },
-      ],
+      wiredPcs: 20,
+      voipPhones: 5,
+      cameras: 4,
     }),
     ctx,
   );
 
-  assert.strictEqual(result.poeEdgePorts, 5);
-});
-
-test('Q17 not sure PoE status is treated as PoE', () => {
-  const ctx = createCtx();
-
-  const result = deriveDeviceRequirements(
-    makeInput({
-      otherDevices: [
-        { cls: 'unknown_device', count: 2, poe: 'not_sure' },
-      ],
-    }),
-    ctx,
-  );
-
-  assert.strictEqual(result.poeEdgePorts, 2);
+  assert.strictEqual(result.otherPoeLoadW, 138.6);
 });
 
 test('existing equipment adds an advisory while keeping the BOM greenfield', () => {
@@ -144,7 +128,7 @@ test('existing equipment adds an advisory while keeping the BOM greenfield', () 
   assert.strictEqual(result.flags[0].code, 'existing-equipment-advisory');
 });
 
-test('Q13 = 20, Q15 = 5, Q16 = 4, and Q17 devices produce 32 edge ports', () => {
+test('free-text Q17 devices are not sized', () => {
   const ctx = createCtx();
 
   const result = deriveDeviceRequirements(
@@ -152,13 +136,58 @@ test('Q13 = 20, Q15 = 5, Q16 = 4, and Q17 devices produce 32 edge ports', () => 
       wiredPcs: 20,
       voipPhones: 5,
       cameras: 4,
-      otherDevices: [
-        { cls: 'door_controller', count: 2, poe: true },
-        { cls: 'network_printer', count: 1, poe: false },
-      ],
+      otherDevices: {
+        hasOtherDevices: true,
+        description: '2 door controllers and 1 printer',
+      },
     }),
     ctx,
   );
 
-  assert.strictEqual(result.edgePorts, 32);
+  assert.strictEqual(result.edgePorts, 29);
+  assert.strictEqual(result.poeEdgePorts, 9);
+  assert.strictEqual(result.otherPoeLoadW, 138.6);
+});
+
+test('Q13 = 20, Q15 = 5, Q16 = 4, and free-text Q17 devices produce the expected edge ports', () => {
+  const ctx = createCtx();
+
+  const result = deriveDeviceRequirements(
+    makeInput({
+      wiredPcs: 20,
+      voipPhones: 5,
+      cameras: 4,
+      otherDevices: {
+        hasOtherDevices: true,
+        description: '2 door controllers and 1 printer',
+      },
+    }),
+    ctx,
+  );
+
+  assert.strictEqual(result.edgePorts, 29);
+});
+
+test('Q17 free-text devices add a not-sized advisory', () => {
+  const ctx = createCtx();
+
+  const result = deriveDeviceRequirements(
+    makeInput({
+      otherDevices: {
+        hasOtherDevices: true,
+        description: '2 door controllers and 1 printer',
+      },
+    }),
+    ctx,
+  );
+
+  const advisory = result.flags.find(
+    (flag) => flag.code === 'other-devices-not-sized',
+  );
+
+  assert.ok(advisory);
+  assert.match(
+    advisory.message,
+    /other devices reported but not sized/i,
+  );
 });

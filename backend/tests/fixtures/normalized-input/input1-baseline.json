@@ -1,5 +1,5 @@
 {
-  "contractVersion": 1,
+  "contractVersion": 2,
   "locations": "one",
   "floors": 1,
   "floorArea": [
@@ -11,12 +11,12 @@
   "wifiDevices": 30,
   "voipPhones": 0,
   "cameras": 4,
-  "otherDevices": [
+  "otherDevices": 
     {
-      "enabled": true,
+      "hasOtherDevices": true,
       "description": "Example device"
     }
-  ],
+  ,
   "existingEquipment": "no",
   "existingCabling": "none",
   "internetMbps": 200,

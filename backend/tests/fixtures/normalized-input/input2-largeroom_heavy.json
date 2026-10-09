@@ -1,8 +1,8 @@
 {
-  "contractVersion": 1,
+  "contractVersion": 2,
   "locations": "one",
   "floors": 2,
-  "floorAreaM2": [
+  "floorArea": [
     350,
     300
   ],
@@ -29,7 +29,10 @@
   "wifiDevices": 150,
   "voipPhones": 0,
   "cameras": 6,
-  "otherDevices": [],
+  "otherDevices": {
+  "hasOtherDevices": false,
+  "description": ""
+  },
   "existingEquipment": "no",
   "existingCabling": "cat5e_cat6",
   "internetMbps": 300,
