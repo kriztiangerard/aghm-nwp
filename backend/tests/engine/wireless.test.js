@@ -222,3 +222,142 @@ test('rounds decimal floor areas up when calculating coverage APs', () => {
   assert.deepEqual(result.CE.perFloor, [2]);
   assert.deepEqual(result.HP.perFloor, [2]);
 });
+
+
+test('applies the large-room threshold below, at, and above the boundary', () => {
+  const calculate = (occupancy) =>
+    wirelessRequirements(
+      makeInput({
+        floorArea: [140],
+        wifiDevices: occupancy,
+        largeRooms: [{ floor: 1, occupancy }],
+      }),
+      createCtx()
+    );
+
+  const below = calculate(19);
+  const at = calculate(20);
+  const above = calculate(21);
+
+  assert.equal(below.CE.total, 1);
+  assert.equal(at.CE.total, 1);
+  assert.equal(above.CE.total, 2);
+
+  assert.equal(below.HP.total, 1);
+  assert.equal(at.HP.total, 1);
+  assert.equal(above.HP.total, 2);
+});
+
+
+test('applies each growth band to High-Performance capacity', () => {
+  const calculate = (growth) =>
+    wirelessRequirements(
+      makeInput({
+        floorArea: [140],
+        wifiDevices: 70,
+        growth,
+      }),
+      createCtx()
+    );
+
+  const noGrowth = calculate({
+    expected: false,
+    band: null,
+    newSites: 0,
+  });
+
+  const lowGrowth = calculate({
+    expected: true,
+    band: '0-10',
+    newSites: 0,
+  });
+
+  const mediumGrowth = calculate({
+    expected: true,
+    band: '11-30',
+    newSites: 0,
+  });
+
+  const highGrowth = calculate({
+    expected: true,
+    band: '31+',
+    newSites: 0,
+  });
+
+  assert.equal(noGrowth.HP.total, 3);
+  assert.equal(lowGrowth.HP.total, 4);
+  assert.equal(mediumGrowth.HP.total, 4);
+  assert.equal(highGrowth.HP.total, 5);
+});
+
+test('rounds HP capacity correctly at the 65% utilization boundary', () => {
+  const calculate = (wifiDevices) =>
+    wirelessRequirements(
+      makeInput({
+        floorArea: [140],
+        wifiDevices,
+        growth: {
+          expected: false,
+          band: null,
+          newSites: 0,
+        },
+      }),
+      createCtx()
+    );
+
+  assert.equal(calculate(26).HP.total, 1);
+  assert.equal(calculate(27).HP.total, 2);
+});
+
+
+test('distributes APs correctly across three floors', () => {
+  const result = wirelessRequirements(
+    makeInput({
+      floors: 3,
+      locations: 'twoOrMore',
+      floorArea: [140, 140, 140],
+      wifiDevices: 200,
+      growth: {
+        expected: false,
+        band: null,
+        newSites: 0,
+      },
+    }),
+    createCtx()
+  );
+
+  assert.equal(result.CE.total, 5);
+  assert.deepEqual(result.CE.perFloor, [2, 2, 1]);
+
+  assert.equal(result.HP.total, 8);
+  assert.deepEqual(result.HP.perFloor, [3, 3, 2]);
+
+  assert.equal(
+    result.CE.perFloor.reduce((sum, count) => sum + count, 0),
+    result.CE.total
+  );
+
+  assert.equal(
+    result.HP.perFloor.reduce((sum, count) => sum + count, 0),
+    result.HP.total
+  );
+});
+
+
+test('does not add an extra AP when capacity divides exactly', () => {
+  const result = wirelessRequirements(
+    makeInput({
+      floorArea: [140],
+      wifiDevices: 80,
+      growth: {
+        expected: false,
+        band: null,
+        newSites: 0,
+      },
+    }),
+    createCtx()
+  );
+
+  assert.equal(result.CE.total, 2);
+  assert.equal(result.HP.total, 4);
+});
