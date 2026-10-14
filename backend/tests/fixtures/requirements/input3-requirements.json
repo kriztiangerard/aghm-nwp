@@ -6,13 +6,12 @@
     "Restricted"
   ],
   "qos": false,
-  "redundancy": "BACKUP_WAN_RECOMMENDED",
-  "backupAdvice": "generic advice",
+  "redundancy": "backupWan",
+  "backupAdvice": "Check the primary connection type; backup advice is provisional.",
   "vpnTunnelsNeeded": {
     "CE": 0,
     "HP": 0
   },
-  "requiredMbps": null,
   "throughputMetric": "idps_throughput",
   "wireless": {
     "standard": "6",
