@@ -2,7 +2,7 @@
   "contractVersion": 1,
   "locations": "one",
   "floors": 2,
-  "floorAreaM2": [
+  "floorArea": [
     350,
     300
   ],

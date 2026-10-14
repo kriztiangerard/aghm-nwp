@@ -2,7 +2,7 @@
   "contractVersion": 1,
   "locations": "one",
   "floors": 1,
-  "floorAreaM2": [
+  "floorArea": [
     105
   ],
   "roomsPerFloor": 6,

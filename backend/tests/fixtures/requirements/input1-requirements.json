@@ -5,14 +5,27 @@
   "qos": null,
   "redundancy": null,
   "backupAdvice": null,
-  "vpnTunnelsNeeded": { "CE": null, "HP": null },
+  "vpnTunnelsNeeded": {
+    "CE": null,
+    "HP": null
+  },
   "requiredMbps": null,
   "throughputMetric": null,
   "wireless": {
-    "standard": null,
-    "ceiling": null,
-    "CE": { "total": null, "perFloor": [] },
-    "HP": { "total": null, "perFloor": [] }
+    "standard": "6E",
+    "ceiling": 55,
+    "CE": {
+      "total": 2,
+      "perFloor": [
+        2
+      ]
+    },
+    "HP": {
+      "total": 2,
+      "perFloor": [
+        2
+      ]
+    }
   },
   "backbone": null,
   "cat5eFlag": null,

@@ -1,0 +1,36 @@
+{
+  "g": null,
+  "securityTier": null,
+  "vlans": [],
+  "qos": null,
+  "redundancy": null,
+  "backupAdvice": null,
+  "vpnTunnelsNeeded": {
+    "CE": null,
+    "HP": null
+  },
+  "requiredMbps": null,
+  "throughputMetric": null,
+  "wireless": {
+    "standard": "6",
+    "ceiling": 40,
+    "CE": {
+      "total": 1,
+      "perFloor": [
+        1
+      ]
+    },
+    "HP": {
+      "total": 1,
+      "perFloor": [
+        1
+      ]
+    }
+  },
+  "backbone": null,
+  "cat5eFlag": null,
+  "edgePorts": null,
+  "poeEdgePorts": null,
+  "otherPoeLoadW": null,
+  "flags": []
+}
