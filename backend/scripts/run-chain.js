@@ -35,6 +35,7 @@ const FIXTURES_DIR = path.join(ROOT, 'tests', 'fixtures');
 //                         the slices produced by earlier steps (for example 005 can read 004's AP count)
 
 const STEPS = [
+  // Make sure the filenames are correct, the steps are in the order they should be run, and that each step's needs is satisfied by an earlier step's gives.
   { id: 'NWP-ENGINE-002', label: 'normalize questionnaire', file: 'normalize.js', fn: 'normalize', needs: 'raw', gives: 'normalized' },
   { id: 'NWP-ENGINE-003', label: 'core requirements', file: 'requirements-core.js', fn: 'deriveCore', needs: 'normalized', gives: 'slice' },
   { id: 'NWP-ENGINE-004', label: 'wireless sizing', file: 'wireless.js', fn: 'deriveWireless', needs: 'normalized', gives: 'slice' },

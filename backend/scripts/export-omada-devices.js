@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 'use strict';
 // NWP-ENGINE-001: export one vendor's catalog from the database into a frozen
 // snapshot file (default: Omada -> tests/fixtures/catalogs/omada.snapshot.json).
@@ -14,9 +13,11 @@
 //   tests can import this file under `node --test` with no install step.
 // - Nothing is written unless every row maps and validates (all-or-nothing).
 
-const fs = require('node:fs');
 const path = require('node:path');
-const { CONTRACT_VERSION } = require('../src/engine/contracts');
+require('dotenv').config({ path: path.resolve(__dirname, '../../.env') });
+
+const fs = require('node:fs');
+const { CONTRACT_VERSION } = require('../src/types/engine/contracts');
 
 // ---- Configuration: reconcile these with the real schema and Appendix A ------------
 
