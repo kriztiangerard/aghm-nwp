@@ -1,0 +1,72 @@
+[
+  {
+    "vendor_id": 999,
+    "category": "gateway_router",
+    "name": "Synthetic Gateway Entry",
+    "line_rank": 1,
+    "source_note": "Synthetic fixture line. Entry tier."
+  },
+  {
+    "vendor_id": 999,
+    "category": "gateway_router",
+    "name": "Synthetic Gateway Mid",
+    "line_rank": 2,
+    "source_note": "Synthetic fixture line. Rank 3 is deliberately missing to test a gap in line_rank."
+  },
+  {
+    "vendor_id": 999,
+    "category": "gateway_router",
+    "name": "Synthetic Gateway Integrated",
+    "line_rank": 4,
+    "source_note": "Synthetic fixture line. Top gateway line (rank 4, after the gap)."
+  },
+  {
+    "vendor_id": 999,
+    "category": "switch",
+    "name": "Synthetic Switch Basic",
+    "line_rank": 1,
+    "source_note": "Synthetic fixture line. Entry tier."
+  },
+  {
+    "vendor_id": 999,
+    "category": "switch",
+    "name": "Synthetic Switch Plus",
+    "line_rank": 2,
+    "source_note": "Synthetic fixture line. Holds no switch that satisfies a PoE requirement, to test skipping to the next line."
+  },
+  {
+    "vendor_id": 999,
+    "category": "switch",
+    "name": "Synthetic Switch Pro",
+    "line_rank": 3,
+    "source_note": "Synthetic fixture line. Top switch line."
+  },
+  {
+    "vendor_id": 999,
+    "category": "ap",
+    "name": "Synthetic AP Legacy",
+    "line_rank": 1,
+    "source_note": "Synthetic fixture line. Wi-Fi 5."
+  },
+  {
+    "vendor_id": 999,
+    "category": "ap",
+    "name": "Synthetic AP Standard",
+    "line_rank": 2,
+    "source_note": "Synthetic fixture line. Wi-Fi 6."
+  },
+  {
+    "vendor_id": 999,
+    "category": "ap",
+    "name": "Synthetic AP Enhanced",
+    "line_rank": 3,
+    "source_note": "Synthetic fixture line. Wi-Fi 6E."
+  },
+  {
+    "vendor_id": 999,
+    "category": "ap",
+    "name": "Synthetic AP Advanced",
+    "line_rank": 4,
+    "source_note": "Synthetic fixture line. Wi-Fi 7, top AP line."
+  }
+]

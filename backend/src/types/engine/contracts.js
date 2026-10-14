@@ -1,7 +1,7 @@
 'use strict';
 // NWP-ENGINE-001 — hand-off shapes between steps. Frozen at the end of Day 1.
 // A change needs a pull request approved by the producer and consumer owners; bump CONTRACT_VERSION if incompatible.
-const CONTRACT_VERSION = 2; // 2: Corrections to the requirements and selection result shapes, plus new fields in normalized input.
+const CONTRACT_VERSION = 2; // 2: Corrections to the requirements and selection result shapes, plus new fields in normalized input. CatalogSku now lists the Appendix A fields and validateCatalogSku was added (still before the freeze, so no further bump).
 
 /**
  * @typedef {Object} NormalizedInput   // output of NWP-ENGINE-002
@@ -38,12 +38,24 @@ const CONTRACT_VERSION = 2; // 2: Corrections to the requirements and selection 
  */
 
 /**
- * @typedef {Object} CatalogSku
+ * @typedef {Object} CatalogSku        // one catalog row, from omada.snapshot.json or synthetic-edge-cases.json (Appendix A)
+ * // Core (always present)
  * @property {string} sku @property {string} vendor
  * @property {'gateway'|'access_point'|'switch'|'optic'|'enclosure'} category
- * @property {string} line @property {'ACTIVE'|'SUNSETTING'|'DISCONTINUED'} status
+ * @property {string} line                 // product line name; required for gateway, access_point, switch
+ * @property {number} line_rank            // 1 = entry tier, ordered within one vendor and one category; required for gateway, access_point, switch
+ * @property {'ACTIVE'|'SUNSETTING'|'DISCONTINUED'} status
  * @property {number|null} price @property {string} currency
- * // plus category-specific fields (see Appendix A of the specification)
+ * // Appendix A fields, present where they apply to the category
+ * @property {number|string} [wifi_gen]
+ * @property {number} [max_draw_w]
+ * @property {number} [poe_ports] @property {number} [poe_budget_w]
+ * @property {number} [copper_ports] @property {number} [sfp_ports] @property {string} [sfp_speed]
+ * @property {number} [routing_throughput_mbps]
+ * @property {number|null} [idps_throughput_mbps]   // nullable: absent or null = unknown, the engine raises a flag and never guesses
+ * @property {boolean} [dual_wan] @property {boolean} [site_to_site_vpn]
+ * @property {number|null} [max_vpn_tunnels]        // nullable: same rule as idps_throughput_mbps
+ * @property {number} [rack_units]
  */
 
 /**
@@ -102,9 +114,8 @@ function validateNormalizedInput(input) {
         throw new ValidationError('input', 'Payload cannot be null or undefined and must be an object.');
     }
 
-    const contractVersion = Number(input.contractVersion);
-    if (!Number.isFinite(contractVersion) || contractVersion !== CONTRACT_VERSION) {
-        throw new ValidationError('contractVersion', `Must be ${CONTRACT_VERSION}.`);
+    if (input.contractVersion !== CONTRACT_VERSION) {
+        throw new ValidationError('contractVersion', `Must be the number ${CONTRACT_VERSION}.`);
     }
 
     if (!VALID_LOCATIONS.has(input.locations)) {
@@ -342,4 +353,70 @@ function validateSelectionResult(result) {
     return true;
 }
 
-module.exports = { CONTRACT_VERSION, ValidationError, validateNormalizedInput, validateRequirements, validateSelectionResult };
+const CATALOG_CATEGORIES = new Set(['gateway', 'access_point', 'switch', 'optic', 'enclosure']);
+const CATALOG_STATUSES = new Set(['ACTIVE', 'SUNSETTING', 'DISCONTINUED']);
+const LINE_REQUIRED_CATEGORIES = new Set(['gateway', 'access_point', 'switch']);
+const CATALOG_NUMBER_FIELDS = ['max_draw_w', 'poe_ports', 'poe_budget_w', 'copper_ports', 'sfp_ports', 'routing_throughput_mbps', 'rack_units'];
+const CATALOG_NULLABLE_NUMBER_FIELDS = ['idps_throughput_mbps', 'max_vpn_tunnels'];
+const CATALOG_BOOLEAN_FIELDS = ['dual_wan', 'site_to_site_vpn'];
+const CATALOG_STRING_FIELDS = ['sfp_speed'];
+
+// Checks the core fields and the type of every Appendix A field that is present.
+// Which Appendix A fields each category must carry is not enforced here yet.
+function validateCatalogSku(sku) {
+    if (!isPlainObject(sku)) {
+        throw new ValidationError('sku', 'CatalogSku must be an object.');
+    }
+    ['sku', 'vendor', 'currency'].forEach((key) => {
+        if (typeof sku[key] !== 'string' || sku[key].trim().length === 0) {
+            throw new ValidationError(key, 'Must be a non-empty string.');
+        }
+    });
+    if (!CATALOG_CATEGORIES.has(sku.category)) {
+        throw new ValidationError('category', 'Must be one of gateway, access_point, switch, optic, enclosure.');
+    }
+    if (!CATALOG_STATUSES.has(sku.status)) {
+        throw new ValidationError('status', 'Must be one of ACTIVE, SUNSETTING, DISCONTINUED.');
+    }
+    if (sku.price !== null && (!Number.isFinite(sku.price) || sku.price < 0)) {
+        throw new ValidationError('price', 'Must be a non-negative number or null.');
+    }
+    if (LINE_REQUIRED_CATEGORIES.has(sku.category)) {
+        if (typeof sku.line !== 'string' || sku.line.trim().length === 0) {
+            throw new ValidationError('line', 'Must be a non-empty string for gateway, access_point and switch.');
+        }
+        if (!Number.isInteger(sku.line_rank) || sku.line_rank < 1) {
+            throw new ValidationError('line_rank', 'Must be an integer of 1 or more for gateway, access_point and switch.');
+        }
+    } else if (sku.line !== undefined && typeof sku.line !== 'string') {
+        throw new ValidationError('line', 'Must be a string when present.');
+    }
+
+    if (sku.wifi_gen !== undefined && !(Number.isFinite(sku.wifi_gen) || (typeof sku.wifi_gen === 'string' && sku.wifi_gen.trim().length > 0))) {
+        throw new ValidationError('wifi_gen', 'Must be a number or a non-empty string when present.');
+    }
+    CATALOG_NUMBER_FIELDS.forEach((key) => {
+        if (sku[key] !== undefined && (!Number.isFinite(sku[key]) || sku[key] < 0)) {
+            throw new ValidationError(key, 'Must be a non-negative number when present.');
+        }
+    });
+    CATALOG_NULLABLE_NUMBER_FIELDS.forEach((key) => {
+        if (sku[key] !== undefined && sku[key] !== null && (!Number.isFinite(sku[key]) || sku[key] < 0)) {
+            throw new ValidationError(key, 'Must be a non-negative number or null when present.');
+        }
+    });
+    CATALOG_BOOLEAN_FIELDS.forEach((key) => {
+        if (sku[key] !== undefined && typeof sku[key] !== 'boolean') {
+            throw new ValidationError(key, 'Must be a boolean when present.');
+        }
+    });
+    CATALOG_STRING_FIELDS.forEach((key) => {
+        if (sku[key] !== undefined && (typeof sku[key] !== 'string' || sku[key].trim().length === 0)) {
+            throw new ValidationError(key, 'Must be a non-empty string when present.');
+        }
+    });
+
+    return true;
+}
+
+module.exports = { CONTRACT_VERSION, ValidationError, validateNormalizedInput, validateRequirements, validateSelectionResult, validateCatalogSku };
