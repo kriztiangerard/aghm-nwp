@@ -1,32 +1,9 @@
-import React, { useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { Network, Cpu, CheckCircle2, Clock } from "lucide-react";
+// eslint-disable-next-line react-refresh/only-export-components
 
-// --- Types & Interfaces (Can be moved to src/schemas/comparison.ts) ---
+import React, { useState } from "react";
+import { PlanCard } from "./plancard";
+
+// --- Shared Types & Interfaces ---
 
 export type VendorName =
   | "TP-Link Omada"
@@ -41,7 +18,13 @@ export type PlanTier = "Cost-Efficient" | "High-Performance";
 export interface BomLineItem {
   sku: string;
   modelName: string;
-  category: "Gateway" | "Switch" | "Access Point" | "Optic" | "Enclosure" | "Controller";
+  category:
+    | "Gateway"
+    | "Switch"
+    | "Access Point"
+    | "Optic"
+    | "Enclosure"
+    | "Controller";
   quantity: number;
   unitPrice: number;
   subtotal: number;
@@ -67,14 +50,12 @@ export type VendorPlansPayload = Record<
 >;
 
 interface ComparisonProps {
-  /** The complete generated payload containing plans across supported vendors */
   plansData?: VendorPlansPayload;
-  /** The initial default vendor selected by Step 4 of the recommendation engine */
   defaultVendor?: VendorName;
 }
 
-// --- Currency Formatter (PHP) ---
-const formatCurrency = (amount: number, currency = "PHP") => {
+// --- Shared Currency Formatter (PHP) ---
+export const formatCurrency = (amount: number, currency = "PHP") => {
   return new Intl.NumberFormat("en-PH", {
     style: "currency",
     currency,
@@ -82,7 +63,7 @@ const formatCurrency = (amount: number, currency = "PHP") => {
   }).format(amount);
 };
 
-// --- Fallback Mock Data (For standalone UI development & testing) ---
+// --- Fallback Mock Data ---
 const MOCK_PLANS_DATA: VendorPlansPayload = {
   "TP-Link Omada": {
     "Cost-Efficient": {
@@ -242,180 +223,6 @@ const MOCK_PLANS_DATA: VendorPlansPayload = {
   },
 };
 
-// --- Reusable Single Plan Card Component ---
-
-interface PlanColumnCardProps {
-  tier: PlanTier;
-  selectedVendor: VendorName;
-  availableVendors: VendorName[];
-  onVendorChange: (vendor: VendorName) => void;
-  planData: NetworkPlanData;
-}
-
-const PlanColumnCard: React.FC<PlanColumnCardProps> = ({
-  tier,
-  selectedVendor,
-  availableVendors,
-  onVendorChange,
-  planData,
-}) => {
-  const isCostEfficient = tier === "Cost-Efficient";
-
-  return (
-    <Card className="flex flex-col h-full border-border/80 shadow-sm">
-      {/* 1. Card Header & Independent Vendor Dropdown */}
-      <CardHeader className="pb-4 space-y-4">
-        <div className="flex items-center justify-between gap-2">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <Badge
-                variant={isCostEfficient ? "secondary" : "default"}
-                className="uppercase tracking-wider text-xs font-semibold"
-              >
-                {tier}
-              </Badge>
-            </div>
-            <CardTitle className="text-xl font-bold">
-              {isCostEfficient ? "Cost-Efficient Plan" : "High-Performance Plan"}
-            </CardTitle>
-            <CardDescription className="text-xs">
-              {isCostEfficient
-                ? "Essential qualifying hardware meeting all baseline requirements."
-                : "Next-tier hardware with growth headroom and lower utilization ceiling."}
-            </CardDescription>
-          </div>
-          <div className="text-right">
-            <span className="text-xs text-muted-foreground block">Estimated Total</span>
-            <span className="text-2xl font-extrabold text-primary">
-              {formatCurrency(planData.totalCost, planData.currency)}
-            </span>
-          </div>
-        </div>
-
-        {/* Vendor Switcher Dropdown */}
-        <div className="pt-1">
-          <label className="text-xs font-medium text-muted-foreground mb-1.5 block">
-            Selected Vendor Ecosystem
-          </label>
-          <Select
-            value={selectedVendor}
-            onValueChange={(value) => onVendorChange(value as VendorName)}
-          >
-            <SelectTrigger
-              className="w-full"
-              aria-label={`Select vendor for ${tier} plan`}
-            >
-              <SelectValue placeholder="Choose a vendor..." />
-            </SelectTrigger>
-            <SelectContent>
-              {availableVendors.map((vendor) => (
-                <SelectItem key={vendor} value={vendor}>
-                  {vendor}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </CardHeader>
-
-      <Separator />
-
-      <CardContent className="flex-1 pt-5 space-y-6">
-        {/* 2. Network Topology Placeholder (Middle Section) */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <h4 className="text-sm font-semibold flex items-center gap-1.5">
-              <Network className="w-4 h-4 text-muted-foreground" />
-              Logical Network Topology
-            </h4>
-            <Badge variant="outline" className="text-[11px] font-normal">
-              {selectedVendor}
-            </Badge>
-          </div>
-
-          <div
-            data-testid={`topology-placeholder-${tier}`}
-            className="w-full h-56 rounded-lg border-2 border-dashed border-muted-foreground/25 bg-muted/30 flex flex-col items-center justify-center p-6 text-center transition-colors"
-          >
-            <div className="p-3 rounded-full bg-background border shadow-xs mb-3">
-              <Network className="w-6 h-6 text-primary/70" />
-            </div>
-            <p className="text-sm font-medium text-foreground">
-              {selectedVendor} — {tier} Topology
-            </p>
-            <p className="text-xs text-muted-foreground max-w-xs mt-1">
-              Interactive logical diagram placeholder. Ready for Reaflow canvas integration.
-            </p>
-          </div>
-        </div>
-
-        {/* 3. Itemized Bill of Materials / Component List (Bottom Half) */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <h4 className="text-sm font-semibold flex items-center gap-1.5">
-              <Cpu className="w-4 h-4 text-muted-foreground" />
-              Network Components (Bill of Materials)
-            </h4>
-            <span className="text-xs text-muted-foreground">
-              {planData.bom.reduce((acc, item) => acc + item.quantity, 0)} total units
-            </span>
-          </div>
-
-          <div className="rounded-md border overflow-hidden">
-            <Table>
-              <TableHeader className="bg-muted/50">
-                <TableRow>
-                  <TableHead className="text-xs">Component</TableHead>
-                  <TableHead className="text-xs text-center w-16">Qty</TableHead>
-                  <TableHead className="text-xs text-right">Unit Price</TableHead>
-                  <TableHead className="text-xs text-right">Subtotal</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {planData.bom.map((item) => (
-                  <TableRow key={item.sku}>
-                    <TableCell className="py-2.5">
-                      <div className="font-medium text-xs text-foreground">
-                        {item.sku}
-                      </div>
-                      <div className="text-[11px] text-muted-foreground line-clamp-1">
-                        {item.category} • {item.modelName}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-center font-medium text-xs py-2.5">
-                      {item.quantity}
-                    </TableCell>
-                    <TableCell className="text-right text-xs text-muted-foreground py-2.5">
-                      {formatCurrency(item.unitPrice, planData.currency)}
-                    </TableCell>
-                    <TableCell className="text-right font-semibold text-xs py-2.5">
-                      {formatCurrency(item.subtotal, planData.currency)}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </div>
-      </CardContent>
-
-      {/* Card Footer: Timestamp & Integrity Stamp */}
-      <CardFooter className="pt-2 pb-4 border-t bg-muted/20 flex items-center justify-between text-[11px] text-muted-foreground">
-        <span className="flex items-center gap-1">
-          <Clock className="w-3.5 h-3.5" />
-          Pricing as of {planData.pricingTimestamp}
-        </span>
-        <span className="flex items-center gap-1">
-          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-          One-time hardware estimate
-        </span>
-      </CardFooter>
-    </Card>
-  );
-};
-
-// --- Main Comparison Dashboard Component ---
-
 export const Comparison: React.FC<ComparisonProps> = ({
   plansData = MOCK_PLANS_DATA,
   defaultVendor = "TP-Link Omada",
@@ -431,7 +238,6 @@ export const Comparison: React.FC<ComparisonProps> = ({
     availableVendors.includes(defaultVendor) ? defaultVendor : availableVendors[0]
   );
 
-  // Retrieve the exact unmodified plan objects from client-side state
   const activeCostEfficientPlan =
     plansData[costEfficientVendor]["Cost-Efficient"];
   const activeHighPerformancePlan =
@@ -451,8 +257,7 @@ export const Comparison: React.FC<ComparisonProps> = ({
 
       {/* Side-by-Side Comparison Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
-        {/* Left Card: Cost-Efficient Plan */}
-        <PlanColumnCard
+        <PlanCard
           tier="Cost-Efficient"
           selectedVendor={costEfficientVendor}
           availableVendors={availableVendors}
@@ -460,8 +265,7 @@ export const Comparison: React.FC<ComparisonProps> = ({
           planData={activeCostEfficientPlan}
         />
 
-        {/* Right Card: High-Performance Plan */}
-        <PlanColumnCard
+        <PlanCard
           tier="High-Performance"
           selectedVendor={highPerformanceVendor}
           availableVendors={availableVendors}
