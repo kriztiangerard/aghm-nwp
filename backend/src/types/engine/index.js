@@ -1,13 +1,38 @@
 'use strict';
-// NWP-ENGINE-001 (skeleton) — pipeline runner.
+
+// NWP-ENGINE-001 — pipeline runner.
 // NWP-ENGINE-014 (stretch) extends this into the vendor x plan loop.
+
 const { createCtx } = require('./ctx');
+const { normalize } = require('./normalize');
 
 function run(rawAnswers) {
   const ctx = createCtx();
-  // Pipeline order (see the chronological specification):
-  //   1 normalize -> 2 requirements -> 3 per-vendor/plan selection -> 4 default vendor -> 5 outputs
-  return { plans: [], defaultVendor: null, ledger: ctx.ledger, errors: [] };
+
+  try {
+    const normalizedInput = normalize(rawAnswers, ctx);
+
+    return {
+      normalizedInput,
+      plans: [],
+      defaultVendor: null,
+      ledger: ctx.ledger,
+      errors: [],
+    };
+  } catch (error) {
+    return {
+      normalizedInput: null,
+      plans: [],
+      defaultVendor: null,
+      ledger: ctx.ledger,
+      errors: [
+        {
+          message: error.message,
+          name: error.name,
+        },
+      ],
+    };
+  }
 }
 
 module.exports = { run };
