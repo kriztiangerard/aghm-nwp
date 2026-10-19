@@ -1,7 +1,7 @@
 
 'use strict';
 
-const { select } = require('../select.js');
+const { selectSku: defaultSelectSku } = require('../select.js');
 const { wirelessRequirements } = require('../requirements/wireless.js');
 const { addFlag } = require('../ctx.js');
 
@@ -11,8 +11,7 @@ function getApSpecs(sku) {
 
 function getWifiStandard(sku) {
   const specs = getApSpecs(sku);
-  const value = specs.wifi_standard ?? specs.wifiStandard;
-  return Number(value);
+  return Number(specs.wifi_standard ?? specs.wifiStandard);
 }
 
 function supports6Ghz(sku) {
@@ -51,43 +50,83 @@ function selectAccessPoints({
   cePick,
   ctx,
   input,
-  selectSku = select,
+  selectSku = defaultSelectSku,
   wirelessRequirementsFn = wirelessRequirements,
 }) {
-  if (!requirements?.wireless) {
+  if (!Array.isArray(catalog)) {
+    throw new TypeError('catalog must be an array.');
+  }
+
+  if (!requirements || !requirements.wireless) {
     throw new TypeError('requirements.wireless is required.');
   }
 
   if (plan !== 'CE' && plan !== 'HP') {
-    throw new TypeError("plan must be 'CE' or 'HP'.");
+    throw new TypeError('plan must be CE or HP.');
+  }
+
+  if (!ctx) {
+    throw new TypeError('ctx is required.');
   }
 
   const target = requirements.wireless.standard;
 
-  const choose = (wireless) =>
-    selectSku({
-      catalog,
-      vendor,
+  // ENGINE-007 accepts normalized plan names.
+  const selectionPlan =
+    plan === 'CE' ? 'cost_efficient' : 'high_performance';
+
+  // ENGINE-007 expects a SKU, not a SelectionResult wrapper.
+  const ceSku = cePick?.sku ?? cePick;
+
+  const choose = (wireless) => {
+    const planRequirements = wireless[plan];
+
+    if (!planRequirements || !Number.isFinite(planRequirements.total)) {
+      throw new TypeError(
+        `requirements.wireless.${plan}.total must be a number.`
+      );
+    }
+
+    const pool = catalog.filter(
+      (sku) =>
+        sku.vendor === vendor &&
+        sku.category === 'access_point'
+    );
+
+    return selectSku({
+      pool,
+      predicate: (sku) =>
+        matchesGeneration(sku, wireless.standard),
+      plan: selectionPlan,
       category: 'access_point',
-      constraints: (sku) => matchesGeneration(sku, wireless.standard),
-      plan,
-      cePick,
+      vendor,
       ctx,
+      qty: planRequirements.total,
+      cePick: ceSku,
     });
+  };
 
   let wireless = requirements.wireless;
   let result = choose(wireless);
   let usedFallback = false;
 
+  // If no qualifying 6E AP is available, recalculate using Wi-Fi 6.
   if (!result.ok && target === '6E') {
     if (!input) {
       throw new TypeError(
-        'input is required to recompute wireless requirements for Wi-Fi 6 fallback.'
+        'input is required to recalculate wireless requirements for Wi-Fi 6 fallback.'
       );
     }
 
     const recalculated = wirelessRequirementsFn(input, ctx, '6');
+
     wireless = recalculated.wireless || recalculated;
+
+    if (!wireless || !wireless[plan]) {
+      throw new TypeError(
+        'Wireless requirements recalculation returned an invalid result.'
+      );
+    }
 
     result = choose(wireless);
     usedFallback = result.ok;
@@ -100,14 +139,13 @@ function selectAccessPoints({
   const flags = [...(result.flags || [])];
 
   if (usedFallback) {
-    const message = `6E unavailable in ${vendor} at this tier`;
-    const flag = { code: 'WIFI_6E_FALLBACK', message };
+    const flag = {
+      code: 'WIFI_6E_FALLBACK',
+      message: `6E unavailable in ${vendor} at this tier`,
+    };
 
     flags.push(flag);
-
-    if (ctx) {
-      addFlag(ctx, flag.code, flag.message);
-    }
+    addFlag(ctx, flag.code, flag.message);
   }
 
   return {
@@ -118,4 +156,6 @@ function selectAccessPoints({
   };
 }
 
-module.exports = { selectAccessPoints };
+module.exports = {
+  selectAccessPoints,
+};
