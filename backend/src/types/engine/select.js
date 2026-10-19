@@ -1,155 +1,214 @@
 'use strict';
-// tests/engine/select.vendor-independence.test.js
-// NWP-ENGINE-007, subtask 10: vendor independence.
+// src/engine/select.js
+// NWP-ENGINE-007: one selection helper for every device category.
+// CommonJS, to match the Lambda code, contracts.js and ctx.js.
 //
-// The Omada snapshot is one vendor and the synthetic catalogs are the other. The engine
-// calls selectSku() once per vendor and category with ONE shared ctx, so the risks are:
-//   - one vendor's UNMET leaking into the other vendor's result,
-//   - the result depending on which vendor is processed first,
-//   - hidden state (module-level variables, mutated pools) shared between calls.
-// Every scenario below runs both orders against a shared ctx and compares the healthy
-// vendor's result with a baseline taken alone on a fresh ctx.
+// Returns a SelectionResult exactly as defined in contracts.js:
+//   {ok:true,  sku, qty, flags[]}
+//   {ok:false, unmet:{category, vendor, reason}}      <- this is the story's "UNMET"
+// Every unmet result is also recorded on ctx via addUnmet(), so the engine-level
+// ctx.unmet list stays complete.
 //
-// Runs on node:test (no dependency) or Jest (uses the global `test` when present).
+// Pipeline (each step is a pure function, built up subtask by subtask):
+//   1. filterByLifecycle   (subtask 3)     drop DISCONTINUED, keep ACTIVE + SUNSETTING   [done]
+//   2. applyPredicate      (subtask 4)     caller's constraints, no category fields here [done]
+//   3. excludeUnpriced     (subtask 5)     price == null dropped, "unpriced SKUs excluded" flag [done]
+//   4. pick by plan        (subtasks 6-7)  cost-efficient / high-performance step-up      [done]
+//   5. tie-break           (subtask 9)     SKU id (built into the comparator)           [done, tests pending]
+//   6. UNMET               (subtask 8)     empty pool, no match, or all unpriced        [done]
 
-const assert = require('node:assert/strict');
-const fs = require('node:fs');
-const path = require('node:path');
-const test = typeof globalThis.test === 'function' ? globalThis.test : require('node:test');
+const { addUnmet, addFlag } = require('./ctx.js');
 
-const { selectSku } = require('../../src/engine/select.js');
-const { createCtx } = require('../../src/engine/ctx.js');
+const UNPRICED_FLAG_CODE = 'UNPRICED_SKUS_EXCLUDED';
+const UNPRICED_FLAG_MESSAGE = 'unpriced SKUs excluded';
 
-const CATALOGS = path.join(__dirname, '..', 'fixtures', 'catalogs');
-const OMADA_FILE = 'omada.snapshot.json';
-const SYNTHETIC_FILES = ['synthetic-catalog-edgecases.json', 'synthetic-catalog-productlines.json'];
-const LINE_CATEGORIES = ['gateway', 'access_point', 'switch'];
-const PLANS = ['cost_efficient', 'high_performance'];
+// Statuses are uppercase because validateCatalogSku() in contracts.js only accepts
+// ACTIVE | SUNSETTING | DISCONTINUED. Allowlist, not a blocklist: a missing or
+// unknown status is excluded, never recommended.
+const ALLOWED_STATUSES = new Set(['ACTIVE', 'SUNSETTING']);
 
-const always = () => true;
-const never = () => false;
+const PLANS = new Set(['cost_efficient', 'high_performance']);
 
-// ---------- helpers ----------
-
-function loadSkus(file) {
-    const data = JSON.parse(fs.readFileSync(path.join(CATALOGS, file), 'utf8'));
-    const skus = Array.isArray(data) ? data : data.skus;
-    assert.ok(Array.isArray(skus) && skus.length > 0, `${file}: expected a non-empty SKU list`);
-    return skus;
+/**
+ * Subtask 3. Keep only purchasable SKUs. Pure: returns a new array.
+ * @param {Array<{status?: string}>} pool
+ */
+function filterByLifecycle(pool) {
+    return pool.filter((sku) => ALLOWED_STATUSES.has(sku.status));
 }
 
-function deepFreeze(value) {
-    if (value && typeof value === 'object' && !Object.isFrozen(value)) {
-        Object.freeze(value);
-        Object.values(value).forEach(deepFreeze);
+/**
+ * Subtask 4. Apply the caller's constraints. Pure: returns a new array.
+ * The predicate is the ONLY place category-specific fields (ports, PoE budget,
+ * throughput, ...) are read. This helper never looks at them, so the same code
+ * serves switches, APs and gateways.
+ * @param {Array} pool
+ * @param {(sku: Object) => boolean} predicate
+ */
+function applyPredicate(pool, predicate) {
+    if (typeof predicate !== 'function') {
+        throw new TypeError('selectSku: predicate must be a function (sku) => boolean');
     }
-    return value;
+    return pool.filter((sku) => predicate(sku));
 }
 
-// The Omada snapshot has null prices until the price updater runs. These copies exist only
-// inside the test and are never written back to the fixture.
-const withPrices = (skus) =>
-    skus.map((sku, i) => ({ ...sku, price: typeof sku.price === 'number' ? sku.price : 1000 * (sku.line_rank || 1) + i }));
-const withoutPrices = (skus) => skus.map((sku) => ({ ...sku, price: null }));
+/**
+ * Subtask 5. Drop SKUs with no usable price. Pure: returns a new array plus a count.
+ * price null (or missing / non-finite) = unknown, never ranked. price 0 is a real
+ * price (genuinely free) and is kept, so test with a number check, not truthiness.
+ * @param {Array<{price?: number|null}>} pool
+ * @returns {{priced: Array, excludedCount: number}}
+ */
+function excludeUnpriced(pool) {
+    const priced = pool.filter((sku) => typeof sku.price === 'number' && Number.isFinite(sku.price));
+    return { priced, excludedCount: pool.length - priced.length };
+}
 
-// One group = one vendor and one category, which is what selectSku expects as a pool.
-function toGroups(skus) {
-    const groups = new Map();
-    for (const sku of skus) {
-        if (!LINE_CATEGORIES.includes(sku.category)) continue;
-        const key = `${sku.vendor}\u0000${sku.category}`;
-        if (!groups.has(key)) groups.set(key, { vendor: sku.vendor, category: sku.category, pool: [] });
-        groups.get(key).pool.push(sku);
+/**
+ * Subtasks 6 and 9. Total order for ranking: lowest price first, then SKU id.
+ * The SKU id tie-break makes the pick independent of the order of the input pool.
+ * Plain string comparison (not localeCompare) so the result does not depend on locale.
+ */
+function compareByPriceThenSku(a, b) {
+    if (a.price !== b.price) return a.price - b.price;
+    if (a.sku < b.sku) return -1;
+    if (a.sku > b.sku) return 1;
+    return 0;
+}
+
+/**
+ * Subtask 6. Cheapest priced SKU. Pure: does not mutate the input, returns null if empty.
+ * Expects a pool that already went through excludeUnpriced.
+ * @param {Array<{sku: string, price: number}>} pricedPool
+ */
+function cheapestSku(pricedPool) {
+    if (pricedPool.length === 0) return null;
+    return pricedPool.reduce((best, sku) => (compareByPriceThenSku(sku, best) < 0 ? sku : best));
+}
+
+/**
+ * Subtask 7. High-Performance pick: cheapest priced SKU in the next line above the
+ * Cost-Efficient pick, else the same line.
+ *
+ * "Next line above" = the lowest line_rank greater than the base rank among lines that
+ * still have a qualifying priced SKU. It is NOT baseRank + 1, so gaps in the ranks (10, 20, 30)
+ * and lines with no qualifying SKU are skipped. line_rank is unique per vendor and
+ * category, so comparing ranks is the same as comparing lines.
+ *
+ * Fallbacks, in order, when nothing sits above the base line:
+ *   1. cheapest qualifying SKU in the base line (the Cost-Efficient pick itself when
+ *      the base came from this same pool)
+ *   2. cheapest qualifying SKU of the whole pool, if the base line has no qualifying SKU
+ *      (only possible when the caller passes a cePick that this pool's predicate rejects)
+ * A base with no line_rank (categories without product lines) also gets the cheapest SKU.
+ *
+ * @param {Array} priced  priced, qualifying SKUs (non-empty)
+ * @param {{line_rank?: number}} base  the Cost-Efficient pick
+ */
+function pickHighPerformance(priced, base) {
+    const baseRank = base.line_rank;
+    if (!Number.isFinite(baseRank)) return cheapestSku(priced);
+
+    const above = priced.filter((sku) => Number.isFinite(sku.line_rank) && sku.line_rank > baseRank);
+    if (above.length > 0) {
+        const nextRank = Math.min(...above.map((sku) => sku.line_rank));
+        return cheapestSku(above.filter((sku) => sku.line_rank === nextRank));
     }
-    return [...groups.values()].map((group) => deepFreeze(group));
+
+    const sameLine = priced.filter((sku) => sku.line_rank === baseRank);
+    return cheapestSku(sameLine.length > 0 ? sameLine : priced);
 }
 
-function run(group, plan, predicate, ctx) {
-    return selectSku({ pool: group.pool, predicate, plan, category: group.category, vendor: group.vendor, ctx });
+/**
+ * Records the unmet requirement on ctx (ctx.unmet) and returns the {ok:false}
+ * SelectionResult. category and vendor must be non-empty (validateSelectionResult).
+ */
+function unmetResult(ctx, category, vendor, reason) {
+    addUnmet(ctx, category, vendor, reason);
+    return { ok: false, unmet: { category, vendor, reason } };
 }
 
-// First group that produces a real pick under a permissive predicate.
-function firstSelectableGroup(groups, label) {
-    const found = groups.find((group) => run(group, 'cost_efficient', always, createCtx()).ok);
-    assert.ok(found, `${label}: no gateway, access_point or switch group yields a pick; check the fixture`);
-    return found;
-}
-
-// ---------- scenarios ----------
-
-function checkIndependence({ badGroup, badPredicate, okGroup, plan, expectReason }) {
-    const baseline = run(okGroup, plan, always, createCtx());
-    assert.equal(baseline.ok, true, 'baseline for the healthy vendor must be a pick');
-
-    // Order 1: unmet vendor first, then the healthy vendor, on one shared ctx.
-    const ctx1 = createCtx();
-    const bad1 = run(badGroup, plan, badPredicate, ctx1);
-    const good1 = run(okGroup, plan, always, ctx1);
-
-    // Order 2: the other way round.
-    const ctx2 = createCtx();
-    const good2 = run(okGroup, plan, always, ctx2);
-    const bad2 = run(badGroup, plan, badPredicate, ctx2);
-
-    assert.equal(bad1.ok, false);
-    assert.equal(bad1.unmet.vendor, badGroup.vendor);
-    assert.equal(bad1.unmet.category, badGroup.category);
-    if (expectReason) assert.match(bad1.unmet.reason, expectReason);
-
-    // The healthy vendor is unaffected, in either order.
-    assert.deepEqual(good1, baseline);
-    assert.deepEqual(good2, baseline);
-    assert.deepEqual(bad2, bad1);
-
-    // The shared ctx holds exactly one unmet entry, and it belongs to the unmet vendor only.
-    const expectedUnmet = [{ category: badGroup.category, vendor: badGroup.vendor, reason: bad1.unmet.reason }];
-    assert.deepEqual(ctx1.unmet, expectedUnmet);
-    assert.deepEqual(ctx2.unmet, expectedUnmet);
-    assert.ok(ctx1.unmet.every((entry) => entry.vendor !== okGroup.vendor));
-
-    // Per-selection flags on the healthy vendor's result do not pick up anything from the other vendor.
-    assert.deepEqual(good1.flags, baseline.flags);
-}
-
-for (const syntheticFile of SYNTHETIC_FILES) {
-    const omadaGroups = toGroups(withPrices(loadSkus(OMADA_FILE)));
-    const omadaNoPriceGroups = toGroups(withoutPrices(loadSkus(OMADA_FILE)));
-    const syntheticGroups = toGroups(loadSkus(syntheticFile));
-
-    const omada = firstSelectableGroup(omadaGroups, OMADA_FILE);
-    const synthetic = firstSelectableGroup(syntheticGroups, syntheticFile);
-
-    test(`${syntheticFile}: the two catalogs are different vendors`, () => {
-        assert.notEqual(omada.vendor, synthetic.vendor, 'Omada and the synthetic catalog must not share a vendor name');
-    });
-
-    for (const plan of PLANS) {
-        test(`${syntheticFile} [${plan}]: Omada unmet (predicate rejects everything) does not affect the synthetic vendor`, () => {
-            checkIndependence({ badGroup: omada, badPredicate: never, okGroup: synthetic, plan });
-        });
-
-        test(`${syntheticFile} [${plan}]: synthetic unmet does not affect Omada`, () => {
-            checkIndependence({ badGroup: synthetic, badPredicate: never, okGroup: omada, plan });
-        });
-
-        test(`${syntheticFile} [${plan}]: Omada with no prices (all unpriced) is unmet and does not affect the synthetic vendor`, () => {
-            const omadaUnpriced = omadaNoPriceGroups.find((g) => g.category === omada.category && g.vendor === omada.vendor);
-            checkIndependence({
-                badGroup: omadaUnpriced,
-                badPredicate: always,
-                okGroup: synthetic,
-                plan,
-                expectReason: /unpriced/i
-            });
-        });
+/**
+ * Selection entry point.
+ *
+ * category and vendor are passed in (not read from the pool) because the pool can be
+ * empty, and contracts.js requires unmet.category and unmet.vendor to be non-empty strings.
+ * qty is passed in because the helper must not know how many units a category needs;
+ * contracts.js requires qty on every ok:true result.
+ *
+ * @param {Object}   args
+ * @param {Array}    args.pool       CatalogSku[] for ONE vendor and ONE category
+ * @param {(sku: Object) => boolean} args.predicate  the caller's constraints
+ * @param {'cost_efficient'|'high_performance'} args.plan
+ * @param {string}   args.category   CatalogSku category, e.g. 'switch'
+ * @param {string}   args.vendor
+ * @param {Object}   args.ctx        engine context from createCtx() (ctx.js)
+ * @param {number}   [args.qty=1]
+ * @param {Object}   [args.cePick]   high_performance only: the Cost-Efficient SKU already chosen for
+ *                                   this category and vendor. Needed whenever the two plans use different
+ *                                   predicates (e.g. different VPN tunnel or AP counts). If omitted, the
+ *                                   cheapest SKU of this call's own pool stands in for it.
+ * @returns {import('./contracts').SelectionResult}
+ */
+function selectSku({ pool, predicate, plan, category, vendor, ctx, qty = 1, cePick }) {
+    // Programmer errors throw. A requirement that cannot be met returns UNMET instead.
+    if (!PLANS.has(plan)) {
+        throw new Error(`selectSku: unknown plan '${plan}'`);
     }
+    if (!ctx || !Array.isArray(ctx.unmet)) {
+        throw new Error('selectSku: ctx from createCtx() is required');
+    }
+    if (!Array.isArray(pool)) {
+        throw new TypeError('selectSku: pool must be an array (an empty array is fine and returns UNMET)');
+    }
+    // unmet.category and unmet.vendor must be non-empty strings (validateSelectionResult).
+    if (typeof category !== 'string' || category.trim() === '' || typeof vendor !== 'string' || vendor.trim() === '') {
+        throw new TypeError('selectSku: category and vendor must be non-empty strings');
+    }
+
+    const purchasable = filterByLifecycle(pool);
+    if (purchasable.length === 0) {
+        return unmetResult(ctx, category, vendor, 'No purchasable (ACTIVE or SUNSETTING) SKUs available');
+    }
+
+    const qualifying = applyPredicate(purchasable, predicate);
+    if (qualifying.length === 0) {
+        return unmetResult(ctx, category, vendor, 'No purchasable SKU meets the requirements');
+    }
+
+    const { priced, excludedCount } = excludeUnpriced(qualifying);
+    if (priced.length === 0) {
+        return unmetResult(ctx, category, vendor, 'All qualifying SKUs are unpriced');
+    }
+
+    // One flag per call, recorded on ctx (engine-wide) and returned on the result (per selection).
+    const flags = [];
+    if (excludedCount > 0) {
+        addFlag(ctx, UNPRICED_FLAG_CODE, UNPRICED_FLAG_MESSAGE);
+        flags.push({ code: UNPRICED_FLAG_CODE, message: UNPRICED_FLAG_MESSAGE });
+    }
+
+    // Subtask 6: Cost-Efficient = cheapest priced SKU (ties broken by SKU id).
+    // Subtask 7: High-Performance = step up from the Cost-Efficient pick (see pickHighPerformance).
+    let pick;
+    if (plan === 'cost_efficient') {
+        pick = cheapestSku(priced);
+    } else {
+        pick = pickHighPerformance(priced, cePick || cheapestSku(priced));
+    }
+
+    return { ok: true, sku: pick, qty, flags };
 }
 
-test('selectSku keeps no state between calls: the same inputs give the same result on a fresh ctx', () => {
-    const omada = firstSelectableGroup(toGroups(withPrices(loadSkus(OMADA_FILE))), OMADA_FILE);
-    for (const plan of PLANS) {
-        const first = run(omada, plan, always, createCtx());
-        const second = run(omada, plan, always, createCtx());
-        assert.deepEqual(second, first);
-    }
-});
+module.exports = {
+    selectSku,
+    filterByLifecycle,
+    applyPredicate,
+    excludeUnpriced,
+    compareByPriceThenSku,
+    cheapestSku,
+    pickHighPerformance,
+    unmetResult,
+    ALLOWED_STATUSES,
+    UNPRICED_FLAG_CODE
+};
