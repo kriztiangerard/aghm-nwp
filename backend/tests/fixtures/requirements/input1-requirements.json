@@ -1,0 +1,42 @@
+{
+  "g": 0.0,
+  "securityTier": "base",
+  "vlans": [
+    "Corporate",
+    "Guest",
+    "Cameras_IoT"
+  ],
+  "qos": true,
+  "redundancy": "BACKUP_WAN_RECOMMENDED",
+  "backupAdvice": "second ISP or cellular",
+  "vpnTunnelsNeeded": {
+    "CE": 0,
+    "HP": 0
+  },
+  "requiredMbps": 200,
+  "throughputMetric": "routing_throughput",
+  "wireless": {
+    "standard": "6E",
+    "ceiling": 55,
+    "CE": {
+      "total": 2,
+      "perFloor": [
+        2
+      ]
+    },
+    "HP": {
+      "total": 2,
+      "perFloor": [
+        2
+      ]
+    }
+  },
+  "backbone": "copper",
+  "cat5eFlag": false,
+  "edgePorts": 16,
+  "poeEdgePorts": 4,
+  "otherPoeLoadW": 61.6,
+  "flags": [
+    "other devices reported but not sized"
+  ]
+}

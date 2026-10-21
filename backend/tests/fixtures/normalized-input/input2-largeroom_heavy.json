@@ -30,8 +30,8 @@
   "voipPhones": 0,
   "cameras": 6,
   "otherDevices": {
-  "hasOtherDevices": false,
-  "description": ""
+    "hasOtherDevices": false,
+    "description": " "
   },
   "existingEquipment": "no",
   "existingCabling": "cat5e_cat6",

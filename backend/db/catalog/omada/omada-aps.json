@@ -1,0 +1,204 @@
+[
+  {
+    "vendor_id": 2,
+    "category": "ap",
+    "product_line": "Wi-Fi 7 BE15000",
+    "capabilities": [
+      "ap"
+    ],
+    "sku": "EAP787",
+    "name": "Omada EAP787 BE15000 Ceiling Mount Tri-Band Wi-Fi 7 Access Point",
+    "description": "BE15000 Ceiling Mount Tri-Band Wi-Fi 7 Access Point.",
+    "price": null,
+    "is_rack_mountable": false,
+    "u_height": 0,
+    "lifecycle_status": "active",
+    "eos_date": null,
+    "eol_date": null,
+    "ap_specs": {
+      "wifi_standard": 7,
+      "max_concurrent_clients": 510,
+      "max_data_rate_mbps": 15101,
+      "supported_24ghz": true,
+      "supported_5ghz": true,
+      "supported_6ghz": true,
+      "max_power_draw_w": 29,
+      "power_method": "802.3bt/at PoE, 12V DC"
+    }
+  },
+  {
+    "vendor_id": 2,
+    "category": "ap",
+    "product_line": "Wi-Fi 7 BE11000",
+    "capabilities": [
+      "ap"
+    ],
+    "sku": "EAP770",
+    "name": "Omada EAP770 BE11000 Ceiling Mount Tri-Band Wi-Fi 7 Access Point",
+    "description": "BE11000 Ceiling Mount Tri-Band Wi-Fi 7 Access Point.",
+    "price": null,
+    "is_rack_mountable": false,
+    "u_height": 0,
+    "lifecycle_status": "active",
+    "eos_date": null,
+    "eol_date": null,
+    "ap_specs": {
+      "wifi_standard": 7,
+      "max_data_rate_mbps": 10777,
+      "supported_24ghz": true,
+      "supported_5ghz": true,
+      "supported_6ghz": true,
+      "power_method": "802.3at PoE"
+    }
+  },
+  {
+    "vendor_id": 2,
+    "category": "ap",
+    "product_line": "Wi-Fi 7 BE5000",
+    "capabilities": [
+      "ap"
+    ],
+    "sku": "EAP727",
+    "name": "Omada EAP727 BE5000 Ceiling Mount Wi-Fi 7 Access Point",
+    "description": "BE5000 Ceiling Mount Wi-Fi 7 Access Point.",
+    "price": null,
+    "is_rack_mountable": false,
+    "u_height": 0,
+    "lifecycle_status": "active",
+    "eos_date": null,
+    "eol_date": null,
+    "ap_specs": {
+      "wifi_standard": 7,
+      "max_data_rate_mbps": 5012,
+      "supported_24ghz": true,
+      "supported_5ghz": true,
+      "supported_6ghz": false,
+      "power_method": "802.3at PoE"
+    }
+  },
+  {
+    "vendor_id": 2,
+    "category": "ap",
+    "product_line": "Wi-Fi 7 BE5000",
+    "capabilities": [
+      "ap"
+    ],
+    "sku": "EAP723",
+    "name": "Omada EAP723 BE5000 Ceiling Mount Wi-Fi 7 Access Point",
+    "description": "BE5000 Ceiling Mount Wi-Fi 7 Access Point.",
+    "price": null,
+    "is_rack_mountable": false,
+    "u_height": 0,
+    "lifecycle_status": "active",
+    "eos_date": null,
+    "eol_date": null,
+    "ap_specs": {
+      "wifi_standard": 7,
+      "max_data_rate_mbps": 5012,
+      "supported_24ghz": true,
+      "supported_5ghz": true,
+      "supported_6ghz": false,
+      "power_method": "802.3at PoE"
+    }
+  },
+  {
+    "vendor_id": 2,
+    "category": "ap",
+    "product_line": "Wi-Fi 7 BE5000",
+    "capabilities": [
+      "ap"
+    ],
+    "sku": "EAP720",
+    "name": "Omada EAP720 BE5000 Ceiling Mount Wi-Fi 7 Access Point",
+    "description": "BE5000 Ceiling Mount Wi-Fi 7 Access Point.",
+    "price": null,
+    "is_rack_mountable": false,
+    "u_height": 0,
+    "lifecycle_status": "active",
+    "eos_date": null,
+    "eol_date": null,
+    "ap_specs": {
+      "wifi_standard": 7,
+      "max_data_rate_mbps": 5012,
+      "supported_24ghz": true,
+      "supported_5ghz": true,
+      "supported_6ghz": false,
+      "power_method": "802.3at PoE"
+    }
+  },
+  {
+    "vendor_id": 2,
+    "category": "ap",
+    "product_line": "Wi-Fi 6 AX6000",
+    "capabilities": [
+      "ap"
+    ],
+    "sku": "EAP683 UR",
+    "name": "Omada EAP683 UR AX6000 Ceiling Mount WiFi 6 Access Point",
+    "description": "AX6000 Ceiling Mount WiFi 6 Access Point.",
+    "price": null,
+    "is_rack_mountable": false,
+    "u_height": 0,
+    "lifecycle_status": "active",
+    "eos_date": null,
+    "eol_date": null,
+    "ap_specs": {
+      "wifi_standard": 6,
+      "max_data_rate_mbps": 5952,
+      "supported_24ghz": true,
+      "supported_5ghz": true,
+      "supported_6ghz": false,
+      "power_method": "802.3at PoE+, DC"
+    }
+  },
+  {
+    "vendor_id": 2,
+    "category": "ap",
+    "product_line": "Wi-Fi 6 AX1800",
+    "capabilities": [
+      "ap"
+    ],
+    "sku": "EAP610",
+    "name": "Omada EAP610 AX1800 Ceiling Mount WiFi 6 Access Point",
+    "description": "AX1800 Ceiling Mount WiFi 6 Access Point.",
+    "price": null,
+    "is_rack_mountable": false,
+    "u_height": 0,
+    "lifecycle_status": "active",
+    "eos_date": null,
+    "eol_date": null,
+    "ap_specs": {
+      "wifi_standard": 6,
+      "max_data_rate_mbps": 1775,
+      "supported_24ghz": true,
+      "supported_5ghz": true,
+      "supported_6ghz": false,
+      "power_method": "802.3at PoE, DC"
+    }
+  },
+  {
+    "vendor_id": 2,
+    "category": "ap",
+    "product_line": "Wi-Fi 6 AX3000",
+    "capabilities": [
+      "ap"
+    ],
+    "sku": "EAP650",
+    "name": "Omada EAP650 AX3000 Ceiling Mount WiFi 6 Access Point",
+    "description": "AX3000 Ceiling Mount WiFi 6 Access Point.",
+    "price": null,
+    "is_rack_mountable": false,
+    "u_height": 0,
+    "lifecycle_status": "active",
+    "eos_date": null,
+    "eol_date": null,
+    "ap_specs": {
+      "wifi_standard": 6,
+      "max_data_rate_mbps": 2976,
+      "supported_24ghz": true,
+      "supported_5ghz": true,
+      "supported_6ghz": false,
+      "power_method": "802.3at PoE, DC"
+    }
+  }
+]

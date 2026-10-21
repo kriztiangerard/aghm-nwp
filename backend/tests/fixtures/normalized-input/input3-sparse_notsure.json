@@ -12,8 +12,8 @@
   "voipPhones": 0,
   "cameras": 0,
   "otherDevices": {
-  "hasOtherDevices": false,
-  "description": ""
+    "hasOtherDevices": false,
+    "description": " "
   },
   "existingEquipment": "notSure",
   "existingCabling": "unknownType",

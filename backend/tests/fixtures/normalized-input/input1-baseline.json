@@ -11,12 +11,10 @@
   "wifiDevices": 30,
   "voipPhones": 0,
   "cameras": 4,
-  "otherDevices": 
-    {
-      "hasOtherDevices": true,
-      "description": "Example device"
-    }
-  ,
+  "otherDevices": {
+    "hasOtherDevices": true,
+    "description": "Example device"
+  },
   "existingEquipment": "no",
   "existingCabling": "none",
   "internetMbps": 200,
