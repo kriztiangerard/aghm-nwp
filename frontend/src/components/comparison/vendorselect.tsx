@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useId } from "react";
 import {
   Select,
   SelectContent,
@@ -6,7 +6,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { VendorName, PlanTier } from "./Comparison";
+import type { PlanTier, VendorName } from "./types";
 
 interface VendorSelectProps {
   tier: PlanTier;
@@ -21,19 +21,21 @@ export const VendorSelect: React.FC<VendorSelectProps> = ({
   availableVendors,
   onVendorChange,
 }) => {
+  const id = useId();
+
   return (
     <div className="pt-1">
-      <label className="text-xs font-medium text-muted-foreground mb-1.5 block">
-        Selected Vendor Ecosystem
+      <label
+        htmlFor={id}
+        className="text-xs font-medium text-muted-foreground mb-1.5 block"
+      >
+        Vendor for {tier} plan
       </label>
       <Select
         value={selectedVendor}
         onValueChange={(value) => onVendorChange(value as VendorName)}
       >
-        <SelectTrigger
-          className="w-full"
-          aria-label={`Select vendor for ${tier} plan`}
-        >
+        <SelectTrigger id={id} className="w-full">
           <SelectValue placeholder="Choose a vendor..." />
         </SelectTrigger>
         <SelectContent>

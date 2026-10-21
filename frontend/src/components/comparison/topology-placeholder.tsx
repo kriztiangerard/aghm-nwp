@@ -1,8 +1,7 @@
 // REPLACE WITH PATHOLOGY COMPONENT WHEN REAFLOW IS INTEGRATED
 import React from "react";
-import { Badge } from "@/components/ui/badge";
 import { Network } from "lucide-react";
-import type { VendorName, PlanTier } from "./Comparison";
+import type { PlanTier, VendorName } from "./types";
 
 interface TopologyPlaceholderProps {
   tier: PlanTier;
