@@ -228,3 +228,65 @@ test('missing and non-finite prices are excluded from ranking', () => {
     assert.equal(result.sku.sku, 'SW-VALID');
     assert.equal(result.flags[0].code, UNPRICED_FLAG_CODE);
 });
+
+test('TC-008: vendor selections keep result flags and UNMET records separate', () => {
+    const ctx = createCtx();
+
+    // Vendor A: one priced SKU and one unpriced SKU.
+    const vendorAResult = selectSku({
+        pool: [
+            { sku: 'A-01', status: 'ACTIVE', price: 100 },
+            { sku: 'A-02', status: 'ACTIVE', price: null },
+        ],
+        predicate: () => true,
+        plan: 'cost_efficient',
+        category: 'switch',
+        vendor: 'Vendor A',
+        ctx,
+    });
+
+    // Vendor B: no available SKUs.
+    const vendorBResult = selectSku({
+        pool: [],
+        predicate: () => true,
+        plan: 'cost_efficient',
+        category: 'switch',
+        vendor: 'Vendor B',
+        ctx,
+    });
+
+    // Vendor A succeeds and receives its own result flag.
+    assert.equal(vendorAResult.ok, true);
+    assert.equal(vendorAResult.sku.sku, 'A-01');
+    assert.deepEqual(vendorAResult.flags, [
+        {
+            code: UNPRICED_FLAG_CODE,
+            message: 'unpriced SKUs excluded',
+        },
+    ]);
+
+    // Vendor B returns UNMET, without inheriting Vendor A's result flags.
+    assert.equal(vendorBResult.ok, false);
+    assert.deepEqual(vendorBResult.unmet, {
+        category: 'switch',
+        vendor: 'Vendor B',
+        reason: 'No purchasable (ACTIVE or SUNSETTING) SKUs available',
+    });
+
+    // The shared engine context records the correct UNMET vendor.
+    assert.deepEqual(ctx.unmet, [
+        {
+            category: 'switch',
+            vendor: 'Vendor B',
+            reason: 'No purchasable (ACTIVE or SUNSETTING) SKUs available',
+        },
+    ]);
+
+    // The context records the unpriced-exclusion flag once.
+    assert.deepEqual(ctx.flags, [
+        {
+            code: UNPRICED_FLAG_CODE,
+            message: 'unpriced SKUs excluded',
+        },
+    ]);
+});
