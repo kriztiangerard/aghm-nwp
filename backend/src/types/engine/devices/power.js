@@ -1,12 +1,20 @@
 'use strict';
 // Power-protection recommendation (advisory only)
 // Algorithm Step 3.8
-// Consumes: gateway + switches + PoE budget
-// Produces: recommendation text and minimum watts (no model, brand, or price)
-// Rules: pure function (no I/O), constants from params.js, assumptions via ctx.
+// Consumes: normalized input
+// Produces: recommendation text and recommendation level
+// Rules: pure function (no I/O).
 
-function recommendPower({ requirements, devices, poeBudget, ctx }) {
-  throw new Error('NWP-ENGINE-015 not implemented');
+function recommendPower({ input }) {
+  const upsRecommendationLevel =
+    input.power === 'frequent'
+      ? 'prominent'
+      : 'advisory';
+
+  return {
+    upsRecommendation: 'UPS recommended for network equipment.',
+    upsRecommendationLevel,
+  };
 }
 
 module.exports = { recommendPower };
