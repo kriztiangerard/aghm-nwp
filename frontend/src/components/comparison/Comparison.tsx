@@ -15,6 +15,7 @@ interface ComparisonProps {
   defaultVendors?: DefaultVendors;
 }
 
+
 const generationKeyOf = (plansData?: VendorPlansPayload): string => {
   if (!plansData) return "loading";
   for (const vendor of VENDOR_NAMES) {
@@ -26,74 +27,13 @@ const generationKeyOf = (plansData?: VendorPlansPayload): string => {
   return "empty";
 };
 
-// Mock data for development
-const devPlans: VendorPlansPayload = {
-  "TP-Link Omada": {
-    "Cost-Efficient": {
-      vendor: "TP-Link Omada",
-      tier: "Cost-Efficient",
-      generatedAt: "Oct 21, 2026, 9:00 AM",
-      currency: "PHP",
-      totalCost: 3500,
-      totalIsPartial: false,
-      complete: true,
-      unmet: [],
-      bom: [
-        {
-          sku: "ER605",
-          name: "Omada Gigabit VPN Router",
-          category: "Gateway",
-          quantity: 1,
-          unitPrice: 3500,
-          subtotal: 3500,
-          status: "ACTIVE",
-          priceSource: "synchronized",
-          isStale: false,
-          priceUpdatedAt: "2026-10-20",
-          isGeneric: false,
-        },
-      ],
-    },
-    // Optional: Added High-Performance so the right-hand card also shows data
-    "High-Performance": {
-      vendor: "TP-Link Omada",
-      tier: "High-Performance",
-      generatedAt: "Oct 21, 2026, 9:00 AM",
-      currency: "PHP",
-      totalCost: 9800,
-      totalIsPartial: false,
-      complete: true,
-      unmet: [],
-      bom: [
-        {
-          sku: "ER7206",
-          name: "Omada Multi-Gigabit VPN Router",
-          category: "Gateway",
-          quantity: 1,
-          unitPrice: 9800,
-          subtotal: 9800,
-          status: "ACTIVE",
-          priceSource: "synchronized",
-          isStale: false,
-          priceUpdatedAt: "2026-10-20",
-          isGeneric: false,
-        },
-      ],
-    },
-  },
-};
-
 export const Comparison: React.FC<ComparisonProps> = ({
-  plansData = devPlans,
+  plansData,
   defaultVendors,
 }) => {
   const generationKey = generationKeyOf(plansData);
   return (
-    <ComparisonView
-      key={generationKey}
-      plansData={plansData}
-      defaultVendors={defaultVendors}
-    />
+    <ComparisonView key={generationKey} plansData={plansData} defaultVendors={defaultVendors} />
   );
 };
 
