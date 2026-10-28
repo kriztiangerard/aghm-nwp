@@ -1,105 +1,122 @@
 [
   {
-    "vendor_id": 999,
-    "is_rack_mountable": true,
-    "u_height": 1,
-    "lifecycle_status": "active",
     "sku": "SYN-GW-001",
+    "vendor": "Synthetic Vendor",
+    "category": "gateway",
+    "line": "Synthetic Gateway Entry",
+    "line_rank": 1,
+    "status": "ACTIVE",
     "price": 12500,
+    "currency": "USD",
     "name": "Standard Synthetic Gateway",
     "description": "Standard valid gateway with standard WAN/LAN ports.",
-    "category": "gateway_router",
-    "product_line": "Synthetic Gateway Entry",
-    "gateway_router_specs": {
-      "wan_ports": 1,
-      "lan_ports": 4,
-      "vpn_supported": true,
-      "max_throughput_mbps": 850
-    }
-  },
-  {
-    "vendor_id": 999,
+    "capabilities": [
+      "router"
+    ],
     "is_rack_mountable": true,
     "u_height": 1,
-    "lifecycle_status": "active",
+    "wan_ports": 1,
+    "lan_ports": 4,
+    "vpn_supported": true,
+    "max_throughput_mbps": 850
+  },
+  {
     "sku": "SYN-GW-004",
+    "vendor": "Synthetic Vendor",
+    "category": "gateway",
+    "line": "Synthetic Gateway Entry",
+    "line_rank": 1,
+    "status": "ACTIVE",
     "price": 9000,
+    "currency": "USD",
     "name": "No-VPN Edge Gateway",
     "description": "Edge case: vpn_supported is false, to test a VPN requirement that this gateway cannot meet.",
-    "category": "gateway_router",
-    "product_line": "Synthetic Gateway Entry",
-    "gateway_router_specs": {
-      "wan_ports": 1,
-      "lan_ports": 4,
-      "vpn_supported": false,
-      "max_throughput_mbps": 600
-    }
-  },
-  {
-    "vendor_id": 999,
+    "capabilities": [
+      "router"
+    ],
     "is_rack_mountable": true,
     "u_height": 1,
-    "lifecycle_status": "active",
+    "wan_ports": 1,
+    "lan_ports": 4,
+    "vpn_supported": false,
+    "max_throughput_mbps": 600
+  },
+  {
     "sku": "SYN-GW-002",
+    "vendor": "Synthetic Vendor",
+    "category": "gateway",
+    "line": "Synthetic Gateway Mid",
+    "line_rank": 2,
+    "status": "ACTIVE",
     "price": 0,
+    "currency": "USD",
     "name": "Zero-Price Edge Gateway",
     "description": "Edge case: price is exactly 0. High throughput, VPN enabled.",
-    "category": "gateway_router",
-    "product_line": "Synthetic Gateway Mid",
-    "gateway_router_specs": {
-      "wan_ports": 2,
-      "lan_ports": 2,
-      "vpn_supported": true,
-      "max_throughput_mbps": 1200
-    }
-  },
-  {
-    "vendor_id": 999,
+    "capabilities": [
+      "router"
+    ],
     "is_rack_mountable": true,
     "u_height": 1,
-    "lifecycle_status": "discontinued",
+    "wan_ports": 2,
+    "lan_ports": 2,
+    "vpn_supported": true,
+    "max_throughput_mbps": 1200
+  },
+  {
     "sku": "SYN-GW-005",
+    "vendor": "Synthetic Vendor",
+    "category": "gateway",
+    "line": "Synthetic Gateway Mid",
+    "line_rank": 2,
+    "status": "DISCONTINUED",
     "price": 14000,
+    "currency": "USD",
     "name": "Discontinued Edge Gateway",
     "description": "Edge case: lifecycle_status is discontinued.",
     "eos_date": "2024-06-30",
     "eol_date": "2026-06-30",
-    "category": "gateway_router",
-    "product_line": "Synthetic Gateway Mid",
-    "gateway_router_specs": {
-      "wan_ports": 2,
-      "lan_ports": 4,
-      "vpn_supported": true,
-      "max_throughput_mbps": 2000
-    }
-  },
-  {
-    "vendor_id": 999,
+    "capabilities": [
+      "router"
+    ],
     "is_rack_mountable": true,
     "u_height": 1,
-    "lifecycle_status": "active",
+    "wan_ports": 2,
+    "lan_ports": 4,
+    "vpn_supported": true,
+    "max_throughput_mbps": 2000
+  },
+  {
     "sku": "SYN-GW-006",
+    "vendor": "Synthetic Vendor",
+    "category": "gateway",
+    "line": "Synthetic Gateway Mid",
+    "line_rank": 2,
+    "status": "ACTIVE",
     "price": 16000,
+    "currency": "USD",
     "name": "SFP Uplink Edge Gateway",
     "description": "Edge case: gateway SFP ports are SFP while the synthetic switches use SFP+, to test a form-factor mismatch.",
-    "category": "gateway_router",
-    "product_line": "Synthetic Gateway Mid",
-    "gateway_router_specs": {
-      "wan_ports": 2,
-      "lan_ports": 4,
-      "vpn_supported": true,
-      "max_throughput_mbps": 1500,
-      "sfp_ports": 1,
-      "sfp_form_factor": "SFP"
-    }
-  },
-  {
-    "vendor_id": 999,
+    "capabilities": [
+      "router"
+    ],
     "is_rack_mountable": true,
     "u_height": 1,
-    "lifecycle_status": "active",
+    "wan_ports": 2,
+    "lan_ports": 4,
+    "vpn_supported": true,
+    "max_throughput_mbps": 1500,
+    "sfp_ports": 1,
+    "sfp_form_factor": "SFP"
+  },
+  {
     "sku": "SYN-GW-003",
+    "vendor": "Synthetic Vendor",
+    "category": "gateway",
+    "line": "Synthetic Gateway Integrated",
+    "line_rank": 3,
+    "status": "ACTIVE",
     "price": 25000,
+    "currency": "USD",
     "name": "Multi-Role Gateway Router",
     "description": "Dual-role edge case: Gateway with integrated switch and controller. lan_ports must be 0 in the gateway block per schema if switch_specs exists. Sits in the top gateway line.",
     "capabilities": [
@@ -107,270 +124,305 @@
       "switch",
       "controller"
     ],
-    "category": "gateway_router",
-    "product_line": "Synthetic Gateway Integrated",
-    "gateway_router_specs": {
-      "wan_ports": 2,
-      "lan_ports": 0,
-      "vpn_supported": true
-    },
-    "switch_specs": {
-      "port_count": 8,
-      "layer": 2,
-      "poe_ports": 8,
-      "poe_budget_w": 120
-    },
-    "controller_specs": {
-      "controller_type": "integrated",
-      "max_managed_aps": 20,
-      "max_managed_switches": 10,
-      "max_managed_gateways": 1
-    }
-  },
-  {
-    "vendor_id": 999,
     "is_rack_mountable": true,
     "u_height": 1,
-    "lifecycle_status": "active",
+    "wan_ports": 2,
+    "lan_ports": 0,
+    "vpn_supported": true,
+    "port_count": 8,
+    "layer": 2,
+    "poe_ports": 8,
+    "poe_budget_w": 120,
+    "controller_type": "integrated",
+    "max_managed_aps": 20,
+    "max_managed_switches": 10,
+    "max_managed_gateways": 1
+  },
+  {
     "sku": "SYN-SW-001",
+    "vendor": "Synthetic Vendor",
+    "category": "switch",
+    "line": "Synthetic Switch Basic",
+    "line_rank": 1,
+    "status": "ACTIVE",
     "price": 18000,
+    "currency": "USD",
     "name": "Standard PoE Switch",
     "description": "Standard valid 8-port PoE switch.",
-    "category": "switch",
-    "product_line": "Synthetic Switch Basic",
-    "switch_specs": {
-      "port_count": 8,
-      "layer": 2,
-      "poe_ports": 8,
-      "poe_budget_w": 120
-    }
-  },
-  {
-    "vendor_id": 999,
+    "capabilities": [
+      "switch"
+    ],
     "is_rack_mountable": true,
     "u_height": 1,
-    "lifecycle_status": "active",
+    "port_count": 8,
+    "layer": 2,
+    "poe_ports": 8,
+    "poe_budget_w": 120
+  },
+  {
     "sku": "SYN-SW-002",
+    "vendor": "Synthetic Vendor",
+    "category": "switch",
+    "line": "Synthetic Switch Basic",
+    "line_rank": 1,
+    "status": "ACTIVE",
     "price": 22000,
+    "currency": "USD",
     "name": "Null Budget Edge Switch",
     "description": "Edge case: PoE ports exist but poe_budget_w is omitted to test fallback logic (since schema demands integer, omitted simulates null).",
-    "category": "switch",
-    "product_line": "Synthetic Switch Basic",
-    "switch_specs": {
-      "port_count": 16,
-      "layer": 2,
-      "poe_ports": 16
-    }
-  },
-  {
-    "vendor_id": 999,
+    "capabilities": [
+      "switch"
+    ],
     "is_rack_mountable": true,
     "u_height": 1,
-    "lifecycle_status": "active",
+    "port_count": 16,
+    "layer": 2,
+    "poe_ports": 16
+  },
+  {
     "sku": "SYN-SW-004",
+    "vendor": "Synthetic Vendor",
+    "category": "switch",
+    "line": "Synthetic Switch Plus",
+    "line_rank": 2,
+    "status": "ACTIVE",
     "price": 21000,
+    "currency": "USD",
     "name": "Low Budget PoE Switch",
     "description": "Edge case: enough PoE ports (24) but too little PoE budget (90 W).",
-    "category": "switch",
-    "product_line": "Synthetic Switch Plus",
-    "switch_specs": {
-      "port_count": 24,
-      "layer": 2,
-      "poe_ports": 24,
-      "poe_budget_w": 90
-    }
-  },
-  {
-    "vendor_id": 999,
+    "capabilities": [
+      "switch"
+    ],
     "is_rack_mountable": true,
     "u_height": 1,
-    "lifecycle_status": "active",
+    "port_count": 24,
+    "layer": 2,
+    "poe_ports": 24,
+    "poe_budget_w": 90
+  },
+  {
     "sku": "SYN-SW-005",
+    "vendor": "Synthetic Vendor",
+    "category": "switch",
+    "line": "Synthetic Switch Plus",
+    "line_rank": 2,
+    "status": "ACTIVE",
     "price": 20000,
+    "currency": "USD",
     "name": "Equal-Price Twin A",
     "description": "Edge case: same price and specs as SYN-SW-006, to test a deterministic tie-break. No PoE.",
-    "category": "switch",
-    "product_line": "Synthetic Switch Plus",
-    "switch_specs": {
-      "port_count": 24,
-      "layer": 2,
-      "poe_ports": 0,
-      "poe_budget_w": 0
-    }
-  },
-  {
-    "vendor_id": 999,
+    "capabilities": [
+      "switch"
+    ],
     "is_rack_mountable": true,
     "u_height": 1,
-    "lifecycle_status": "active",
+    "port_count": 24,
+    "layer": 2,
+    "poe_ports": 0,
+    "poe_budget_w": 0
+  },
+  {
     "sku": "SYN-SW-006",
+    "vendor": "Synthetic Vendor",
+    "category": "switch",
+    "line": "Synthetic Switch Plus",
+    "line_rank": 2,
+    "status": "ACTIVE",
     "price": 20000,
+    "currency": "USD",
     "name": "Equal-Price Twin B",
     "description": "Edge case: same price and specs as SYN-SW-005, to test a deterministic tie-break. No PoE.",
-    "category": "switch",
-    "product_line": "Synthetic Switch Plus",
-    "switch_specs": {
-      "port_count": 24,
-      "layer": 2,
-      "poe_ports": 0,
-      "poe_budget_w": 0
-    }
-  },
-  {
-    "vendor_id": 999,
+    "capabilities": [
+      "switch"
+    ],
     "is_rack_mountable": true,
     "u_height": 1,
-    "lifecycle_status": "active",
+    "port_count": 24,
+    "layer": 2,
+    "poe_ports": 0,
+    "poe_budget_w": 0
+  },
+  {
     "sku": "SYN-SW-003",
+    "vendor": "Synthetic Vendor",
+    "category": "switch",
+    "line": "Synthetic Switch Pro",
+    "line_rank": 3,
+    "status": "ACTIVE",
     "price": null,
+    "currency": "USD",
     "name": "Price-on-Request Core Switch",
     "description": "Edge case: price is null (price on request), requires SFP conditional block validation.",
-    "category": "switch",
-    "product_line": "Synthetic Switch Pro",
-    "switch_specs": {
-      "port_count": 24,
-      "layer": 3,
-      "poe_ports": 0,
-      "poe_budget_w": 0,
-      "sfp_ports": 4,
-      "sfp_form_factor": "SFP+"
-    }
-  },
-  {
-    "vendor_id": 999,
+    "capabilities": [
+      "switch"
+    ],
     "is_rack_mountable": true,
     "u_height": 1,
-    "lifecycle_status": "active",
+    "port_count": 24,
+    "layer": 3,
+    "poe_ports": 0,
+    "poe_budget_w": 0,
+    "sfp_ports": 4,
+    "sfp_form_factor": "SFP+"
+  },
+  {
     "sku": "SYN-SW-007",
+    "vendor": "Synthetic Vendor",
+    "category": "switch",
+    "line": "Synthetic Switch Pro",
+    "line_rank": 3,
+    "status": "ACTIVE",
     "price": 48000,
+    "currency": "USD",
     "name": "PoE Core Switch",
     "description": "Top-line switch that satisfies a PoE requirement with a 370 W budget.",
-    "category": "switch",
-    "product_line": "Synthetic Switch Pro",
-    "switch_specs": {
-      "port_count": 24,
-      "layer": 3,
-      "poe_ports": 24,
-      "poe_budget_w": 370,
-      "sfp_ports": 4,
-      "sfp_form_factor": "SFP+"
-    }
+    "capabilities": [
+      "switch"
+    ],
+    "is_rack_mountable": true,
+    "u_height": 1,
+    "port_count": 24,
+    "layer": 3,
+    "poe_ports": 24,
+    "poe_budget_w": 370,
+    "sfp_ports": 4,
+    "sfp_form_factor": "SFP+"
   },
   {
-    "vendor_id": 999,
-    "is_rack_mountable": false,
-    "u_height": 0,
-    "lifecycle_status": "sunsetting",
     "sku": "SYN-AP-003",
+    "vendor": "Synthetic Vendor",
+    "category": "access_point",
+    "line": "Synthetic AP Legacy",
+    "line_rank": 1,
+    "status": "SUNSETTING",
     "price": 4000,
+    "currency": "USD",
     "name": "Missing Power Draw AP",
     "description": "Edge case: missing max_power_draw_w to test budget failure.",
-    "category": "ap",
-    "product_line": "Synthetic AP Legacy",
-    "ap_specs": {
-      "wifi_standard": 5,
-      "supported_24ghz": true,
-      "supported_5ghz": true,
-      "supported_6ghz": false
-    }
-  },
-  {
-    "vendor_id": 999,
+    "capabilities": [
+      "ap"
+    ],
     "is_rack_mountable": false,
     "u_height": 0,
-    "lifecycle_status": "active",
+    "wifi_standard": 5,
+    "supported_24ghz": true,
+    "supported_5ghz": true,
+    "supported_6ghz": false
+  },
+  {
     "sku": "SYN-AP-001",
+    "vendor": "Synthetic Vendor",
+    "category": "access_point",
+    "line": "Synthetic AP Standard",
+    "line_rank": 2,
+    "status": "ACTIVE",
     "price": 5500,
+    "currency": "USD",
     "name": "Standard Wi-Fi 6 AP",
     "description": "Standard valid Wi-Fi 6 Access Point.",
-    "category": "ap",
-    "product_line": "Synthetic AP Standard",
-    "ap_specs": {
-      "wifi_standard": 6,
-      "supported_24ghz": true,
-      "supported_5ghz": true,
-      "supported_6ghz": false,
-      "max_power_draw_w": 12.5,
-      "power_method": "PoE+"
-    }
-  },
-  {
-    "vendor_id": 999,
+    "capabilities": [
+      "ap"
+    ],
     "is_rack_mountable": false,
     "u_height": 0,
-    "lifecycle_status": "active",
+    "wifi_standard": 6,
+    "supported_24ghz": true,
+    "supported_5ghz": true,
+    "supported_6ghz": false,
+    "max_power_draw_w": 12.5,
+    "power_method": "PoE+"
+  },
+  {
     "sku": "SYN-AP-004",
+    "vendor": "Synthetic Vendor",
+    "category": "access_point",
+    "line": "Synthetic AP Enhanced",
+    "line_rank": 3,
+    "status": "ACTIVE",
     "price": 7000,
+    "currency": "USD",
     "name": "Standard Wi-Fi 6E AP",
     "description": "Wi-Fi 6E Access Point: wifi_standard 6 with the 6 GHz band.",
-    "category": "ap",
-    "product_line": "Synthetic AP Enhanced",
-    "ap_specs": {
-      "wifi_standard": 6,
-      "supported_24ghz": true,
-      "supported_5ghz": true,
-      "supported_6ghz": true,
-      "max_power_draw_w": 15,
-      "power_method": "PoE+"
-    }
-  },
-  {
-    "vendor_id": 999,
+    "capabilities": [
+      "ap"
+    ],
     "is_rack_mountable": false,
     "u_height": 0,
-    "lifecycle_status": "active",
+    "wifi_standard": 6,
+    "supported_24ghz": true,
+    "supported_5ghz": true,
+    "supported_6ghz": true,
+    "max_power_draw_w": 15,
+    "power_method": "PoE+"
+  },
+  {
     "sku": "SYN-AP-002",
+    "vendor": "Synthetic Vendor",
+    "category": "access_point",
+    "line": "Synthetic AP Advanced",
+    "line_rank": 4,
+    "status": "ACTIVE",
     "price": 8500,
+    "currency": "USD",
     "name": "Standard Wi-Fi 7 AP",
     "description": "High performance Wi-Fi 7 Access Point.",
-    "category": "ap",
-    "product_line": "Synthetic AP Advanced",
-    "ap_specs": {
-      "wifi_standard": 7,
-      "supported_24ghz": true,
-      "supported_5ghz": true,
-      "supported_6ghz": true,
-      "max_power_draw_w": 22,
-      "power_method": "PoE++"
-    }
-  },
-  {
-    "vendor_id": 999,
+    "capabilities": [
+      "ap"
+    ],
     "is_rack_mountable": false,
     "u_height": 0,
-    "lifecycle_status": "active",
+    "wifi_standard": 7,
+    "supported_24ghz": true,
+    "supported_5ghz": true,
+    "supported_6ghz": true,
+    "max_power_draw_w": 22,
+    "power_method": "PoE++"
+  },
+  {
     "sku": "SYN-CTL-001",
+    "vendor": "Synthetic Vendor",
+    "category": "controller",
+    "line": "Synthetic Controller",
+    "line_rank": 1,
+    "status": "ACTIVE",
     "price": 0,
+    "currency": "USD",
     "name": "Synthetic Cloud Controller",
     "description": "Software/Cloud controller license.",
-    "category": "controller",
-    "controller_specs": {
-      "controller_type": "software",
-      "max_managed_aps": 500,
-      "max_managed_switches": 100,
-      "max_managed_gateways": 50,
-      "lan_ports": 0
-    }
-  },
-  {
-    "vendor_id": 999,
+    "capabilities": [
+      "controller"
+    ],
     "is_rack_mountable": false,
     "u_height": 0,
-    "lifecycle_status": "active",
+    "controller_type": "software",
+    "max_managed_aps": 500,
+    "max_managed_switches": 100,
+    "max_managed_gateways": 50,
+    "lan_ports": 0
+  },
+  {
     "sku": "SYN-CTL-002",
+    "vendor": "Synthetic Vendor",
+    "category": "controller",
+    "line": "Synthetic Controller",
+    "line_rank": 1,
+    "status": "ACTIVE",
     "price": 6500,
+    "currency": "USD",
     "name": "Small Hardware Controller",
     "description": "Edge case: combined cap on access points and switches (12) below the sum of the per-type caps (20 + 10).",
-    "category": "controller",
-    "controller_specs": {
-      "controller_type": "hardware",
-      "max_managed_aps": 20,
-      "max_managed_switches": 10,
-      "max_managed_gateways": 2,
-      "max_managed_aps_and_switches": 12,
-      "lan_ports": 2,
-      "power_method": "PoE 802.3af",
-      "max_power_draw_w": 10
-    }
+    "capabilities": [
+      "controller"
+    ],
+    "is_rack_mountable": false,
+    "u_height": 0,
+    "controller_type": "hardware",
+    "max_managed_aps": 20,
+    "max_managed_switches": 10,
+    "max_managed_gateways": 2,
+    "max_managed_aps_and_switches": 12,
+    "lan_ports": 2,
+    "power_method": "PoE 802.3af",
+    "max_power_draw_w": 10
   }
 ]
