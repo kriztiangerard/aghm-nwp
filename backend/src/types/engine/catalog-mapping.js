@@ -70,10 +70,16 @@ function flatRowToCatalogSku(row) {
     } else if (hasValue(row.lan_ports)) {
         out.copper_ports = row.lan_ports;
     }
-    if (hasValue(row.wan_ports)) {
+        if (hasValue(row.wan_ports)) {
         out.wan_ports = row.wan_ports;                         // kept as an extra
         out.dual_wan = row.wan_ports >= 2;
     }
+    // IDPS throughput lives in the nested firewall_specs block on flat rows; hoist it to the contract field.
+    // A top-level value (seed path) wins; null or missing stays absent (unknown).
+    if (out.idps_throughput_mbps === undefined && row.firewall_specs && hasValue(row.firewall_specs.idps_throughput_mbps)) {
+        out.idps_throughput_mbps = row.firewall_specs.idps_throughput_mbps;
+    }
+
     return { sku: out, notes };
 }
 

@@ -63,6 +63,7 @@
         "max_throughput_mbps": { "type": "integer", "minimum": 0 },
         "max_power_draw_w": { "type": "number", "minimum": 0 },
         "vpn_supported": { "type": "boolean" },
+        "ha_capability": { "type": ["boolean", "null"], "description": "Whether the gateway supports an HA pair or failover. null or omitted = unknown; the engine raises a flag and never guesses." },
         "sfp_ports": {
           "type": "integer",
           "minimum": 0,
@@ -125,6 +126,7 @@
       "properties": {
         "firewall_throughputs_mbps": { "type": "integer", "minimum": 0 },
         "vpn_throughput_mbps": { "type": "integer", "minimum": 0 },
+        "idps_throughput_mbps": { "type": ["integer", "null"], "minimum": 0, "description": "IDS/IPS throughput in Mbps. null or omitted = unknown; the engine raises a flag and never guesses." },
         "max_concurrent_sessions": { "type": "integer", "minimum": 0 },
         "wan_ports": { "type": "integer", "minimum": 0 },
         "lan_ports": { "type": "integer", "minimum": 0 },

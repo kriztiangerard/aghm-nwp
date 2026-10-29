@@ -62,7 +62,7 @@ const CONTRACT_VERSION = 3; // 3: CatalogSku gains required name, optional price
  * @property {number} [routing_throughput_mbps]
  * @property {number|null} [idps_throughput_mbps]   // nullable: absent or null = unknown, the engine raises a flag and never guesses
  * @property {boolean} [dual_wan] @property {boolean} [site_to_site_vpn]
- * @property {number|null} [max_vpn_tunnels]        // nullable: same rule as idps_throughput_mbps
+ * @property {boolean|null} [ha_capability]         // gateways: supports a device-level HA pair (VRRP or hot standby with a second gateway); not WAN link failover (see dual_wan); absent or null = unknown * @property {number|null} [max_vpn_tunnels]        // nullable: same rule as idps_throughput_mbps
  * // rack_units: for devices, the U height (0 = not rack-mounted, absent = unknown); for enclosures, the U capacity (required, 1 or more)
  * @property {number} [rack_units]
  * // Enclosures
@@ -439,6 +439,7 @@ const CATALOG_NUMBER_FIELDS = [
 ];
 const CATALOG_NULLABLE_NUMBER_FIELDS = ['idps_throughput_mbps', 'max_vpn_tunnels'];
 const CATALOG_BOOLEAN_FIELDS = ['dual_wan', 'site_to_site_vpn', 'is_stale'];
+const CATALOG_NULLABLE_BOOLEAN_FIELDS = ['ha_capability'];
 const CATALOG_STRING_FIELDS = ['sfp_speed', 'price_updated_at'];
 const VALID_FORM_FACTORS = new Set(['rack', 'wall']);
 const VALID_CONTROLLER_TYPES = new Set(['hardware', 'software', 'cloud', 'integrated']);
@@ -493,6 +494,11 @@ function validateCatalogSku(sku) {
     CATALOG_BOOLEAN_FIELDS.forEach((key) => {
         if (sku[key] !== undefined && typeof sku[key] !== 'boolean') {
             throw new ValidationError(key, 'Must be a boolean when present.');
+        }
+    });
+    CATALOG_NULLABLE_BOOLEAN_FIELDS.forEach((key) => {
+        if (sku[key] !== undefined && sku[key] !== null && typeof sku[key] !== 'boolean') {
+            throw new ValidationError(key, 'Must be a boolean or null when present.');
         }
     });
     CATALOG_STRING_FIELDS.forEach((key) => {
