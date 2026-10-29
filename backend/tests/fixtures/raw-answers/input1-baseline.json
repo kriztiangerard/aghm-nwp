@@ -1,0 +1,35 @@
+{
+  "Q2": "one",
+  "Q3": 25,
+  "Q4": 2,
+  "Q5": 300,
+  "Q6": 8,
+  "Q7": "Yes",
+  "Q8": [
+    {
+      "floor": 1,
+      "occupancy": 30
+    }
+  ],
+  "Q9": "yes",
+  "Q10b": "cat5e_cat6",
+  "Q10": 200,
+  "Q11": "fiber",
+  "Q12": "sameDay",
+  "Q13": 15,
+  "Q14": 40,
+  "Q15": 5,
+  "Q16": "No",
+  "Q17": "No",
+  "Q18": "Yes",
+  "Q19": "Yes",
+  "Q20": ["VoIP", "Cloud storage"],
+  "Q21": "closet",
+  "Q22": "15to40k",
+  "Q23": "outside",
+  "Q24": "stable",
+  "Q25": "Yes",
+  "Q25a": "11-30",
+  "Q25b": 1,
+  "Q26": "dashboard"
+}

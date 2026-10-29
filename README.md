@@ -130,11 +130,11 @@ Push your branch to GitHub.
 
 #### PR Title Format:
 
-`[NWP-Story-ID]` Short description of changes
+`[NWP-TYPE-Story-ID]` Short description of changes
 
 ##### Example:
 
-`[NWP-123]` Add device recommendation logic
+`[NWP-ENGINE-123]` Add device recommendation logic
 
 ### 7. Request Review
 - The PR requires approval from the assigned member for QA and testing.
