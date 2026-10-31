@@ -10,18 +10,28 @@ const {
 const { createCtx } = require('../../src/types/engine/ctx.js');
 
 const vendor = 'Omada';
+const vendorId = 2;
 
-function makeSku(sku, wifiStandard, supported6Ghz, maxPowerDrawW) {
+// Raw catalog-shaped test record.
+// Prices are synthetic test values, not real Omada catalog prices.
+function makeSku(
+  sku,
+  wifiStandard,
+  supported6Ghz,
+  maxPowerDrawW,
+  recordVendorId = vendorId
+) {
   return {
+    vendor_id: recordVendorId,
+    category: 'ap',
     sku,
-    vendor,
-    category: 'access_point',
-    line: 'High-Performance',
-    status: 'ACTIVE',
     price: 8500,
-    wifiStandard,
-    supported6Ghz,
-    maxPowerDrawW,
+    lifecycle_status: 'active',
+    ap_specs: {
+      wifi_standard: wifiStandard,
+      supported_6ghz: supported6Ghz,
+      max_power_draw_w: maxPowerDrawW,
+    },
   };
 }
 
@@ -59,11 +69,10 @@ function makeSelector(candidates) {
     });
 
     const available = (pool || candidates).filter(
-      (candidate) =>
-        candidate.vendor === selectedVendor &&
-        candidate.category === category &&
-        predicate(candidate)
-    );
+  (candidate) =>
+    candidate.category === category &&
+    predicate(candidate)
+);
 
     if (available.length === 0) {
       return {
@@ -89,14 +98,16 @@ function makeSelector(candidates) {
   return { selectSku, calls };
 }
 
-test('selects a qualifying Wi-Fi 6E access point when available', () => {
+test('selects a qualifying Wi-Fi 6E AP from raw Omada catalog records', () => {
   const ap6E = makeSku('AP-6E', 6, true, 22);
-  const selector = makeSelector([ap6E]);
+  const otherVendorAp = makeSku('OTHER-AP', 6, true, 20, 99);
+  const selector = makeSelector([ap6E, otherVendorAp]);
   const ctx = createCtx();
 
   const result = selectAccessPoints({
-    catalog: [ap6E],
+    catalog: [ap6E, otherVendorAp],
     vendor,
+    vendorId,
     input: {
       apps: ['videoConferencing'],
       floorArea: [100],
@@ -112,9 +123,13 @@ test('selects a qualifying Wi-Fi 6E access point when available', () => {
 
   assert.equal(result.ok, true);
   assert.equal(result.sku.sku, 'AP-6E');
+  assert.equal(result.sku.category, 'access_point');
+  assert.equal(result.sku.status, 'ACTIVE');
   assert.equal(result.qty, 3);
   assert.equal(result.maxPowerDrawW, 22);
   assert.equal(selector.calls.length, 1);
+  assert.equal(selector.calls[0].pool.length, 1);
+  assert.equal(selector.calls[0].pool[0].sku, 'AP-6E');
 });
 
 test('falls back to Wi-Fi 6 and records a fallback flag when no 6E AP qualifies', () => {
@@ -135,6 +150,7 @@ test('falls back to Wi-Fi 6 and records a fallback flag when no 6E AP qualifies'
   const result = selectAccessPoints({
     catalog: [ap6],
     vendor,
+    vendorId,
     input,
     requirements: makeRequirements('6E', 3, 4),
     plan: 'CE',
@@ -193,6 +209,7 @@ test('uses the High-Performance AP count and passes the CE SKU through', () => {
   const result = selectAccessPoints({
     catalog: [ap6E],
     vendor,
+    vendorId,
     input: {
       apps: [],
       floorArea: [100],
@@ -204,8 +221,7 @@ test('uses the High-Performance AP count and passes the CE SKU through', () => {
     cePick,
     ctx: createCtx(),
     selectSku: selector.selectSku,
-    wirelessRequirementsFn: () =>
-      makeRequirements('6E', 3, 4).wireless,
+    wirelessRequirementsFn: () => makeRequirements('6E', 3, 4).wireless,
   });
 
   assert.equal(result.ok, true);
@@ -216,12 +232,12 @@ test('uses the High-Performance AP count and passes the CE SKU through', () => {
 
 test('does not classify Wi-Fi 7 as Wi-Fi 6E', () => {
   const ap7 = makeSku('AP-7', 7, true, 22);
-
   const selector = makeSelector([ap7]);
 
   const result = selectAccessPoints({
     catalog: [ap7],
     vendor,
+    vendorId,
     input: {
       apps: [],
       floorArea: [100],
@@ -247,6 +263,7 @@ test('returns an unmet result when both 6E and Wi-Fi 6 selection fail', () => {
   const result = selectAccessPoints({
     catalog: [ap5],
     vendor,
+    vendorId,
     input: {
       apps: [],
       floorArea: [100],
@@ -275,6 +292,7 @@ test('returns null for max power draw when the selected AP has no value', () => 
   const result = selectAccessPoints({
     catalog: [ap6E],
     vendor,
+    vendorId,
     input: {
       apps: [],
       floorArea: [100],
