@@ -156,6 +156,10 @@ const VALID_POWER = new Set(['stable', 'frequent']);
 const VALID_GROWTH_BANDS = new Set(['0-10', '11-30', '31+']);
 const VALID_MANAGEMENT = new Set(['dashboard', 'cli', 'notSure']);
 const VALID_BACKBONE = new Set(['fiber', 'copper']);
+const VALID_THROUGHPUT_METRICS = new Set([
+    'routing_throughput',
+    'idps_throughput'
+]);
 const REQUIREMENT_FIELDS = new Set([
     'g',
     'securityTier',
@@ -326,8 +330,14 @@ function validateRequirements(reqs) {
     if (reqs.requiredMbps !== undefined && (!Number.isFinite(reqs.requiredMbps) || reqs.requiredMbps < 0)) {
         throw new ValidationError('requiredMbps', 'Must be a non-negative number when present.');
     }
-    if (reqs.throughputMetric !== undefined && typeof reqs.throughputMetric !== 'string') {
-        throw new ValidationError('throughputMetric', 'Must be a string when present.');
+    if (
+        reqs.throughputMetric !== undefined &&
+        !VALID_THROUGHPUT_METRICS.has(reqs.throughputMetric)
+    ) {
+        throw new ValidationError(
+            'throughputMetric',
+            'Must be routing_throughput or idps_throughput when present.'
+        );
     }
     if (reqs.backbone !== undefined && !VALID_BACKBONE.has(reqs.backbone)) {
         throw new ValidationError('backbone', 'Must be fiber or copper when present.');
