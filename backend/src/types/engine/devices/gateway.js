@@ -51,14 +51,76 @@ function selectGateway({ catalog, vendor, requirements, plan, cePick, ctx }) {
     );
   }
 
-  const predicate = (sku) => {
-    if (vpnTunnelsNeeded <= 0) return true;
+  const requiredMbps = requirements.requiredMbps;
+  const throughputMetric = requirements.throughputMetric;
 
-    return (
-      sku.site_to_site_vpn === true &&
-      Number.isFinite(sku.max_vpn_tunnels) &&
-      sku.max_vpn_tunnels >= vpnTunnelsNeeded
+  const throughputField = {
+    routing_throughput: 'routing_throughput_mbps',
+    idps_throughput: 'idps_throughput_mbps',
+  }[throughputMetric];
+
+  if (requiredMbps !== undefined && !throughputField) {
+    throw new Error(
+      `selectGateway: unsupported throughput metric '${throughputMetric}'`
     );
+  }
+
+  const hasThroughputRequirement = Number.isFinite(requiredMbps);
+
+  const hasKnownSufficientThroughput =
+    !hasThroughputRequirement ||
+    pool.some(
+      (sku) =>
+        ['ACTIVE', 'SUNSETTING'].includes(sku.status) &&
+        typeof sku.price === 'number' &&
+        Number.isFinite(sku.price) &&
+        Number.isFinite(sku[throughputField]) &&
+        sku[throughputField] >= requiredMbps
+    );
+
+  const hasUnknownThroughput =
+    hasThroughputRequirement &&
+    !hasKnownSufficientThroughput &&
+    pool.some(
+      (sku) =>
+        ['ACTIVE', 'SUNSETTING'].includes(sku.status) &&
+        typeof sku.price === 'number' &&
+        Number.isFinite(sku.price) &&
+        (sku[throughputField] === undefined ||
+          sku[throughputField] === null)
+    );
+
+  if (hasUnknownThroughput) {
+    addFlag(
+      ctx,
+      'GATEWAY_THROUGHPUT_UNKNOWN',
+      `Some ${vendor} gateways have unknown ${throughputField}; unknown throughput is not assumed to satisfy the requirement`
+    );
+  }
+
+  const predicate = (sku) => {
+    if (
+      vpnTunnelsNeeded > 0 &&
+      !(
+        sku.site_to_site_vpn === true &&
+        Number.isFinite(sku.max_vpn_tunnels) &&
+        sku.max_vpn_tunnels >= vpnTunnelsNeeded
+      )
+    ) {
+      return false;
+    }
+
+    if (
+      hasThroughputRequirement &&
+      !(
+        Number.isFinite(sku[throughputField]) &&
+        sku[throughputField] >= requiredMbps
+      )
+    ) {
+      return false;
+    }
+
+    return true;
   };
 
   const selectionArgs = {
@@ -70,26 +132,75 @@ function selectGateway({ catalog, vendor, requirements, plan, cePick, ctx }) {
     cePick
   };
 
-  const selectForTier = (tierPool) => {
-    if (requirements.redundancy !== 'required') {
-      return selectSku({ ...selectionArgs, pool: tierPool, qty: 1 });
-    }
+  const redundancy = requirements.redundancy;
+  const needsDualWan = ['backupWan', 'required'].includes(redundancy);
+  const needsHa = redundancy === 'required';
 
-    const haPool = tierPool.filter((sku) => sku.ha_capability === true);
-
-    const hasQualifyingHaGateway = haPool.some(
+  const hasQualifyingDualWan = (tierPool) =>
+    tierPool.some(
       (sku) =>
         ['ACTIVE', 'SUNSETTING'].includes(sku.status) &&
+        sku.dual_wan === true &&
+        (!needsHa || sku.ha_capability === true) &&
         predicate(sku) &&
         typeof sku.price === 'number' &&
         Number.isFinite(sku.price)
     );
 
-    if (hasQualifyingHaGateway) {
-      return selectSku({ ...selectionArgs, pool: haPool, qty: 2 });
+  const hasUnknownDualWan =
+    needsDualWan &&
+    !hasQualifyingDualWan(pool) &&
+    pool.some(
+      (sku) =>
+        ['ACTIVE', 'SUNSETTING'].includes(sku.status) &&
+        (sku.dual_wan === undefined || sku.dual_wan === null) &&
+        predicate(sku) &&
+        typeof sku.price === 'number' &&
+        Number.isFinite(sku.price)
+    );
+
+  if (hasUnknownDualWan) {
+    addFlag(
+      ctx,
+      'GATEWAY_DUAL_WAN_UNKNOWN',
+      `Some ${vendor} gateways have unknown dual_wan capability; unknown capability is not assumed to satisfy the redundancy requirement`
+    );
+  }
+
+  const selectForTier = (tierPool) => {
+    if (!needsDualWan) {
+      return selectSku({ ...selectionArgs, pool: tierPool, qty: 1 });
     }
 
-    const result = selectSku({ ...selectionArgs, pool: tierPool, qty: 1 });
+    const dualWanPool = tierPool.filter(
+      (sku) => sku.dual_wan === true
+    );
+
+    if (!needsHa) {
+      return selectSku({
+        ...selectionArgs,
+        pool: dualWanPool,
+        qty: 1
+      });
+    }
+
+    const haPool = dualWanPool.filter(
+      (sku) => sku.ha_capability === true
+    );
+
+    if (hasQualifyingDualWan(tierPool)) {
+      return selectSku({
+        ...selectionArgs,
+        pool: haPool,
+        qty: 2
+      });
+    }
+
+    const result = selectSku({
+      ...selectionArgs,
+      pool: dualWanPool,
+      qty: 1
+    });
 
     if (!result.ok) {
       return result;
@@ -121,6 +232,9 @@ function selectGateway({ catalog, vendor, requirements, plan, cePick, ctx }) {
     (sku) =>
       ['ACTIVE', 'SUNSETTING'].includes(sku.status) &&
       predicate(sku) &&
+      (!needsDualWan ||
+        (sku.dual_wan === true &&
+          (!needsHa || sku.ha_capability === true))) &&
       typeof sku.price === 'number' &&
       Number.isFinite(sku.price)
   );
