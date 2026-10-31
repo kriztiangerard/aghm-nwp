@@ -90,7 +90,6 @@ The NWP Story ID should identify the specific story or task being worked on.
 | `test/`    | Tests                     | `test/BOM-10-validation`                  |
 | `docs/`    | Documentation             | `docs/OTHER-26-update-readme`             |
 | `chore/`   | Maintenance/configuration | `chore/INFRA-04-update-dependencies`      |
- 
 ### Branch Naming Rules
 - Always include the applicable NWP Story ID (see Notion board for appropriate prefix to use). Remove the NWP prefix.
 - If there is no associated story for the branch, do not make your own. Just write the short description instead.
@@ -130,11 +129,11 @@ Push your branch to GitHub.
 
 #### PR Title Format:
 
-`[NWP-Story-ID]` Short description of changes
+`[NWP-TYPE-Story-ID]` Short description of changes
 
 ##### Example:
 
-`[NWP-123]` Add device recommendation logic
+`[NWP-ENGINE-123]` Add device recommendation logic
 
 ### 7. Request Review
 - The PR requires approval from the assigned member for QA and testing.

@@ -1,0 +1,46 @@
+{
+  "g": 0.0,
+  "securityTier": "advanced",
+  "vlans": [
+    "Corporate",
+    "Restricted"
+  ],
+  "qos": false,
+  "redundancy": "BACKUP_WAN_RECOMMENDED",
+  "backupAdvice": "generic advice",
+  "vpnTunnelsNeeded": {
+    "CE": 0,
+    "HP": 0
+  },
+  "requiredMbps": null,
+  "throughputMetric": "idps_throughput",
+  "wireless": {
+    "standard": "6",
+    "ceiling": 40,
+    "CE": {
+      "total": 1,
+      "perFloor": [
+        1
+      ]
+    },
+    "HP": {
+      "total": 1,
+      "perFloor": [
+        1
+      ]
+    }
+  },
+  "backbone": "copper",
+  "cat5eFlag": false,
+  "edgePorts": 5,
+  "poeEdgePorts": 0,
+  "otherPoeLoadW": 0.0,
+  "flags": [
+    "Internet speed assumed from device count",
+    "Confirm ISP availability",
+    "Existing cabling unknown",
+    "Existing equipment unverified",
+    "Enclosure chosen from device count",
+    "Management style recommended"
+  ]
+}
