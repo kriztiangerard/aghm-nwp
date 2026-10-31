@@ -165,8 +165,13 @@ test('falls back to Wi-Fi 6 and records a fallback flag when no 6E AP qualifies'
       (flag) => flag.message === '6E unavailable in Omada at this tier'
     )
   );
-});
 
+  assert.equal(
+    ctx.unmet.length,
+    0,
+    'Successful Wi-Fi 6 fallback should not leave the failed 6E attempt as UNMET'
+  );
+});
 
 test('uses the High-Performance AP count and passes the CE SKU through', () => {
   const ap6E = makeSku('AP-6E', 6, true, 22);
