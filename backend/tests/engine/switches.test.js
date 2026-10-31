@@ -555,3 +555,48 @@ test('allows a non-PoE switch when no PoE ports or power are required', () => {
     requiredPoeStandard: 'af',
   }), 1);
 });
+
+const flatCatalogSwitch = {
+  sku: 'SYN-SW-001',
+  category: 'switch',
+  vendor: 'Synthetic Vendor',
+  name: 'Managed PoE+ Switch',
+  description: '24-Port PoE+',
+  port_count: 28,
+  copper_ports: 24,
+  sfp_ports: 4,
+  poe_ports: 24,
+  poe_budget_w: 370,
+};
+
+test('reads PoE capabilities from a flat catalog record', () => {
+  assert.deepEqual(getPoePortCapabilities(flatCatalogSwitch), {
+    af: 24,
+    at: 24,
+    bt3: 0,
+  });
+});
+
+test('checks requirements against a flat catalog record', () => {
+  assert.equal(
+    switchMeetsRequirements({
+      switchSku: flatCatalogSwitch,
+      ...baseSwitchRequirements,
+    }),
+    true
+  );
+});
+
+test('calculates identical switch quantity from a flat catalog record', () => {
+  assert.equal(
+    getMinimumIdenticalSwitchQuantity({
+      switchSku: flatCatalogSwitch,
+      requiredPorts: 20,
+      requiredPoePorts: 4,
+      requiredPoeBudgetW: 120,
+      requiredPoeStandard: 'at',
+      requiredUplinks: 2,
+    }),
+    1
+  );
+});

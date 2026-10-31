@@ -110,9 +110,18 @@ function calculateAccessSwitchUplinks({ floorCount, redundancyRequired = false }
   return redundancyRequired ? 2 : 1;
 }
 
+function getSwitchSpecs(switchSku) {
+  if (!switchSku || typeof switchSku !== 'object') {
+    return null;
+  }
+
+  return switchSku.switch_specs ?? switchSku;
+}
+
 function getPoePortCapabilities(switchSku) {
   const description = `${switchSku?.name ?? ''} ${switchSku?.description ?? ''}`;
-  const totalPoePorts = switchSku?.switch_specs?.poe_ports;
+  const specs = getSwitchSpecs(switchSku);
+  const totalPoePorts = specs?.poe_ports;
 
   if (!Number.isInteger(totalPoePorts) || totalPoePorts < 0) {
     return { af: 0, at: 0, bt3: 0 };
@@ -169,7 +178,7 @@ function switchMeetsRequirements({
   requiredPoeStandard = 'af',
   requiredUplinks = 0
 }) {
-  const specs = switchSku?.switch_specs;
+  const specs = getSwitchSpecs(switchSku);
 
   if (!specs) return false;
 
@@ -233,7 +242,7 @@ function getMinimumIdenticalSwitchQuantity({
   requiredPoeStandard = 'af',
   requiredUplinks = 0
 }) {
-  const specs = switchSku?.switch_specs;
+  const specs = getSwitchSpecs(switchSku);
 
   if (
     !Number.isInteger(requiredPorts) || requiredPorts < 0 ||
