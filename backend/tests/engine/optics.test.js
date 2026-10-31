@@ -191,3 +191,229 @@ test('NWP-ENGINE-012-TC-015: single-floor fiber adds ledger entry and compatibil
     flag => flag.code === 'OPTICS_COMPATIBILITY_ADVISORY'
   ));
 });
+
+// ---------------------------------------------------------------------------
+// Additional coverage for previously identified INC scenarios
+// ---------------------------------------------------------------------------
+
+test('NWP-ENGINE-012-INC-TC-003: backupWan full plan does not add backbone links', () => {
+  const noneCtx = createCtx();
+  const backupCtx = createCtx();
+
+  const noneResult = planOptics(
+    makeInput(3),
+    makeReqs('fiber', 'none'),
+    makeSwitch(),
+    noneCtx
+  );
+
+  const backupResult = planOptics(
+    makeInput(3),
+    makeReqs('fiber', 'backupWan'),
+    makeSwitch(),
+    backupCtx
+  );
+
+  assert.deepEqual(backupResult, noneResult);
+  assert.equal(backupResult.links, 3);
+  assert.equal(backupResult.modules, 6);
+});
+
+test('NWP-ENGINE-012-INC-TC-004: single-floor fiber records the exact link count', () => {
+  const ctx = createCtx();
+
+  const result = planOptics(
+    makeInput(1),
+    makeReqs('fiber', 'none'),
+    makeSwitch(),
+    ctx
+  );
+
+  assert.equal(result.links, 1);
+  assert.equal(result.modules, 2);
+
+  const ledgerEntry = ctx.ledger.find(
+    entry => entry.field === 'fiberLinks'
+  );
+
+  assert.ok(ledgerEntry);
+  assert.equal(ledgerEntry.valueUsed, 1);
+});
+
+test('NWP-ENGINE-012-INC-TC-005: single-floor required redundancy creates two links and four modules', () => {
+  const ctx = createCtx();
+
+  const result = planOptics(
+    makeInput(1),
+    makeReqs('fiber', 'required'),
+    makeSwitch(),
+    ctx
+  );
+
+  assert.deepEqual(result, {
+    links: 2,
+    modules: 4,
+    formFactor: 'SFP+',
+  });
+
+  // The ledger entry should record the calculated redundant link count.
+  const ledgerEntry = ctx.ledger.find(
+    entry => entry.field === 'fiberLinks'
+  );
+
+  assert.ok(ledgerEntry);
+  assert.equal(ledgerEntry.valueUsed, 2);
+});
+
+test('NWP-ENGINE-012-INC-TC-007: reject unsupported backbone values', () => {
+  for (const backbone of ['wireless', '', null, 'Fiber']) {
+    const ctx = createCtx();
+
+    assert.throws(
+      () => planOptics(
+        makeInput(2),
+        makeReqs(backbone, 'none'),
+        makeSwitch(),
+        ctx
+      ),
+      ValidationError,
+      `Expected backbone=${String(backbone)} to be rejected`
+    );
+  }
+});
+
+test('NWP-ENGINE-012-INC-TC-007A: reject missing backbone', () => {
+  const ctx = createCtx();
+
+  assert.throws(
+    () => planOptics(
+      makeInput(2),
+      { redundancy: 'none' },
+      makeSwitch(),
+      ctx
+    ),
+    ValidationError,
+    'Expected missing backbone to be rejected'
+  );
+});
+
+test('NWP-ENGINE-012-INC-TC-008: reject missing and non-integer floor counts', () => {
+  for (const floors of [undefined, 2.5]) {
+    assert.throws(
+      () => countFiberLinks(floors, 'none'),
+      ValidationError,
+      `Expected floors=${String(floors)} to be rejected`
+    );
+  }
+});
+
+test('NWP-ENGINE-012-INC-TC-009: reject boolean redundancy value', () => {
+  assert.throws(
+    () => countFiberLinks(2, true),
+    ValidationError
+  );
+});
+
+test('NWP-ENGINE-012-INC-TC-010: SFP form factor is accepted', () => {
+  const ctx = createCtx();
+
+  const result = planOptics(
+    makeInput(2),
+    makeReqs('fiber', 'none'),
+    makeSwitch({ sfp_form_factor: 'SFP' }),
+    ctx
+  );
+
+  assert.deepEqual(result, {
+    links: 2,
+    modules: 4,
+    formFactor: 'SFP',
+  });
+
+  assert.ok(ctx.flags.some(
+    flag => flag.code === 'OPTICS_COMPATIBILITY_ADVISORY'
+  ));
+});
+
+test('NWP-ENGINE-012-INC-TC-011: missing switch adds no-SFP-ports flag', () => {
+  const ctx = createCtx();
+
+  const result = planOptics(
+    makeInput(2),
+    makeReqs('fiber', 'none'),
+    undefined,
+    ctx
+  );
+
+  assert.deepEqual(result, {
+    links: 2,
+    modules: 4,
+    formFactor: null,
+  });
+
+  assert.ok(ctx.flags.some(
+    flag => flag.code === 'OPTICS_NO_SFP_PORTS'
+  ));
+});
+
+test('NWP-ENGINE-012-INC-TC-013: compatibility advisory is raised for fiber backbone', () => {
+  const ctx = createCtx();
+
+  planOptics(
+    makeInput(2),
+    makeReqs('fiber', 'none'),
+    makeSwitch(),
+    ctx
+  );
+
+  const advisory = ctx.flags.find(
+    flag => flag.code === 'OPTICS_COMPATIBILITY_ADVISORY'
+  );
+
+  assert.ok(advisory);
+});
+
+test('NWP-ENGINE-012-INC-TC-014: repeated plans produce deterministic results', () => {
+  const results = [];
+
+  for (let i = 0; i < 100; i += 1) {
+    const ctx = createCtx();
+
+    results.push({
+      result: planOptics(
+        makeInput(3),
+        makeReqs('fiber', 'required'),
+        makeSwitch(),
+        ctx
+      ),
+      flags: ctx.flags,
+      ledger: ctx.ledger,
+    });
+  }
+
+  for (const result of results) {
+    assert.deepEqual(result, results[0]);
+  }
+});
+
+test('NWP-ENGINE-012-INC-TC-015: verify link and module counts for multiple floor scenarios', () => {
+  const scenarios = [
+    { floors: 4, redundancy: 'none', links: 4, modules: 8 },
+    { floors: 4, redundancy: 'required', links: 8, modules: 16 },
+    { floors: 10, redundancy: 'backupWan', links: 10, modules: 20 },
+  ];
+
+  for (const scenario of scenarios) {
+    const ctx = createCtx();
+
+    const result = planOptics(
+      makeInput(scenario.floors),
+      makeReqs('fiber', scenario.redundancy),
+      makeSwitch(),
+      ctx
+    );
+
+    assert.equal(result.links, scenario.links);
+    assert.equal(result.modules, scenario.modules);
+  }
+});
