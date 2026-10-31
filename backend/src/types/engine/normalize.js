@@ -1,7 +1,7 @@
 
 'use strict';
 
-// NWP-ENGINE-002 — Normalize raw questionnaire answers into NormalizedInput v2.
+// NWP-ENGINE-002 — Normalize raw questionnaire answers into NormalizedInput (contract version from contracts.js)
 
 const params = require('./params');
 const { addLedger, addFlag } = require('./ctx');
@@ -589,7 +589,7 @@ const hasLargeRooms = requireYesNo(raw, QKEY.hasLargeRooms);
     management,
   };
 
-  // Q3 is validated for SME scope but is not part of NormalizedInput v2.
+  // Q3 is validated for SME scope but is not part of NormalizedInput.
   void headcount;
 
   validateNormalizedInput(out);

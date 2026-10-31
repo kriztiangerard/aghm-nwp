@@ -18,12 +18,14 @@
       "max_throughput_mbps": 1000,
       "max_power_draw_w": 64.9,
       "vpn_supported": true,
+      "ha_capability": false,
       "sfp_ports": 1,
       "sfp_form_factor": "SFP"
     },
     "firewall_specs": {
       "firewall_throughputs_mbps": 229,
       "vpn_throughput_mbps": 670,
+      "idps_throughput_mbps": 229,
       "max_concurrent_sessions": 150000,
       "wan_ports": 4,
       "lan_ports": 4,
@@ -52,11 +54,13 @@
       "lan_ports": 0,
       "max_throughput_mbps": 10000,
       "max_power_draw_w": 30,
-      "vpn_supported": true
+      "vpn_supported": true,
+      "ha_capability": false
     },
     "firewall_specs": {
       "firewall_throughputs_mbps": 2248,
       "vpn_throughput_mbps": 1133,
+      "idps_throughput_mbps": 2248,
       "max_concurrent_sessions": 1000000,
       "wan_ports": 12,
       "lan_ports": 0,
@@ -85,7 +89,8 @@
       "lan_ports": 2,
       "max_throughput_mbps": 1000,
       "max_power_draw_w": 9,
-      "vpn_supported": true
+      "vpn_supported": true,
+      "ha_capability": false
     },
     "firewall_specs": {
       "firewall_throughputs_mbps": 175,
@@ -118,11 +123,13 @@
       "lan_ports": 4,
       "max_throughput_mbps": 2500,
       "max_power_draw_w": 14.2,
-      "vpn_supported": true
+      "vpn_supported": true,
+      "ha_capability": false
     },
     "firewall_specs": {
       "firewall_throughputs_mbps": 208,
       "vpn_throughput_mbps": 673,
+      "idps_throughput_mbps": 1552,
       "max_concurrent_sessions": 500000,
       "wan_ports": 4,
       "lan_ports": 4,
@@ -151,11 +158,13 @@
       "lan_ports": 8,
       "max_throughput_mbps": 10000,
       "max_power_draw_w": 26.36,
-      "vpn_supported": true
+      "vpn_supported": true,
+      "ha_capability": false
     },
     "firewall_specs": {
       "firewall_throughputs_mbps": 9388,
       "vpn_throughput_mbps": 3099,
+      "idps_throughput_mbps": 4924,
       "max_concurrent_sessions": 2300000,
       "wan_ports": 8,
       "lan_ports": 8,
@@ -184,11 +193,13 @@
       "lan_ports": 6,
       "max_throughput_mbps": 1000,
       "max_power_draw_w": 7.5,
-      "vpn_supported": true
+      "vpn_supported": true,
+      "ha_capability": false
     },
     "firewall_specs": {
       "firewall_throughputs_mbps": 918,
       "vpn_throughput_mbps": 885,
+      "idps_throughput_mbps": 918,
       "max_concurrent_sessions": 150000,
       "wan_ports": 6,
       "lan_ports": 6,
@@ -217,7 +228,8 @@
       "lan_ports": 3,
       "max_throughput_mbps": 1000,
       "max_power_draw_w": 7.94,
-      "vpn_supported": true
+      "vpn_supported": true,
+      "ha_capability": false
     },
     "firewall_specs": {
       "firewall_throughputs_mbps": 905,
@@ -250,11 +262,13 @@
       "lan_ports": 4,
       "max_throughput_mbps": 1000,
       "max_power_draw_w": 7.5,
-      "vpn_supported": true
+      "vpn_supported": true,
+      "ha_capability": false
     },
     "firewall_specs": {
       "firewall_throughputs_mbps": 933,
       "vpn_throughput_mbps": 341,
+      "idps_throughput_mbps": 229,
       "max_concurrent_sessions": 150000,
       "wan_ports": 2,
       "lan_ports": 4,
@@ -284,6 +298,7 @@
       "max_throughput_mbps": 1000,
       "max_power_draw_w": 12,
       "vpn_supported": true,
+      "ha_capability": false,
       "sfp_ports": 2,
       "sfp_form_factor": "SFP"
     },
@@ -324,11 +339,13 @@
       "lan_ports": 4,
       "max_throughput_mbps": 2500,
       "max_power_draw_w": 8.18,
-      "vpn_supported": true
+      "vpn_supported": true,
+      "ha_capability": false
     },
     "firewall_specs": {
       "firewall_throughputs_mbps": 2183,
       "vpn_throughput_mbps": 1023,
+      "idps_throughput_mbps": 2183,
       "wan_ports": 4,
       "lan_ports": 4,
       "max_power_draw_w": 8.18
@@ -356,11 +373,13 @@
       "lan_ports": 4,
       "max_throughput_mbps": 2500,
       "max_power_draw_w": 6.18,
-      "vpn_supported": true
+      "vpn_supported": true,
+      "ha_capability": false
     },
     "firewall_specs": {
       "firewall_throughputs_mbps": 2183,
       "vpn_throughput_mbps": 1023,
+      "idps_throughput_mbps": 2183,
       "wan_ports": 5,
       "lan_ports": 4,
       "max_power_draw_w": 6.18
@@ -388,11 +407,13 @@
       "lan_ports": 4,
       "max_throughput_mbps": 2500,
       "max_power_draw_w": 131,
-      "vpn_supported": true
+      "vpn_supported": true,
+      "ha_capability": false
     },
     "firewall_specs": {
       "firewall_throughputs_mbps": 2183,
       "vpn_throughput_mbps": 1023,
+      "idps_throughput_mbps": 2183,
       "wan_ports": 4,
       "lan_ports": 4,
       "max_power_draw_w": 131
