@@ -116,7 +116,7 @@ test('known sufficient gateway does not get an unknown-capacity flag from an unr
 
 test('required redundancy selects two gateway units', () => {
   const ctx = createCtx();
-  const catalog = [makeGateway()];
+  const catalog = [makeGateway({ ha_capability: true })];
 
   const result = selectGateway({
     catalog,
@@ -285,6 +285,7 @@ for (const vendor of ['Vendor A', 'Vendor B']) {
       makeGateway({
         sku: `${vendor}-REDUNDANT-GW`,
         vendor,
+        ha_capability: true,
       }),
     ];
 
@@ -346,3 +347,270 @@ for (const vendor of ['Vendor A', 'Vendor B']) {
     assert.equal(result.sku.sku, `${vendor}-HP-NEXT`);
   });
 }
+
+for (const vendor of ['Vendor A', 'Vendor B']) {
+  test(`advanced security selects an IDPS-capable gateway for ${vendor}`, () => {
+    const ctx = createCtx();
+    const catalog = [
+      makeGateway({
+        sku: `${vendor}-BASE`,
+        vendor,
+        idps_throughput_mbps: 0,
+        price: 50,
+      }),
+      makeGateway({
+        sku: `${vendor}-ADVANCED`,
+        vendor,
+        idps_throughput_mbps: 100,
+        price: 150,
+      }),
+    ];
+
+    const result = selectGateway({
+      catalog,
+      vendor,
+      requirements: {
+        securityTier: 'advanced',
+        vpnTunnelsNeeded: { CE: 0, HP: 0 },
+      },
+      plan: 'cost_efficient',
+      ctx,
+    });
+
+    assert.equal(result.ok, true);
+    assert.equal(result.sku.sku, `${vendor}-ADVANCED`);
+    assert.equal(ctx.flags.some((flag) => flag.code === 'GATEWAY_SECURITY_TIER_FALLBACK'), false);
+    assert.equal(ctx.ledger.some((entry) => entry.field === 'securityTier'), false);
+  });
+
+  test(`advanced security falls back to base tier when no IDPS gateway exists for ${vendor}`, () => {
+    const ctx = createCtx();
+    const catalog = [
+      makeGateway({
+        sku: `${vendor}-BASE`,
+        vendor,
+        idps_throughput_mbps: 0,
+      }),
+    ];
+
+    const result = selectGateway({
+      catalog,
+      vendor,
+      requirements: {
+        securityTier: 'advanced',
+        vpnTunnelsNeeded: { CE: 0, HP: 0 },
+      },
+      plan: 'cost_efficient',
+      ctx,
+    });
+
+    assert.equal(result.ok, true);
+    assert.equal(result.sku.sku, `${vendor}-BASE`);
+    assert.ok(ctx.flags.some((flag) => flag.code === 'GATEWAY_SECURITY_TIER_FALLBACK'));
+    assert.ok(ctx.ledger.some(
+      (entry) => entry.field === 'securityTier' && entry.valueUsed === 'base'
+    ));
+  });
+
+  test(`advanced security falls back when IDPS gateway fails VPN requirements for ${vendor}`, () => {
+    const ctx = createCtx();
+    const catalog = [
+      makeGateway({
+        sku: `${vendor}-ADVANCED-LOW-VPN`,
+        vendor,
+        idps_throughput_mbps: 100,
+        max_vpn_tunnels: 1,
+      }),
+      makeGateway({
+        sku: `${vendor}-BASE-SUFFICIENT-VPN`,
+        vendor,
+        idps_throughput_mbps: 0,
+        max_vpn_tunnels: 2,
+        price: 200,
+      }),
+    ];
+
+    const result = selectGateway({
+      catalog,
+      vendor,
+      requirements: {
+        securityTier: 'advanced',
+        vpnTunnelsNeeded: { CE: 0, HP: 2 },
+      },
+      plan: 'high_performance',
+      ctx,
+    });
+
+    assert.equal(result.ok, true);
+    assert.equal(result.sku.sku, `${vendor}-BASE-SUFFICIENT-VPN`);
+    assert.ok(ctx.flags.some((flag) => flag.code === 'GATEWAY_SECURITY_TIER_FALLBACK'));
+    assert.ok(ctx.ledger.some(
+      (entry) => entry.field === 'securityTier' && entry.valueUsed === 'base'
+    ));
+  });
+
+  test(`base security tier does not trigger fallback for ${vendor}`, () => {
+    const ctx = createCtx();
+    const catalog = [
+      makeGateway({
+        sku: `${vendor}-BASE`,
+        vendor,
+        idps_throughput_mbps: 0,
+      }),
+    ];
+
+    const result = selectGateway({
+      catalog,
+      vendor,
+      requirements: {
+        securityTier: 'base',
+        vpnTunnelsNeeded: { CE: 0, HP: 0 },
+      },
+      plan: 'cost_efficient',
+      ctx,
+    });
+
+    assert.equal(result.ok, true);
+    assert.equal(result.sku.sku, `${vendor}-BASE`);
+    assert.equal(ctx.flags.some((flag) => flag.code === 'GATEWAY_SECURITY_TIER_FALLBACK'), false);
+    assert.equal(ctx.ledger.some((entry) => entry.field === 'securityTier'), false);
+  });
+}
+
+test('required HA falls back to one non-HA gateway with an unmet flag', () => {
+  const ctx = createCtx();
+  const catalog = [
+    makeGateway({
+      sku: 'GW-NON-HA',
+      price: 100,
+      ha_capability: false,
+    }),
+  ];
+
+  const result = selectGateway({
+    catalog,
+    vendor: 'TestVendor',
+    requirements: {
+      redundancy: 'required',
+      vpnTunnelsNeeded: { CE: 0, HP: 0 },
+    },
+    plan: 'cost_efficient',
+    ctx,
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(result.sku.sku, 'GW-NON-HA');
+  assert.equal(result.qty, 1);
+
+  assert.ok(
+    result.flags.some(
+      (flag) => flag.code === 'GATEWAY_HA_UNSUPPORTED'
+    )
+  );
+
+  assert.ok(
+    ctx.flags.some(
+      (flag) =>
+        flag.code === 'GATEWAY_HA_UNSUPPORTED' &&
+        flag.message ===
+          'HA gateway pairing not supported by TestVendor at this tier'
+    )
+  );
+});
+
+test('required HA falls back when HA gateway fails VPN requirements', () => {
+  const ctx = createCtx();
+  const catalog = [
+    makeGateway({
+      sku: 'GW-HA-INSUFFICIENT-VPN',
+      ha_capability: true,
+      max_vpn_tunnels: 1,
+    }),
+    makeGateway({
+      sku: 'GW-NON-HA-SUFFICIENT-VPN',
+      ha_capability: false,
+      max_vpn_tunnels: 2,
+    }),
+  ];
+
+  const result = selectGateway({
+    catalog,
+    vendor: 'TestVendor',
+    requirements: {
+      redundancy: 'required',
+      vpnTunnelsNeeded: { CE: 0, HP: 2 },
+    },
+    plan: 'high_performance',
+    ctx,
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(result.sku.sku, 'GW-NON-HA-SUFFICIENT-VPN');
+  assert.equal(result.qty, 1);
+  assert.ok(
+    result.flags.some(
+      (flag) => flag.code === 'GATEWAY_HA_UNSUPPORTED'
+    )
+  );
+});
+
+test('required HA selects an HA-capable gateway at quantity two', () => {
+  const ctx = createCtx();
+  const catalog = [
+    makeGateway({
+      sku: 'GW-NON-HA',
+      price: 50,
+      ha_capability: false,
+    }),
+    makeGateway({
+      sku: 'GW-HA',
+      price: 100,
+      ha_capability: true,
+    }),
+  ];
+
+  const result = selectGateway({
+    catalog,
+    vendor: 'TestVendor',
+    requirements: {
+      redundancy: 'required',
+      vpnTunnelsNeeded: { CE: 0, HP: 0 },
+    },
+    plan: 'cost_efficient',
+    ctx,
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(result.sku.sku, 'GW-HA');
+  assert.equal(result.qty, 2);
+  assert.equal(
+    result.flags.some(
+      (flag) => flag.code === 'GATEWAY_HA_UNSUPPORTED'
+    ),
+    false
+  );
+});
+
+test('optional redundancy does not add an HA unsupported flag', () => {
+  const ctx = createCtx();
+
+  const result = selectGateway({
+    catalog: [makeGateway({ ha_capability: false })],
+    vendor: 'TestVendor',
+    requirements: {
+      redundancy: 'recommended',
+      vpnTunnelsNeeded: { CE: 0, HP: 0 },
+    },
+    plan: 'cost_efficient',
+    ctx,
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(result.qty, 1);
+  assert.equal(
+    ctx.flags.some(
+      (flag) => flag.code === 'GATEWAY_HA_UNSUPPORTED'
+    ),
+    false
+  );
+});
