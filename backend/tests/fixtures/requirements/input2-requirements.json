@@ -1,14 +1,14 @@
 {
   "g": 0.5,
-  "securityTier": "base",
+  "securityTier": "standard",
   "vlans": [
     "Corporate",
     "Guest",
     "Cameras_IoT"
   ],
-  "qos": true,
-  "redundancy": "BACKUP_WAN_RECOMMENDED",
-  "backupAdvice": "second ISP or cellular",
+  "qos": false,
+  "redundancy": "backupWan",
+  "backupAdvice": "Consider a second ISP or cellular backup.",
   "vpnTunnelsNeeded": {
     "CE": 0,
     "HP": 0
