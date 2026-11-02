@@ -1,18 +1,21 @@
 {
-  "g": 0.0,
+  "g": 0.3,
   "securityTier": "advanced",
-  "vlans": [
-    "Corporate",
-    "Restricted"
-  ],
-  "qos": false,
-  "redundancy": "BACKUP_WAN_RECOMMENDED",
-  "backupAdvice": "generic advice",
+"vlans": [
+  "Corporate",
+  "Guest",
+  "Restricted",
+  "Voice",
+  "Cameras_IoT"
+],
+  "qos": true,
+  "redundancy": "required",
+  "backupAdvice": "Consider a second ISP or cellular backup.",
   "vpnTunnelsNeeded": {
-    "CE": 0,
-    "HP": 0
+    "CE": 1,
+    "HP": 2
   },
-  "requiredMbps": null,
+  "requiredMbps": 500,
   "throughputMetric": "idps_throughput",
   "wireless": {
     "standard": "6",
