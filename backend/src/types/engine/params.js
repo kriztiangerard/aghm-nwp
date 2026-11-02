@@ -21,4 +21,5 @@ module.exports = Object.freeze({
   BUDGET_BAND_EDGES_PHP: { entryMax: 15000, mainstreamMax: 40000 },
   // Q10 fallback bands: NOT YET DEFINED. Do not invent values (decision D6).
   Q10_FALLBACK_BANDS: null,
+  GENERIC_VENDOR_NAME: 'Generic',   // vendor name of the shared generic enclosure entries (NWP-ENGINE-013)
 });
