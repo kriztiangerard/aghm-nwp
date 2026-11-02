@@ -14,6 +14,7 @@ module.exports = Object.freeze({
   POE_CLASS_W: { af: 15.4, at: 30, bt3: 60 },               // IEEE 802.3 PSE class maxima
   UPS_LOAD_RATIO: 0.8,                     // UNSOURCED: keep load <= 80% of UPS rating
   WALL_CABINET_MAX_U: 9,                   // PARAM: "not sure" housing threshold
+  GENERIC_VENDOR_NAME: 'Generic',          // PARAM: name of the placeholder Vendor row that owns the generic racks and enclosures; must match the seeded Vendor.name
   Q17_POE_DEFAULTS: {                      // UNSOURCED: verify against datasheets
     door_controller: true, smart_sensor: true, pos_terminal: false, network_printer: false, other: true,
   },

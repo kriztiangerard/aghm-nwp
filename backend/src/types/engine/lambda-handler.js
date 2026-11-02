@@ -10,11 +10,20 @@ const json = (statusCode, body) => ({
 });
 
 exports.handler = async (event) => {
+  let payload;
   try {
-    const payload = typeof event.body === 'string' ? JSON.parse(event.body) : (event.body || event);
-    return json(200, run(payload));
+    payload = typeof event.body === 'string' ? JSON.parse(event.body) : (event.body || event);
   } catch (err) {
-    const status = err.name === 'ValidationError' ? 400 : 500;
-    return json(status, { errors: [{ message: err.message }] });
+    return json(400, { errors: [{ message: 'Request body is not valid JSON.' }] });
+  }
+
+  try {
+    return json(200, await run(payload));
+  } catch (err) {
+    if (err.name === 'ValidationError') {
+      return json(400, { errors: [{ field: err.field, message: err.message }] });
+    }
+    console.error(err);
+    return json(500, { errors: [{ message: 'Internal error.' }] });
   }
 };
