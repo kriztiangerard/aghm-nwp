@@ -4,9 +4,12 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 
 const {
+  selectSwitches,
   calculatePerFloorPorts,
   applyGrowthMultiplier
 } = require('../../src/types/engine/devices/switches.js');
+
+const { createCtx } = require('../../src/types/engine/ctx.js');
 
 test('adds each floor AP count to evenly distributed edge and PoE ports', () => {
   const result = calculatePerFloorPorts({
@@ -598,5 +601,265 @@ test('calculates identical switch quantity from a flat catalog record', () => {
       requiredUplinks: 2,
     }),
     1
+  );
+});
+
+test('derives total ports from copper and SFP ports when port_count is absent', () => {
+  const { port_count, ...flatSwitchWithoutTotal } = flatCatalogSwitch;
+
+  assert.equal(
+    getMinimumIdenticalSwitchQuantity({
+      switchSku: flatSwitchWithoutTotal,
+      requiredPorts: 22,
+      requiredPoePorts: 4,
+      requiredPoeBudgetW: 120,
+      requiredPoeStandard: 'at',
+      requiredUplinks: 2,
+    }),
+    1
+  );
+});
+
+function makeSwitchTestSku({
+  sku,
+  description = 'Managed Gigabit Ethernet Switch',
+  portCount = 8,
+  poePorts = 0,
+  poeBudgetW = 0,
+  sfpPorts = 0,
+  lineRank = 1,
+  price = 100,
+}) {
+  return {
+    sku,
+    category: 'switch',
+    vendor: 'Synthetic Vendor',
+    name: sku,
+    description,
+    status: 'ACTIVE',
+    price,
+    line: `Line ${lineRank}`,
+    line_rank: lineRank,
+    switch_specs: {
+      port_count: portCount,
+      poe_ports: poePorts,
+      poe_budget_w: poeBudgetW,
+      sfp_ports: sfpPorts,
+    },
+  };
+}
+
+function makeSwitchTestRequirements({
+  perFloor = [0],
+  edgePorts = 0,
+  poeEdgePorts = 0,
+  g = 0,
+  redundancy = 'not_required',
+} = {}) {
+  return {
+    wireless: {
+      CE: { perFloor },
+      HP: { perFloor },
+    },
+    edgePorts,
+    poeEdgePorts,
+    g,
+    redundancy,
+  };
+}
+
+test('rejects an AF-only switch when the selected AP requires 802.3at despite sufficient total PoE budget', () => {
+  const ctx = createCtx();
+
+  const result = selectSwitches({
+    catalog: [
+      makeSwitchTestSku({
+        sku: 'AF-SWITCH',
+        description: '8-Port PoE Switch',
+        portCount: 8,
+        poePorts: 8,
+        poeBudgetW: 150,
+      }),
+    ],
+    vendor: 'Synthetic Vendor',
+    requirements: makeSwitchTestRequirements({ perFloor: [1] }),
+    poeBudget: { perFloor: [{ budgetW: 50 }] },
+    apSelection: {
+      ok: true,
+      sku: { ap_specs: { poe_standard: 'at' } },
+    },
+    plan: 'CE',
+    ctx,
+  });
+
+  assert.equal(result.ok, false);
+  assert.equal(result.unmet.category, 'switch');
+});
+
+test('selects the smallest quantity of identical switches when one unit is insufficient', () => {
+  const ctx = createCtx();
+
+  const result = selectSwitches({
+    catalog: [
+      makeSwitchTestSku({
+        sku: 'SMALL-SWITCH',
+        portCount: 28,
+      }),
+    ],
+    vendor: 'Synthetic Vendor',
+    requirements: makeSwitchTestRequirements({
+      edgePorts: 40,
+    }),
+    poeBudget: { perFloor: [{ budgetW: 0 }] },
+    plan: 'CE',
+    ctx,
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(result.accessSwitches[0].sku.sku, 'SMALL-SWITCH');
+  assert.equal(result.accessSwitches[0].qty, 2);
+});
+
+test('requires two core switches and two access uplinks per floor when redundancy is required', () => {
+  const ctx = createCtx();
+
+  const result = selectSwitches({
+    catalog: [
+      makeSwitchTestSku({
+        sku: 'REDUNDANT-SWITCH',
+        portCount: 8,
+        sfpPorts: 2,
+      }),
+    ],
+    vendor: 'Synthetic Vendor',
+    requirements: makeSwitchTestRequirements({
+      perFloor: [0, 0],
+      edgePorts: 4,
+      redundancy: 'required',
+    }),
+    poeBudget: {
+      perFloor: [{ budgetW: 0 }, { budgetW: 0 }],
+    },
+    plan: 'CE',
+    ctx,
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(result.coreSwitchQuantity, 2);
+  assert.equal(result.uplinksPerFloor, 2);
+  assert.deepEqual(
+    result.accessSwitches.map(item => item.uplinksPerSwitch),
+    [2, 2]
+  );
+});
+
+test('applies 30 percent HP growth to required switch ports and rounds up', () => {
+  const ctx = createCtx();
+
+  const result = selectSwitches({
+    catalog: [
+      makeSwitchTestSku({
+        sku: '12-PORT-SWITCH',
+        portCount: 12,
+        lineRank: 1,
+        price: 100,
+      }),
+      makeSwitchTestSku({
+        sku: '16-PORT-SWITCH',
+        portCount: 16,
+        lineRank: 2,
+        price: 150,
+      }),
+    ],
+    vendor: 'Synthetic Vendor',
+    requirements: makeSwitchTestRequirements({
+      edgePorts: 10,
+      g: 0.30,
+    }),
+    poeBudget: { perFloor: [{ budgetW: 0 }] },
+    plan: 'HP',
+    ctx,
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(result.accessSwitches[0].sku.sku, '16-PORT-SWITCH');
+});
+
+test('requires no access uplinks for a single-floor site', () => {
+  const ctx = createCtx();
+
+  const result = selectSwitches({
+    catalog: [
+      makeSwitchTestSku({
+        sku: 'SINGLE-FLOOR-SWITCH',
+        portCount: 8,
+        sfpPorts: 0,
+      }),
+    ],
+    vendor: 'Synthetic Vendor',
+    requirements: makeSwitchTestRequirements({
+      perFloor: [0],
+      edgePorts: 4,
+    }),
+    poeBudget: { perFloor: [{ budgetW: 0 }] },
+    plan: 'CE',
+    ctx,
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(result.uplinksPerFloor, 0);
+  assert.equal(result.accessSwitches[0].uplinksPerSwitch, 0);
+});
+
+const { computePoeBudget } = require('../../src/types/engine/devices/poe.js');
+
+test('integrates the real PoE budget calculation with switch selection', () => {
+  const ctx = createCtx();
+
+  const requirements = makeSwitchTestRequirements({
+    perFloor: [2],
+  });
+
+  const apSelection = {
+    ok: true,
+    sku: {
+      ap_specs: {
+        max_power_draw_w: 20,
+        poe_standard: 'at',
+      },
+    },
+  };
+
+  const poeBudget = computePoeBudget({
+    requirements,
+    apSelection,
+    plan: 'CE',
+    ctx,
+  });
+
+  const result = selectSwitches({
+    catalog: [
+      makeSwitchTestSku({
+        sku: 'INTEGRATION-POE-SWITCH',
+        description: '8-Port PoE+ Switch',
+        portCount: 8,
+        poePorts: 8,
+        poeBudgetW: 150,
+      }),
+    ],
+    vendor: 'Synthetic Vendor',
+    requirements,
+    poeBudget,
+    apSelection,
+    plan: 'CE',
+    ctx,
+  });
+
+  assert.equal(poeBudget.perFloor.length, 1);
+  assert.ok(poeBudget.perFloor[0].budgetW > poeBudget.perFloor[0].loadW);
+  assert.equal(result.ok, true);
+  assert.equal(
+    result.accessSwitches[0].sku.sku,
+    'INTEGRATION-POE-SWITCH'
   );
 });

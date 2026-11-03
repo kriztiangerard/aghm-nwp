@@ -1,5 +1,7 @@
 
 'use strict';
+
+const { selectSku } = require('../select.js');
 // Switch selection per floor
 // Algorithm Step 3.5
 // Consumes: Requirements + PoE budget + select()
@@ -115,7 +117,19 @@ function getSwitchSpecs(switchSku) {
     return null;
   }
 
-  return switchSku.switch_specs ?? switchSku;
+  const specs = switchSku.switch_specs ?? switchSku;
+
+  return {
+    ...specs,
+    port_count:
+      specs.port_count ??
+      (
+        Number.isInteger(specs.copper_ports) &&
+        Number.isInteger(specs.sfp_ports)
+          ? specs.copper_ports + specs.sfp_ports
+          : undefined
+      ),
+  };
 }
 
 function getPoePortCapabilities(switchSku) {
@@ -313,8 +327,175 @@ function addSingleHomingLimitation(ctx) {
   return ctx.flags;
 }
 
-function selectSwitches({ catalog, vendor, requirements, poeBudget, plan, cePick, ctx }) {
-  throw new Error('NWP-ENGINE-012 not implemented');
+function selectSwitches({
+  catalog,
+  vendor,
+  requirements,
+  poeBudget,
+  apSelection,
+  plan,
+  cePick,
+  ctx,
+}) {
+  if (!Array.isArray(catalog)) {
+    throw new TypeError('catalog must be an array.');
+  }
+
+  if (!requirements || !requirements.wireless) {
+    throw new TypeError('requirements.wireless is required.');
+  }
+
+  if (plan !== 'CE' && plan !== 'HP') {
+    throw new TypeError('plan must be CE or HP.');
+  }
+
+  if (!ctx || !Array.isArray(ctx.unmet) || !Array.isArray(ctx.flags)) {
+    throw new TypeError('ctx from createCtx() is required.');
+  }
+
+  if (!poeBudget || !Array.isArray(poeBudget.perFloor)) {
+    throw new TypeError('poeBudget.perFloor is required.');
+  }
+
+  const planKey = plan === 'CE' ? 'cost_efficient' : 'high_performance';
+  const wirelessPlan = requirements.wireless[plan];
+  const apCountsPerFloor = wirelessPlan?.perFloor;
+
+  if (!Array.isArray(apCountsPerFloor) || apCountsPerFloor.length === 0) {
+    throw new TypeError(`requirements.wireless.${plan}.perFloor is required.`);
+  }
+
+  if (poeBudget.perFloor.length !== apCountsPerFloor.length) {
+    throw new Error('PoE budget floor count must match wireless requirements.');
+  }
+
+  const floorCount = apCountsPerFloor.length;
+  const redundancyRequired =
+    String(requirements.redundancy ?? '').toLowerCase() === 'required';
+
+  const accessUplinks = calculateAccessSwitchUplinks({
+    floorCount,
+    redundancyRequired,
+  });
+
+  const coreSwitchQuantity = calculateCoreSwitchQuantity({
+    redundancyRequired,
+  });
+
+  const baseFloorRequirements = calculatePerFloorPorts({
+    edgePorts: requirements.edgePorts ?? 0,
+    poeEdgePorts: requirements.poeEdgePorts ?? 0,
+    apCountsPerFloor,
+  });
+
+  const floorRequirements = plan === 'HP'
+    ? applyGrowthMultiplier(
+        baseFloorRequirements,
+        Math.round((requirements.g ?? 0) * 100)
+      )
+    : baseFloorRequirements;
+
+  const apSku = apSelection?.ok === true ? apSelection.sku : null;
+  const apSpecs = apSku?.ap_specs ?? apSku?.access_point_specs ?? apSku;
+  const requiredPoeStandard =
+    apSpecs?.poe_standard ?? apSku?.poe_standard;
+
+  if (
+    apCountsPerFloor.some(count => count > 0) &&
+    !['af', 'at', 'bt3'].includes(requiredPoeStandard)
+  ) {
+    throw new TypeError(
+      'Selected AP must provide a valid poe_standard (af, at, or bt3).'
+    );
+  }
+
+  const switchPool = catalog
+    .filter(sku =>
+      sku.category === 'switch' &&
+      sku.vendor === vendor
+    )
+    .map(sku => ({
+      ...sku,
+      status: String(
+        sku.status ?? sku.lifecycle_status ?? ''
+      ).toUpperCase(),
+    }));
+
+  const accessSwitches = [];
+
+  for (let index = 0; index < floorCount; index += 1) {
+    const floor = floorRequirements[index];
+    const budget = poeBudget.perFloor[index];
+
+    if (!budget || !Number.isFinite(budget.budgetW)) {
+      throw new TypeError(`Missing valid PoE budget for floor ${index + 1}.`);
+    }
+
+    const floorPoeStandard =
+      apCountsPerFloor[index] > 0
+        ? requiredPoeStandard
+        : 'af';
+
+    const predicate = switchSku =>
+      getMinimumIdenticalSwitchQuantity({
+        switchSku,
+        requiredPorts: floor.requiredPorts,
+        requiredPoePorts: floor.requiredPoePorts,
+        requiredPoeBudgetW: budget.budgetW,
+        requiredPoeStandard: floorPoeStandard,
+        requiredUplinks: accessUplinks,
+      }) !== null;
+
+    const ceFloorPick =
+      cePick?.accessSwitches?.[index]?.sku ??
+      cePick?.[index]?.sku ??
+      cePick?.sku ??
+      cePick;
+
+    const result = selectSku({
+      pool: switchPool,
+      predicate,
+      plan: planKey,
+      category: 'switch',
+      vendor,
+      ctx,
+      qty: 1,
+      cePick: plan === 'HP' ? ceFloorPick : undefined,
+    });
+
+    if (!result.ok) {
+      return result;
+    }
+
+    const quantity = getMinimumIdenticalSwitchQuantity({
+      switchSku: result.sku,
+      requiredPorts: floor.requiredPorts,
+      requiredPoePorts: floor.requiredPoePorts,
+      requiredPoeBudgetW: budget.budgetW,
+      requiredPoeStandard: floorPoeStandard,
+      requiredUplinks: accessUplinks,
+    });
+
+    accessSwitches.push({
+      floor: floor.floor,
+      sku: result.sku,
+      qty: quantity,
+      uplinksPerSwitch: accessUplinks,
+      flags: result.flags ?? [],
+    });
+  }
+
+  if (redundancyRequired) {
+    addSingleHomingLimitation(ctx);
+  }
+
+  return {
+    ok: true,
+    accessSwitches,
+    coreSwitchQuantity,
+    uplinksPerFloor: accessUplinks,
+    flags: ctx.flags,
+  };
 }
 
 module.exports = {
