@@ -99,7 +99,7 @@ export const ComponentTable: React.FC<ComponentTableProps> = ({ bom, currency })
                 <dl className="space-y-2 text-[11px]">
                   <div className="flex items-center gap-2">
                     <Badge variant="secondary" className="text-[10px]">Synced</Badge>
-                    <dd className="text-muted-foreground">Price supplied by a vendor feed</dd>
+                    <dd className="text-muted-foreground">Price sourced from distributor</dd>
                   </div>
                   <div className="flex items-center gap-2">
                     <Badge variant="secondary" className="text-[10px]">Manual</Badge>
@@ -107,7 +107,7 @@ export const ComponentTable: React.FC<ComponentTableProps> = ({ bom, currency })
                   </div>
                   <div className="flex items-center gap-2">
                     <Badge variant="outline" className="text-[10px]">Generic</Badge>
-                    <dd className="text-muted-foreground">Generic component substitute</dd>
+                    <dd className="text-muted-foreground">Generic component</dd>
                   </div>
                   <div className="flex items-center gap-2">
                     <Badge variant="outline" className={`text-[10px] ${WARN}`}>Stale</Badge>
