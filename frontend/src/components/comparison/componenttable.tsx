@@ -118,7 +118,7 @@ export const ComponentTable: React.FC<ComponentTableProps> = ({ bom, currency })
                       <AlertTriangle aria-hidden="true" />
                       <dd>Sunsetting</dd>
                     </Badge>
-                    <dd className="text-muted-foreground">Device approaching end-of-life.</dd>
+                    <dd className="text-muted-foreground">Device approaching end-of-life</dd>
                   </div>
                 </dl>
               </div>,
