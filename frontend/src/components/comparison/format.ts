@@ -1,4 +1,4 @@
-export const PRICE_UNAVAILABLE = "Price unavailable";
+export const PRICE_UNAVAILABLE = "N/A";
 
 export const formatCurrency = (amount: number, currency = "PHP") =>
   new Intl.NumberFormat("en-PH", {
