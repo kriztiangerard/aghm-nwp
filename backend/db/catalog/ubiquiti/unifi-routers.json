@@ -1,0 +1,57 @@
+[
+  {
+    "vendor_id": 3,
+    "sku": "UXG-Enterprise",
+    "price": null,
+    "name": "UniFi Gateway Enterprise",
+    "description": "Enterprise UniFi gateway with 25 Gbps general throughput, 23.5 Gbps firewall routing throughput, 12.5 Gbps IDS/IPS throughput, and mixed 10G SFP+ and 25G SFP28 ports.",
+    "is_rack_mountable": true,
+    "u_height": 1,
+    "lifecycle_status": "active",
+    "eos_date": null,
+    "eol_date": null,
+    "category": "gateway_router",
+    "product_line": "Enterprise Gateway",
+    "gateway_router_specs": {
+      "wan_ports": 2,
+      "lan_ports": 4,
+      "max_throughput_mbps": 25000,
+      "max_power_draw_w": 82,
+      "vpn_supported": true,
+      "ha_capability": true
+    },
+    "firewall_specs": {
+      "firewall_throughputs_mbps": 23500,
+      "idps_throughput_mbps": 12500
+    },
+    "capabilities": [
+      "router",
+      "firewall"
+    ]
+  },
+  {
+    "vendor_id": 3,
+    "sku": "UXG-Pro",
+    "price": null,
+    "name": "UniFi Gateway Pro",
+    "description": "Rack-mountable UniFi gateway with 2 default WAN ports, 2 default LAN ports, 2 x 10G SFP+ ports, and 3.5 Gbps IDS/IPS throughput.",
+    "is_rack_mountable": true,
+    "u_height": 1,
+    "lifecycle_status": "active",
+    "eos_date": null,
+    "eol_date": null,
+    "category": "gateway_router",
+    "product_line": "Advanced Gateway",
+    "gateway_router_specs": {
+      "wan_ports": 2,
+      "lan_ports": 2,
+      "max_power_draw_w": 30,
+      "vpn_supported": true,
+      "sfp_ports": 2,
+      "sfp_form_factor": "SFP+"
+    },
+    "capabilities": [
+      "router"
+    ]
+  }
+]

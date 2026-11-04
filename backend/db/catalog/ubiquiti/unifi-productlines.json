@@ -1,0 +1,149 @@
+[
+  {
+    "vendor_id": 3,
+    "category": "ap",
+    "name": "Wi-Fi 5 AC",
+    "line_rank": 1,
+    "source_note": "Team-derived classification based on official Ubiquiti UniFi AP specifications. Rankings consider Wi-Fi standard, aggregate advertised maximum data rate, supported frequency bands, and relevant documented deployment characteristics. Enterprise and high-density classifications reflect different deployment capabilities and should not be interpreted as a strict ranking across every individual performance metric. Not a Ubiquiti-published product-line hierarchy."
+  },
+  {
+    "vendor_id": 3,
+    "category": "ap",
+    "name": "Wi-Fi 6 AX Entry",
+    "line_rank": 2,
+    "source_note": "Team-derived classification based on official Ubiquiti UniFi AP specifications. Rankings consider Wi-Fi standard, aggregate advertised maximum data rate, supported frequency bands, and relevant documented deployment characteristics. Enterprise and high-density classifications reflect different deployment capabilities and should not be interpreted as a strict ranking across every individual performance metric. Not a Ubiquiti-published product-line hierarchy."
+  },
+  {
+    "vendor_id": 3,
+    "category": "ap",
+    "name": "Wi-Fi 6 AX Performance",
+    "line_rank": 3,
+    "source_note": "Team-derived classification based on official Ubiquiti UniFi AP specifications. Rankings consider Wi-Fi standard, aggregate advertised maximum data rate, supported frequency bands, and relevant documented deployment characteristics. Enterprise and high-density classifications reflect different deployment capabilities and should not be interpreted as a strict ranking across every individual performance metric. Not a Ubiquiti-published product-line hierarchy."
+  },
+  {
+    "vendor_id": 3,
+    "category": "ap",
+    "name": "Wi-Fi 6E AXE",
+    "line_rank": 4,
+    "source_note": "Team-derived classification based on official Ubiquiti UniFi AP specifications. Rankings consider Wi-Fi standard, aggregate advertised maximum data rate, supported frequency bands, and relevant documented deployment characteristics. Enterprise and high-density classifications reflect different deployment capabilities and should not be interpreted as a strict ranking across every individual performance metric. Not a Ubiquiti-published product-line hierarchy."
+  },
+  {
+    "vendor_id": 3,
+    "category": "ap",
+    "name": "Wi-Fi 7 BE Dual-Band",
+    "line_rank": 5,
+    "source_note": "Team-derived classification based on official Ubiquiti UniFi AP specifications. Rankings consider Wi-Fi standard, aggregate advertised maximum data rate, supported frequency bands, and relevant documented deployment characteristics. Enterprise and high-density classifications reflect different deployment capabilities and should not be interpreted as a strict ranking across every individual performance metric. Not a Ubiquiti-published product-line hierarchy."
+  },
+  {
+    "vendor_id": 3,
+    "category": "ap",
+    "name": "Wi-Fi 7 BE Tri-Band",
+    "line_rank": 6,
+    "source_note": "Team-derived classification based on official Ubiquiti UniFi AP specifications. Rankings consider Wi-Fi standard, aggregate advertised maximum data rate, supported frequency bands, and relevant documented deployment characteristics. Enterprise and high-density classifications reflect different deployment capabilities and should not be interpreted as a strict ranking across every individual performance metric. Not a Ubiquiti-published product-line hierarchy."
+  },
+  {
+    "vendor_id": 3,
+    "category": "ap",
+    "name": "Wi-Fi 7 BE High-Performance",
+    "line_rank": 7,
+    "source_note": "Team-derived classification based on official Ubiquiti UniFi AP specifications. Rankings consider Wi-Fi standard, aggregate advertised maximum data rate, supported frequency bands, and relevant documented deployment characteristics. Enterprise and high-density classifications reflect different deployment capabilities and should not be interpreted as a strict ranking across every individual performance metric. Not a Ubiquiti-published product-line hierarchy."
+  },
+  {
+    "vendor_id": 3,
+    "category": "ap",
+    "name": "Wi-Fi 7 BE Enterprise",
+    "line_rank": 8,
+    "source_note": "Team-derived classification based on official Ubiquiti UniFi AP specifications. Rankings consider Wi-Fi standard, aggregate advertised maximum data rate, supported frequency bands, and relevant documented deployment characteristics. Enterprise and high-density classifications reflect different deployment capabilities and should not be interpreted as a strict ranking across every individual performance metric. Not a Ubiquiti-published product-line hierarchy."
+  },
+  {
+    "vendor_id": 3,
+    "category": "ap",
+    "name": "Wi-Fi 7 BE Ultra-High-Density",
+    "line_rank": 9,
+    "source_note": "Team-derived classification based on official Ubiquiti UniFi AP specifications. Rankings consider Wi-Fi standard, aggregate advertised maximum data rate, supported frequency bands, and relevant documented deployment characteristics. Enterprise and high-density classifications reflect different deployment capabilities and should not be interpreted as a strict ranking across every individual performance metric. Not a Ubiquiti-published product-line hierarchy."
+  },
+  {
+    "vendor_id": 3,
+    "category": "gateway_router",
+    "name": "Compact Gateway",
+    "line_rank": 1,
+    "source_note": "Team-derived classification based on official Ubiquiti UniFi gateway specifications. Rankings consider documented IDS/IPS throughput, physical port capacity, connectivity, and overall gateway capabilities. Models within a product line may differ in integrated features, form factor, and supported connectivity. Not a Ubiquiti-published product-line hierarchy."
+  },
+  {
+    "vendor_id": 3,
+    "category": "gateway_router",
+    "name": "Multi-Gigabit Gateway",
+    "line_rank": 2,
+    "source_note": "Team-derived classification based on official Ubiquiti UniFi gateway specifications. Rankings consider documented IDS/IPS throughput, physical port capacity, connectivity, and overall gateway capabilities. Models within a product line may differ in integrated features, form factor, and supported connectivity. Not a Ubiquiti-published product-line hierarchy."
+  },
+  {
+    "vendor_id": 3,
+    "category": "gateway_router",
+    "name": "Advanced Gateway",
+    "line_rank": 3,
+    "source_note": "Team-derived classification based on official Ubiquiti UniFi gateway specifications. Rankings consider documented IDS/IPS throughput, physical port capacity, connectivity, and overall gateway capabilities. Models within a product line may differ in integrated features, form factor, and supported connectivity. Not a Ubiquiti-published product-line hierarchy."
+  },
+  {
+    "vendor_id": 3,
+    "category": "gateway_router",
+    "name": "Enterprise Gateway",
+    "line_rank": 4,
+    "source_note": "Team-derived classification based on official Ubiquiti UniFi gateway specifications. Rankings consider documented IDS/IPS throughput, physical port capacity, connectivity, and overall gateway capabilities. Models within a product line may differ in integrated features, form factor, and supported connectivity. Not a Ubiquiti-published product-line hierarchy."
+  },
+  {
+    "vendor_id": 3,
+    "category": "switch",
+    "name": "Ultra",
+    "line_rank": 1,
+    "source_note": "Team-derived switch product-line ranking based on researched official Ubiquiti UniFi specifications, including switching capacity, port speeds, port configuration, and documented capabilities. The ranking is not an official Ubiquiti performance hierarchy and does not imply that every model in a higher-ranked line exceeds every model in a lower-ranked line."
+  },
+  {
+    "vendor_id": 3,
+    "category": "switch",
+    "name": "Lite",
+    "line_rank": 2,
+    "source_note": "Team-derived switch product-line ranking based on researched official Ubiquiti UniFi specifications, including switching capacity, port speeds, port configuration, and documented capabilities. The ranking is not an official Ubiquiti performance hierarchy and does not imply that every model in a higher-ranked line exceeds every model in a lower-ranked line."
+  },
+  {
+    "vendor_id": 3,
+    "category": "switch",
+    "name": "Flex",
+    "line_rank": 3,
+    "source_note": "Team-derived switch product-line ranking based on researched official Ubiquiti UniFi specifications, including switching capacity, port speeds, port configuration, and documented capabilities. The ranking is not an official Ubiquiti performance hierarchy and does not imply that every model in a higher-ranked line exceeds every model in a lower-ranked line."
+  },
+  {
+    "vendor_id": 3,
+    "category": "switch",
+    "name": "Standard",
+    "line_rank": 4,
+    "source_note": "Team-derived switch product-line ranking based on researched official Ubiquiti UniFi specifications, including switching capacity, port speeds, port configuration, and documented capabilities. The ranking is not an official Ubiquiti performance hierarchy and does not imply that every model in a higher-ranked line exceeds every model in a lower-ranked line."
+  },
+  {
+    "vendor_id": 3,
+    "category": "switch",
+    "name": "Pro Max",
+    "line_rank": 5,
+    "source_note": "Team-derived switch product-line ranking based on researched official Ubiquiti UniFi specifications, including switching capacity, port speeds, port configuration, and documented capabilities. The ranking is not an official Ubiquiti performance hierarchy and does not imply that every model in a higher-ranked line exceeds every model in a lower-ranked line."
+  },
+  {
+    "vendor_id": 3,
+    "category": "switch",
+    "name": "Professional",
+    "line_rank": 6,
+    "source_note": "Team-derived switch product-line ranking based on researched official Ubiquiti UniFi specifications, including switching capacity, port speeds, port configuration, and documented capabilities. The ranking is not an official Ubiquiti performance hierarchy and does not imply that every model in a higher-ranked line exceeds every model in a lower-ranked line."
+  },
+  {
+    "vendor_id": 3,
+    "category": "switch",
+    "name": "Aggregation",
+    "line_rank": 7,
+    "source_note": "Team-derived switch product-line ranking based on researched official Ubiquiti UniFi specifications, including switching capacity, port speeds, port configuration, and documented capabilities. The ranking is not an official Ubiquiti performance hierarchy and does not imply that every model in a higher-ranked line exceeds every model in a lower-ranked line."
+  },
+  {
+    "vendor_id": 3,
+    "category": "switch",
+    "name": "Enterprise Campus",
+    "line_rank": 8,
+    "source_note": "Team-derived switch product-line ranking based on researched official Ubiquiti UniFi specifications, including switching capacity, port speeds, port configuration, and documented capabilities. The ranking is not an official Ubiquiti performance hierarchy and does not imply that every model in a higher-ranked line exceeds every model in a lower-ranked line."
+  }
+]
