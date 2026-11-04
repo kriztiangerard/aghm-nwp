@@ -1,0 +1,72 @@
+[
+  {
+    "vendor_id": 3,
+    "sku": "ECS-24S",
+    "price": null,
+    "name": "Enterprise Campus 24S",
+    "description": "Enterprise Campus switch with 1 x 1 GbE RJ45, 8 x 2.5 GbE RJ45, 16 x 10 GbE RJ45, 4 x 25G SFP28, and 2 x 100G QSFP28 ports.",
+    "is_rack_mountable": true,
+    "u_height": 1,
+    "lifecycle_status": "active",
+    "eos_date": null,
+    "eol_date": null,
+    "category": "switch",
+    "product_line": "Enterprise Campus",
+    "switch_specs": {
+      "port_count": 31,
+      "layer": 3,
+      "switching_capacity_gbps": 460,
+      "max_power_draw_w": 150
+    },
+    "capabilities": [
+      "switch"
+    ]
+  },
+  {
+    "vendor_id": 3,
+    "sku": "ECS-24S-PoE",
+    "price": null,
+    "name": "Enterprise Campus 24S PoE",
+    "description": "Enterprise Campus PoE switch with 1 x 1 GbE RJ45, 8 x 2.5 GbE PoE+++, 16 x 10 GbE PoE+++, 4 x 25G SFP28, and 2 x 100G QSFP28 ports. PoE availability depends on the power supply and operating mode.",
+    "is_rack_mountable": true,
+    "u_height": 1,
+    "lifecycle_status": "active",
+    "eos_date": null,
+    "eol_date": null,
+    "category": "switch",
+    "product_line": "Enterprise Campus",
+    "switch_specs": {
+      "port_count": 31,
+      "poe_ports": 24,
+      "layer": 3,
+      "switching_capacity_gbps": 460,
+      "max_power_draw_w": 150
+    },
+    "capabilities": [
+      "switch"
+    ]
+  },
+  {
+    "vendor_id": 3,
+    "sku": "ECS-48S-PoE",
+    "price": null,
+    "name": "Enterprise Campus 48S PoE",
+    "description": "Enterprise Campus switch with 1 x 1 GbE RJ45, 32 x 2.5 GbE PoE+++, 16 x 10 GbE PoE+++, 4 x 25G SFP28, and 2 x 100G QSFP28 ports.",
+    "is_rack_mountable": true,
+    "u_height": 1,
+    "lifecycle_status": "active",
+    "eos_date": null,
+    "eol_date": null,
+    "category": "switch",
+    "product_line": "Enterprise Campus",
+    "switch_specs": {
+      "port_count": 55,
+      "poe_ports": 48,
+      "layer": 3,
+      "switching_capacity_gbps": 680
+    },
+    "capabilities": [
+      "switch"
+    ]
+  }
+]

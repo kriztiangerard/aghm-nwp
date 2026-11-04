@@ -7,7 +7,9 @@
     "test": "jest",
     "cdk": "cdk",
     "generate:device-schemas": "tsx backend/scripts/generate-device-schema.ts",
-    "seed:devices": "tsx backend/scripts/seed-omada-devices.ts"
+    "seed:devices": "tsx backend/scripts/seed-omada-devices.ts",
+    "seed:unifi-devices": "tsx backend/scripts/seed-unifi-devices.ts",
+    "insert:unifi-productlines": "tsx backend/scripts/insert-unifi-productlines.ts"
   },
   "devDependencies": {
     "@swc/core": "^1.15.0",
