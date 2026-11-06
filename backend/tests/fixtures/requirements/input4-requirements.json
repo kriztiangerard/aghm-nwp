@@ -1,0 +1,49 @@
+{
+  "g": 0.3,
+  "securityTier": "advanced",
+"vlans": [
+  "Corporate",
+  "Guest",
+  "Restricted",
+  "Voice",
+  "Cameras_IoT"
+],
+  "qos": true,
+  "redundancy": "required",
+  "backupAdvice": "Consider a second ISP or cellular backup.",
+  "vpnTunnelsNeeded": {
+    "CE": 1,
+    "HP": 2
+  },
+  "requiredMbps": 500,
+  "throughputMetric": "idps_throughput",
+  "wireless": {
+    "standard": "6",
+    "ceiling": 40,
+    "CE": {
+      "total": 1,
+      "perFloor": [
+        1
+      ]
+    },
+    "HP": {
+      "total": 1,
+      "perFloor": [
+        1
+      ]
+    }
+  },
+  "backbone": "copper",
+  "cat5eFlag": false,
+  "edgePorts": 5,
+  "poeEdgePorts": 0,
+  "otherPoeLoadW": 0.0,
+  "flags": [
+    "Internet speed assumed from device count",
+    "Confirm ISP availability",
+    "Existing cabling unknown",
+    "Existing equipment unverified",
+    "Enclosure chosen from device count",
+    "Management style recommended"
+  ]
+}
