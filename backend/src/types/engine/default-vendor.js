@@ -22,8 +22,8 @@ function compareCandidates(a, b, vendorOrder) {
   if (aTotal !== null && bTotal === null) return -1;
 
   // For non-null totals, non-partial plans rank ahead of partial plans.
-  const aIsPartial = a.plan.bom.totalIsPartial === true;
-  const bIsPartial = b.plan.bom.totalIsPartial === true;
+  const aIsPartial = a.plan.bom?.totalIsPartial === true;
+  const bIsPartial = b.plan.bom?.totalIsPartial === true;
 
   if (aIsPartial !== bIsPartial) {
     return aIsPartial ? 1 : -1;

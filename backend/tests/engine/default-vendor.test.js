@@ -263,3 +263,107 @@ test('AC9: identical inputs produce identical results and ledger entries', () =>
 
   assert.deepEqual(first, second);
 });
+
+test('EDGE: missing vendor descriptor falls back to unfiltered candidates', () => {
+  const plans = [
+    makePlan({ vendor: 'Unknown Vendor', total: 10000 }),
+  ];
+
+  const { result, ctx } = runSelector(
+    plans,
+    makeInput({ management: 'dashboard' }),
+    []
+  );
+
+  assert.equal(result.CE, 'Unknown Vendor');
+
+  assert.ok(
+    ctx.ledger.some(
+      (entry) =>
+        entry.field === 'defaultVendor.CE.managementFilter' &&
+        entry.reason.includes('ignored')
+    )
+  );
+});
+
+test('EDGE: vendor without managementModes falls back to unfiltered candidates', () => {
+  const plans = [
+    makePlan({ vendor: 'Vendor D', total: 10000 }),
+  ];
+
+  const vendorList = [
+    { name: 'Vendor D', needController: false },
+  ];
+
+  const { result } = runSelector(
+    plans,
+    makeInput({ management: 'dashboard' }),
+    vendorList
+  );
+
+  assert.equal(result.CE, 'Vendor D');
+});
+
+test('EDGE: missing BOM totals rank last without crashing', () => {
+  const plans = [
+    { vendor: 'Vendor A', planType: 'CE', complete: true },
+    { vendor: 'Vendor B', planType: 'CE', complete: true },
+    makePlan({ vendor: 'Vendor C', total: 12000 }),
+  ];
+
+  const { result } = runSelector(plans);
+
+  assert.equal(result.CE, 'Vendor C');
+});
+
+test('EDGE: CE and HP management fallback are independent', () => {
+  const plans = [
+    makePlan({ vendor: 'Vendor A', planType: 'CE', total: 10000 }),
+    makePlan({ vendor: 'Vendor B', planType: 'HP', total: 20000 }),
+  ];
+
+  const { result, ctx } = runSelector(
+    plans,
+    makeInput({ management: 'dashboard' })
+  );
+
+  assert.deepEqual(result, {
+    CE: 'Vendor A',
+    HP: 'Vendor B',
+  });
+
+  assert.ok(
+    ctx.ledger.some(
+      (entry) =>
+        entry.field === 'defaultVendor.HP.managementFilter' &&
+        entry.reason.includes('ignored')
+    )
+  );
+});
+
+test('EDGE: selector does not mutate the original plans array', () => {
+  const plans = [
+    makePlan({ vendor: 'Vendor B', total: 12000 }),
+    makePlan({ vendor: 'Vendor A', total: 10000 }),
+    makePlan({ vendor: 'Vendor C', planType: 'HP', total: 20000 }),
+  ];
+
+  const originalPlans = structuredClone(plans);
+
+  runSelector(plans);
+
+  assert.deepEqual(plans, originalPlans);
+});
+
+ test('EDGE: NaN, Infinity, and string totals rank last', () => {
+  const plans = [
+    makePlan({ vendor: 'Vendor A', total: NaN }),
+    makePlan({ vendor: 'Vendor B', total: Infinity }),
+    makePlan({ vendor: 'Vendor C', total: '12000' }),
+    makePlan({ vendor: 'Vendor D', total: 15000 }),
+  ];
+
+  const { result } = runSelector(plans);
+
+  assert.equal(result.CE, 'Vendor D');
+});
