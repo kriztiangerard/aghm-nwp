@@ -10,6 +10,8 @@ const { normalize } = require('../../src/types/engine/normalize');
 const { createCtx } = require('../../src/types/engine/ctx');
 const { computePoeBudget } = require('../../src/types/engine/devices/poe');
 const { runEngine, validateEngineInputs } = require('../../src/types/engine/orchestration');
+const syntheticEdgeCases = require('../fixtures/catalogs/synthetic-catalog-edgecases.json');
+const syntheticProductLines = require('../fixtures/catalogs/synthetic-catalog-productlines.json');
 
 
 const input = normalize(raw, createCtx());
@@ -1047,5 +1049,111 @@ test('buildPlan leaves the placeholder BOM when no builder is injected', () => {
     lines: [],
     total: null,
     totalIsPartial: true,
+  });
+});
+
+test('Omada snapshot and vendor 999 synthetic fixtures produce four plans', () => {
+  const syntheticVendor = {
+    name: 'Synthetic Vendor',
+    needController: false,
+    managementModes: ['dashboard'],
+  };
+
+  const combinedCatalog = [
+    ...catalog,
+    ...syntheticEdgeCases,
+  ];
+
+  const result = runEngine(
+    input,
+    requirements,
+    combinedCatalog,
+    [omadaVendor, syntheticVendor],
+    mockSteps,
+  );
+
+  assert.equal(result.plans.length, 4);
+
+  assert.deepEqual(
+    result.plans.map(({ vendor, planType }) => `${vendor}:${planType}`),
+    [
+      'TP-Link Omada:CE',
+      'TP-Link Omada:HP',
+      'Synthetic Vendor:CE',
+      'Synthetic Vendor:HP',
+    ],
+  );
+
+  assert.ok(
+    syntheticProductLines.every((line) => line.vendor_id === 999),
+    'synthetic product-line fixture should use vendor_id 999',
+  );
+
+  assert.ok(
+    result.plans.every((plan) => plan.vendor !== 'Generic'),
+    'Generic must not become a plan vendor',
+  );
+});
+
+test('runEngine aggregates plan context into the top-level result', () => {
+  const seenPlans = new Set();
+
+  const stepsWithContext = {
+    ...mockSteps,
+    selectGateway: (args) => {
+      const key = `${args.vendor.name}:${args.plan}`;
+
+      if (!seenPlans.has(key)) {
+        seenPlans.add(key);
+
+        args.ctx.flags.push({
+          code: 'TEST_PLAN_FLAG',
+          message: key,
+        });
+
+        args.ctx.ledger.push({
+          field: 'testField',
+          valueUsed: args.plan,
+          reason: 'Regression test',
+        });
+
+        args.ctx.unmet.push({
+          category: 'switch',
+          vendor: args.vendor.name,
+          reason: 'Regression test unmet item',
+        });
+      }
+
+      return mockSteps.selectGateway(args);
+    },
+  };
+
+  const result = runEngine(
+    input,
+    requirements,
+    catalog,
+    [omadaVendor],
+    stepsWithContext,
+  );
+
+  assert.equal(result.plans.length, 2);
+  assert.equal(result.flags.filter((flag) => flag.code === 'TEST_PLAN_FLAG').length, 2);
+  assert.equal(result.ledger.filter((entry) => entry.field === 'testField').length, 2);
+  assert.equal(
+  result.unmet.filter(
+    (item) => item.reason === 'Regression test unmet item',
+  ).length,
+  2,
+);
+
+  result.plans.forEach((plan) => {
+    assert.ok(plan.flags.some((flag) => flag.code === 'TEST_PLAN_FLAG'));
+    assert.ok(plan.ledger.some((entry) => entry.field === 'testField'));
+    assert.equal(
+  plan.unmet.filter(
+    (item) => item.reason === 'Regression test unmet item',
+  ).length,
+  1,
+);
   });
 });

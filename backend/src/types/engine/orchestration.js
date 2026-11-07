@@ -18,6 +18,7 @@ const { selectGateway } = require('./devices/gateway');
 const { selectAccessPoints } = require('./devices/aps');
 const { computePoeBudget } = require('./devices/poe');
 const { selectSwitches } = require('./devices/switches');
+const { selectDefaultVendors } = require('./default-vendor.js');
 
 const {
   computeRequiredRackUnits,
@@ -397,6 +398,7 @@ const resolvedItems = selectedDeviceItems;
   return plan;
 }
 
+
 function runEngine(input, reqs, catalog, vendors, steps = { selectGateway }) {
   validateEngineInputs(input, reqs, catalog, vendors);
 
@@ -420,15 +422,31 @@ function runEngine(input, reqs, catalog, vendors, steps = { selectGateway }) {
     });
   });
 
+  // ENGINE-017 selects CE and HP defaults independently.
+  const selectionCtx = createCtx();
+  const defaultVendor = selectDefaultVendors(
+    plans,
+    input,
+    vendors,
+    selectionCtx,
+  );
+
+  // Aggregate plan-level context without removing the context kept on each plan.
+  const planLedger = plans.flatMap((plan) => plan.ledger || []);
+  const planFlags = plans.flatMap((plan) => plan.flags || []);
+  const planUnmet = plans.flatMap((plan) => plan.unmet || []);
+
   return {
     contractVersion: CONTRACT_VERSION,
     requirements: reqs,
-    ledger: [],
-    flags: [],
+    ledger: [...planLedger, ...selectionCtx.ledger],
+    flags: [...planFlags, ...selectionCtx.flags],
+    unmet: planUnmet,
     plans,
-    defaultVendor: { CE: null, HP: null },
+    defaultVendor,
   };
 }
+
 
 module.exports = {
   runEngine,
