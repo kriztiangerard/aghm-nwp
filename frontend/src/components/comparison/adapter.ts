@@ -10,72 +10,65 @@ import {
 } from "./types";
 
 // ---------------------------------------------------------------------------
-// ENGINE SHAPES
-// GROUNDED in contract v2: CatalogSku fields, SelectionResult {sku, qty, flags},
-//   unmet {category, vendor, reason}, tiers CE/HP, categories.
-// STILL ASSUMED (not in the contract yet, confirm against the stories):
-//   plan wrapper (`lines`, `limitations`, `optics`, `installationMaterials`),
-//   flag object shape (`code`), and where the v3 price fields sit (on the sku).
+// ENGINE SHAPES (contracts.js, CONTRACT_VERSION 3)
+// Only the fields this adapter reads. Plan.bom is already priced by the engine
+// (NWP-BOM-001), so nothing is recomputed here.
 // ---------------------------------------------------------------------------
-type EngineTier = "CE" | "HP";
-type CatalogCategory = "gateway" | "access_point" | "switch" | "optic" | "enclosure";
+const EXPECTED_CONTRACT_VERSION = 3;
 
-interface EngineCatalogSku {
+type EngineTier = "CE" | "HP";
+type EngineBomCategory = "gateway" | "controller" | "switch" | "access_point" | "enclosure";
+
+interface EngineBomLine {
+  category: EngineBomCategory;
   sku: string;
-  name?: string; // required in contract v3
+  name: string;
   vendor: string;
-  category: CatalogCategory;
-  status: "ACTIVE" | "SUNSETTING" | "DISCONTINUED";
-  price: number | null;
-  currency: string;
-  capabilities?: string[]; // v3
-  // v3 price provenance, from the catalog export (Pricing table)
+  qty: number;
+  unitPrice: number | null; // null = price on request
+  lineTotal: number | null; // null whenever unitPrice is null
+  status: "ACTIVE" | "SUNSETTING";
+  isGeneric: boolean;
   priceSource?: "synchronized" | "manual";
   isStale?: boolean;
-  priceUpdatedAt?: string | null;
+  priceUpdatedAt?: string;
 }
 
-type EngineFlag = string | { code: string; [key: string]: unknown };
+interface EngineBom {
+  currency: string;
+  lines: EngineBomLine[];
+  total: number | null; // null when nothing is priced
+  totalIsPartial: boolean; // true when any line is unpriced or the plan is incomplete
+}
 
 interface EngineUnmet {
-  category: string;
-  vendor: string;
-  reason: string;
+  category?: string;
+  vendor?: string;
+  reason?: string;
 }
 
-interface EnginePlanLine {
-  sku: EngineCatalogSku;
-  qty: number;
-  flags: EngineFlag[];
-}
-
+// A requirement only, never a BOM line (NWP-ENGINE-012).
 interface EngineOptics {
-  moduleCount: number;
-  formFactor: string;
-}
-
-interface EngineMaterialRow {
-  key: string;
-  label: string;
-  quantity: number;
-  unitPrice: number | null; // representative prices are still open
+  links: number;
+  modules: number;
+  formFactor: string | null;
 }
 
 interface EnginePlan {
   vendor: string;
-  tier: EngineTier;
+  planType: EngineTier;
   complete: boolean;
+  bom: EngineBom;
   unmet: EngineUnmet[];
   limitations?: string[];
-  lines: EnginePlanLine[];
   optics?: EngineOptics | null;
-  installationMaterials?: EngineMaterialRow[];
 }
 
 export interface EngineResult {
+  contractVersion: number;
+  generatedAt: string; // stamped by the handler, since the engine has no clock
   plans: EnginePlan[];
   defaultVendor?: { CE?: string | null; HP?: string | null };
-  generatedAt: string; // stamped by the handler, since the engine has no clock
 }
 // ---------------------------------------------------------------------------
 
@@ -84,11 +77,12 @@ const TIER_MAP: Record<EngineTier, PlanTier> = {
   HP: "High-Performance",
 };
 
-const CATEGORY_MAP: Record<CatalogCategory, BomCategory> = {
+// Requires "Controller" to exist in BomCategory (types.ts).
+const CATEGORY_MAP: Record<EngineBomCategory, BomCategory> = {
   gateway: "Gateway",
+  controller: "Controller",
   switch: "Switch",
   access_point: "Access Point",
-  optic: "Optic",
   enclosure: "Enclosure",
 };
 
@@ -103,83 +97,58 @@ const toVendorName = (raw: string): VendorName | null => {
   return VENDOR_ALIASES[raw] ?? null;
 };
 
-const hasFlag = (flags: EngineFlag[], code: string) =>
-  flags.some((f) => (typeof f === "string" ? f : f.code) === code);
-
-const round2 = (n: number) => Math.round(n * 100) / 100;
-
-const lineTotal = (unitPrice: number | null, quantity: number) =>
-  unitPrice === null ? null : round2(unitPrice * quantity);
-
-const adaptLine = ({ sku, qty, flags }: EnginePlanLine): BomLineItem => ({
-  sku: sku.sku,
-  name: sku.name ?? sku.sku,
-  category: CATEGORY_MAP[sku.category],
-  quantity: qty,
-  unitPrice: sku.price,
-  subtotal: lineTotal(sku.price, qty),
-  status: sku.status,
-  // Fallbacks apply only until contract v3 makes these required.
-  priceSource: sku.priceSource ?? "manual",
-  isStale: sku.isStale ?? false,
-  priceUpdatedAt: sku.priceUpdatedAt ?? null,
-  isGeneric: sku.category === "enclosure" && hasFlag(flags, "ENCLOSURE_GENERIC"),
+const adaptLine = (line: EngineBomLine): BomLineItem => ({
+  sku: line.sku,
+  name: line.name,
+  category: CATEGORY_MAP[line.category],
+  quantity: line.qty,
+  unitPrice: line.unitPrice,
+  subtotal: line.lineTotal,
+  status: line.status,
+  // Provenance is optional on the contract; these fallbacks keep the UI type satisfied.
+  priceSource: line.priceSource ?? "manual",
+  isStale: line.isStale ?? false,
+  priceUpdatedAt: line.priceUpdatedAt ?? null,
+  isGeneric: line.isGeneric,
 });
 
-// SFP modules are never catalog BOM lines; the row comes from plan.optics.
-const adaptOptics = (optics: EngineOptics): BomLineItem => ({
-  sku: "SFP-MODULE",
-  name: `SFP module (${optics.formFactor})`,
-  category: "Optic",
-  quantity: optics.moduleCount,
-  unitPrice: null,
-  subtotal: null,
-  priceSource: "manual",
-  isStale: false,
-  priceUpdatedAt: null,
-  isGeneric: true,
-});
+const formatUnmet = (u: EngineUnmet): string => {
+  const reason = u.reason ?? "Requirement not met";
+  const where = [u.category, u.vendor ? `(${u.vendor})` : null].filter(Boolean).join(" ");
+  return where ? `${where}: ${reason}` : reason;
+};
 
-const adaptMaterial = (row: EngineMaterialRow): BomLineItem => ({
-  sku: `MATERIAL-${row.key.toUpperCase()}`,
-  name: row.label,
-  category: "Installation Material",
-  quantity: row.quantity,
-  unitPrice: row.unitPrice,
-  subtotal: lineTotal(row.unitPrice, row.quantity),
-  priceSource: "manual",
-  isStale: false,
-  priceUpdatedAt: null,
-  isGeneric: true,
-});
-
-const formatUnmet = (u: EngineUnmet) => `${u.category} (${u.vendor}): ${u.reason}`;
+// Optics are not billed, so they surface as an advisory instead of a BOM row.
+const opticsAdvisory = (optics?: EngineOptics | null): string[] =>
+  optics && optics.modules > 0
+    ? [
+        `Fiber links need ${optics.modules} ${optics.formFactor ?? "SFP"} transceiver module${
+          optics.modules === 1 ? "" : "s"
+        }. Not included in the total.`,
+      ]
+    : [];
 
 const adaptPlan = (
   plan: EnginePlan,
+  tier: PlanTier,
   vendor: VendorName,
   generatedAt: string
 ): NetworkPlanData => {
-  const bom: BomLineItem[] = [
-    ...plan.lines.map(adaptLine),
-    ...(plan.optics && plan.optics.moduleCount > 0 ? [adaptOptics(plan.optics)] : []),
-    ...(plan.installationMaterials ?? []).map(adaptMaterial),
-  ];
-
-  // Priced lines only; a null price never silently counts as 0.
-  const totalCost = round2(bom.reduce((sum, l) => sum + (l.subtotal ?? 0), 0));
+  const advisories = [...(plan.limitations ?? []), ...opticsAdvisory(plan.optics)];
 
   return {
     vendor,
-    tier: TIER_MAP[plan.tier],
-    bom,
-    totalCost,
-    totalIsPartial: bom.some((l) => l.unitPrice === null),
+    tier,
+    bom: plan.bom.lines.map(adaptLine),
+    // bom.total is null when nothing is priced. 0 plus totalIsPartial lets the
+    // card show "price unavailable" instead of a misleading 0.00.
+    totalCost: plan.bom.total ?? 0,
+    totalIsPartial: plan.bom.totalIsPartial,
     complete: plan.complete,
     unmet: plan.unmet.map(formatUnmet),
     generatedAt,
-    currency: plan.lines[0]?.sku.currency ?? "PHP",
-    advisories: plan.limitations,
+    currency: plan.bom.currency,
+    advisories: advisories.length > 0 ? advisories : undefined,
   };
 };
 
@@ -189,6 +158,12 @@ export interface AdaptedPlans {
 }
 
 export function adaptEngineResult(result: EngineResult): AdaptedPlans {
+  if (result.contractVersion !== EXPECTED_CONTRACT_VERSION) {
+    console.warn(
+      `[adapter] Expected contract v${EXPECTED_CONTRACT_VERSION}, received v${result.contractVersion}`
+    );
+  }
+
   const plansData: VendorPlansPayload = {};
 
   for (const plan of result.plans) {
@@ -197,10 +172,14 @@ export function adaptEngineResult(result: EngineResult): AdaptedPlans {
       console.warn(`[adapter] Unknown vendor "${plan.vendor}", plan skipped`);
       continue;
     }
-    const tier = TIER_MAP[plan.tier];
+    const tier = TIER_MAP[plan.planType];
+    if (!tier) {
+      console.warn(`[adapter] Unknown planType "${plan.planType}" for ${plan.vendor}, plan skipped`);
+      continue;
+    }
     plansData[vendor] = {
       ...plansData[vendor],
-      [tier]: adaptPlan(plan, vendor, result.generatedAt),
+      [tier]: adaptPlan(plan, tier, vendor, result.generatedAt),
     };
   }
 
