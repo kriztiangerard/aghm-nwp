@@ -183,6 +183,17 @@ test('AC4: null totals rank last', () => {
   assert.equal(result.CE, 'Vendor B');
 });
 
+test('AC4: zero total is treated as a valid lowest total', () => {
+  const plans = [
+    makePlan({ vendor: 'Vendor A', total: 10000 }),
+    makePlan({ vendor: 'Vendor B', total: 0 }),
+  ];
+
+  const { result } = runSelector(plans);
+
+  assert.equal(result.CE, 'Vendor B');
+});
+
 test('AC5: earlier vendor wins when totals are equal', () => {
   const plans = [
     makePlan({ vendor: 'Vendor B', total: 10000 }),
@@ -384,7 +395,7 @@ test('EDGE: selector does not mutate the original plans array', () => {
   assert.deepEqual(plans, originalPlans);
 });
 
- test('EDGE: NaN, Infinity, and string totals rank last', () => {
+test('EDGE: NaN, Infinity, and string totals rank last', () => {
   const plans = [
     makePlan({ vendor: 'Vendor A', total: NaN }),
     makePlan({ vendor: 'Vendor B', total: Infinity }),
@@ -403,8 +414,8 @@ test('returns null and adds a flag when no complete HP plan exists', () => {
       vendor: 'Vendor A',
       planType: 'HP',
       complete: false,
-      total: 10000
-    })
+      total: 10000,
+    }),
   ];
 
   const { result, ctx } = runSelector(plans);
