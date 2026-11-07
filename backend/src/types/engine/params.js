@@ -19,6 +19,7 @@ module.exports = Object.freeze({
     door_controller: true, smart_sensor: true, pos_terminal: false, network_printer: false, other: true,
   },
   BUDGET_BAND_EDGES_PHP: { entryMax: 15000, mainstreamMax: 40000 },
+  BUDGET_BAND_PLAN_CAP_PHP: null, // PARAM: team must define plan-total caps; null disables budget filtering.
   // Q10 fallback bands: NOT YET DEFINED. Do not invent values (decision D6).
   Q10_FALLBACK_BANDS: null,
   GENERIC_VENDOR_NAME: 'Generic',   // vendor name of the shared generic enclosure entries (NWP-ENGINE-013)
