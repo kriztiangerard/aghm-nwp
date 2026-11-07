@@ -42,9 +42,21 @@ function matchesGeneration(sku, target) {
   return false;
 }
 
+function normalizeApSku(sku, vendor) {
+  return {
+    ...sku,
+    vendor: sku.vendor ?? vendor,
+    category: 'access_point',
+    status: String(
+      sku.status ?? sku.lifecycle_status ?? ''
+    ).toUpperCase(),
+  };
+}
+
 function selectAccessPoints({
   catalog,
   vendor,
+  vendorId,
   requirements,
   plan,
   cePick,
@@ -87,11 +99,20 @@ function selectAccessPoints({
       );
     }
 
-    const pool = catalog.filter(
-      (sku) =>
-        sku.vendor === vendor &&
-        sku.category === 'access_point'
-    );
+    const pool = catalog
+      .filter((sku) => {
+        const isAp =
+          sku.category === 'ap' ||
+          sku.category === 'access_point';
+
+        const matchesVendor =
+          vendorId !== undefined
+            ? Number(sku.vendor_id ?? sku.vendorId) === Number(vendorId)
+            : sku.vendor === vendor;
+
+        return isAp && matchesVendor;
+      })
+      .map((sku) => normalizeApSku(sku, vendor));
 
     return selectSku({
       pool,
@@ -158,4 +179,6 @@ function selectAccessPoints({
 
 module.exports = {
   selectAccessPoints,
+  normalizeApSku,
+  matchesGeneration,
 };

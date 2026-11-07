@@ -1,17 +1,73 @@
 import { z } from 'zod'
 
+import { QUESTIONNAIRE_LIMITS } from '../lib/questionnaireLimits'
+
+const requiredString = (message: string) =>
+  z.preprocess(
+    (value) =>
+      value === undefined || value === null || value === ''
+        ? ''
+        : value,
+    z.string().trim().min(1, message).max(QUESTIONNAIRE_LIMITS.project.name.max, `Project or company name must be ${QUESTIONNAIRE_LIMITS.project.name.max} characters or fewer.`)
+  )
+
+const requiredNumber = (
+  message: string,
+  minMessage: string,
+  intMessage: string,
+  minimum = 1,
+  maximum?: number,
+  maxMessage?: string
+) =>
+  z.preprocess(
+    (value) =>
+      value === undefined || value === null || value === ''
+        ? '__MISSING__'
+        : value,
+    z
+      .union([z.coerce.number(), z.literal('__MISSING__')])
+      .refine((value) => value !== '__MISSING__', { message })
+      .refine((value) => !Number.isNaN(value), { message })
+      .refine((value) => Number.isInteger(value), { message: intMessage })
+      .refine((value) => value >= minimum, { message: minMessage })
+      .refine((value) => maximum === undefined || value <= maximum, {
+        message: maxMessage ?? `Value must be at most ${maximum}.`,
+      })
+  )
+
 export const projectBasicsSchema = z.object({
-  companyName: z
-    .string()
-    .min(1, 'Project or company name is required'),
+  project: z.object({
+    name: requiredString('Project or company name is required.'),
 
-  locations: z.enum(['one', 'multiple']),
+    numberOfSites: z.preprocess(
+      (value) => {
+        if (value === undefined || value === null || value === '') return '__MISSING__'
+        if (typeof value === 'number') {
+          if (value === 1) return 'one'
+          if (value > 1) return 'two_or_more'
+        }
 
-  headcount: z
-    .coerce
-    .number()
-    .min(1, 'There must be at least 1 user')
-    .max(200, 'Maximum of 200 users'),
+        return value
+      },
+      z
+        .union([
+          z.enum(['one', 'two_or_more']),
+          z.literal('__MISSING__'),
+        ])
+        .refine((value) => value !== '__MISSING__', {
+          message: 'Number of business locations is required.',
+        })
+    ),
+
+    totalUsers: requiredNumber(
+      'Total number of users is required.',
+      `Headcount must be between ${QUESTIONNAIRE_LIMITS.project.totalUsers.min} and ${QUESTIONNAIRE_LIMITS.project.totalUsers.max}.`,
+      `Headcount must be between ${QUESTIONNAIRE_LIMITS.project.totalUsers.min} and ${QUESTIONNAIRE_LIMITS.project.totalUsers.max}.`,
+      QUESTIONNAIRE_LIMITS.project.totalUsers.min,
+      QUESTIONNAIRE_LIMITS.project.totalUsers.max,
+      `Headcount must be between ${QUESTIONNAIRE_LIMITS.project.totalUsers.min} and ${QUESTIONNAIRE_LIMITS.project.totalUsers.max}.`
+    ),
+  }),
 })
 
 export type ProjectBasicsData = z.infer<typeof projectBasicsSchema>
