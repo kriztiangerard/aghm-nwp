@@ -1,0 +1,322 @@
+[
+  {
+    "vendor_id": 1,
+    "product_line": "1430",
+    "sku": "R8R44A",
+    "price": null,
+    "name": "Aruba Instant On 1430 5G Switch",
+    "description": "Unmanaged Layer 2 Gigabit Ethernet switch with five 10/100/1000 Mbps RJ45 ports.",
+    "is_rack_mountable": false,
+    "u_height": 0,
+    "lifecycle_status": "active",
+    "eos_date": null,
+    "eol_date": null,
+    "category": "switch",
+    "capabilities": [
+      "switch"
+    ],
+    "switch_specs": {
+      "port_count": 5,
+      "poe_ports": 0,
+      "switching_capacity_gbps": 10,
+      "layer": 2
+    }
+  },
+  {
+    "vendor_id": 1,
+    "product_line": "1430",
+    "sku": "R8R45A",
+    "price": null,
+    "name": "Aruba Instant On 1430 8G Switch",
+    "description": "Unmanaged Layer 2 Gigabit Ethernet switch with eight 10/100/1000 Mbps RJ45 ports.",
+    "is_rack_mountable": false,
+    "u_height": 0,
+    "lifecycle_status": "active",
+    "eos_date": null,
+    "eol_date": null,
+    "category": "switch",
+    "capabilities": [
+      "switch"
+    ],
+    "switch_specs": {
+      "port_count": 8,
+      "poe_ports": 0,
+      "switching_capacity_gbps": 16,
+      "layer": 2
+    }
+  },
+  {
+    "vendor_id": 1,
+    "product_line": "1430",
+    "sku": "R8R46A",
+    "price": null,
+    "name": "Aruba Instant On 1430 8G Class 4 PoE 64W Switch",
+    "description": "Unmanaged Layer 2 Gigabit Ethernet switch with eight Class 4 PoE ports and a 64W PoE budget.",
+    "is_rack_mountable": true,
+    "u_height": 0,
+    "lifecycle_status": "active",
+    "eos_date": null,
+    "eol_date": null,
+    "category": "switch",
+    "capabilities": [
+      "switch"
+    ],
+    "switch_specs": {
+      "port_count": 8,
+      "poe_ports": 8,
+      "poe_budget_w": 64,
+      "switching_capacity_gbps": 16,
+      "layer": 2
+    }
+  },
+  {
+    "vendor_id": 1,
+    "product_line": "1430",
+    "sku": "R8R47A",
+    "price": null,
+    "name": "Aruba Instant On 1430 16G Switch",
+    "description": "Unmanaged Layer 2 Gigabit Ethernet switch with sixteen 10/100/1000 Mbps RJ45 ports.",
+    "is_rack_mountable": true,
+    "u_height": 1,
+    "lifecycle_status": "active",
+    "eos_date": null,
+    "eol_date": null,
+    "category": "switch",
+    "capabilities": [
+      "switch"
+    ],
+    "switch_specs": {
+      "port_count": 16,
+      "poe_ports": 0,
+      "switching_capacity_gbps": 32,
+      "layer": 2
+    }
+  },
+  {
+    "vendor_id": 1,
+    "product_line": "1430",
+    "sku": "R8R48A",
+    "price": null,
+    "name": "Aruba Instant On 1430 16G Class 4 PoE 124W Switch",
+    "description": "Unmanaged Layer 2 Gigabit Ethernet switch with sixteen Class 4 PoE ports and a 124W PoE budget.",
+    "is_rack_mountable": true,
+    "u_height": 0,
+    "lifecycle_status": "active",
+    "eos_date": null,
+    "eol_date": null,
+    "category": "switch",
+    "capabilities": [
+      "switch"
+    ],
+    "switch_specs": {
+      "port_count": 16,
+      "poe_ports": 16,
+      "poe_budget_w": 124,
+      "switching_capacity_gbps": 32,
+      "layer": 2
+    }
+  },
+  {
+    "vendor_id": 1,
+    "product_line": "1430",
+    "sku": "R8R49A",
+    "price": null,
+    "name": "Aruba Instant On 1430 24G Switch",
+    "description": "Unmanaged Layer 2 Gigabit Ethernet switch with twenty-four 10/100/1000 Mbps RJ45 ports.",
+    "is_rack_mountable": true,
+    "u_height": 1,
+    "lifecycle_status": "active",
+    "eos_date": null,
+    "eol_date": null,
+    "category": "switch",
+    "capabilities": [
+      "switch"
+    ],
+    "switch_specs": {
+      "port_count": 24,
+      "poe_ports": 0,
+      "switching_capacity_gbps": 48,
+      "layer": 2
+    }
+  },
+  {
+    "vendor_id": 1,
+    "product_line": "1430",
+    "sku": "R8R50A",
+    "price": null,
+    "name": "Aruba Instant On 1430 26G 2SFP Switch",
+    "description": "Unmanaged Layer 2 Gigabit Ethernet switch with twenty-six RJ45 ports and two 1GbE SFP ports.",
+    "is_rack_mountable": true,
+    "u_height": 1,
+    "lifecycle_status": "active",
+    "eos_date": null,
+    "eol_date": null,
+    "category": "switch",
+    "capabilities": [
+      "switch"
+    ],
+    "switch_specs": {
+      "port_count": 28,
+      "poe_ports": 0,
+      "switching_capacity_gbps": 56,
+      "layer": 2,
+      "sfp_ports": 2,
+      "sfp_form_factor": "SFP"
+    }
+  },
+  {
+    "vendor_id": 1,
+    "product_line": "1830",
+    "sku": "JL810A",
+    "price": null,
+    "name": "Aruba Instant On 1830 8G Switch",
+    "description": "Smart-managed Layer 2 Gigabit Ethernet switch with eight RJ45 ports and PoE-powered-device input support on port 1.",
+    "is_rack_mountable": false,
+    "u_height": 0,
+    "lifecycle_status": "active",
+    "eos_date": null,
+    "eol_date": null,
+    "category": "switch",
+    "capabilities": [
+      "switch"
+    ],
+    "switch_specs": {
+      "port_count": 8,
+      "poe_ports": 0,
+      "switching_capacity_gbps": 16,
+      "max_power_draw_w": 8.09,
+      "layer": 2
+    }
+  },
+  {
+    "vendor_id": 1,
+    "product_line": "1830",
+    "sku": "JL811A",
+    "price": null,
+    "name": "Aruba Instant On 1830 8G 4p Class 4 PoE 65W Switch",
+    "description": "Smart-managed Layer 2 Gigabit Ethernet switch with eight RJ45 ports, four Class 4 PoE ports, and a 65W PoE budget.",
+    "is_rack_mountable": true,
+    "u_height": 0,
+    "lifecycle_status": "active",
+    "eos_date": null,
+    "eol_date": null,
+    "category": "switch",
+    "capabilities": [
+      "switch"
+    ],
+    "switch_specs": {
+      "port_count": 8,
+      "poe_ports": 4,
+      "poe_budget_w": 65,
+      "switching_capacity_gbps": 16,
+      "max_power_draw_w": 86.07,
+      "layer": 2
+    }
+  },
+  {
+    "vendor_id": 1,
+    "product_line": "1830",
+    "sku": "JL812A",
+    "price": null,
+    "name": "Aruba Instant On 1830 24G 2SFP Switch",
+    "description": "Smart-managed Layer 2 Gigabit Ethernet switch with twenty-four RJ45 ports and two 1GbE SFP uplink ports.",
+    "is_rack_mountable": true,
+    "u_height": 0,
+    "lifecycle_status": "active",
+    "eos_date": null,
+    "eol_date": null,
+    "category": "switch",
+    "capabilities": [
+      "switch"
+    ],
+    "switch_specs": {
+      "port_count": 26,
+      "poe_ports": 0,
+      "sfp_ports": 2,
+      "sfp_form_factor": "SFP",
+      "switching_capacity_gbps": 52,
+      "max_power_draw_w": 19.1,
+      "layer": 2
+    }
+  },
+  {
+    "vendor_id": 1,
+    "product_line": "1830",
+    "sku": "JL813A",
+    "price": null,
+    "name": "Aruba Instant On 1830 24G 12p Class 4 PoE 2SFP 195W Switch",
+    "description": "Smart-managed Layer 2 Gigabit Ethernet switch with twenty-four RJ45 ports, twelve Class 4 PoE ports, a 195W PoE budget, and two 1GbE SFP uplink ports.",
+    "is_rack_mountable": true,
+    "u_height": 0,
+    "lifecycle_status": "active",
+    "eos_date": null,
+    "eol_date": null,
+    "category": "switch",
+    "capabilities": [
+      "switch"
+    ],
+    "switch_specs": {
+      "port_count": 26,
+      "poe_ports": 12,
+      "poe_budget_w": 195,
+      "sfp_ports": 2,
+      "sfp_form_factor": "SFP",
+      "switching_capacity_gbps": 52,
+      "max_power_draw_w": 244.6,
+      "layer": 2
+    }
+  },
+  {
+    "vendor_id": 1,
+    "product_line": "1830",
+    "sku": "JL814A",
+    "price": null,
+    "name": "Aruba Instant On 1830 48G 4SFP Switch",
+    "description": "Smart-managed Layer 2 Gigabit Ethernet switch with forty-eight RJ45 ports and four 1GbE SFP uplink ports.",
+    "is_rack_mountable": true,
+    "u_height": 0,
+    "lifecycle_status": "active",
+    "eos_date": null,
+    "eol_date": null,
+    "category": "switch",
+    "capabilities": [
+      "switch"
+    ],
+    "switch_specs": {
+      "port_count": 52,
+      "poe_ports": 0,
+      "sfp_ports": 4,
+      "sfp_form_factor": "SFP",
+      "switching_capacity_gbps": 104,
+      "max_power_draw_w": 40.2,
+      "layer": 2
+    }
+  },
+  {
+    "vendor_id": 1,
+    "product_line": "1830",
+    "sku": "JL815A",
+    "price": null,
+    "name": "Aruba Instant On 1830 48G 24p Class 4 PoE 4SFP 370W Switch",
+    "description": "Smart-managed Layer 2 Gigabit Ethernet switch with forty-eight RJ45 ports, twenty-four Class 4 PoE ports, a 370W PoE budget, and four 1GbE SFP uplink ports.",
+    "is_rack_mountable": true,
+    "u_height": 0,
+    "lifecycle_status": "active",
+    "eos_date": null,
+    "eol_date": null,
+    "category": "switch",
+    "capabilities": [
+      "switch"
+    ],
+    "switch_specs": {
+      "port_count": 52,
+      "poe_ports": 24,
+      "poe_budget_w": 370,
+      "sfp_ports": 4,
+      "sfp_form_factor": "SFP",
+      "switching_capacity_gbps": 104,
+      "max_power_draw_w": 462.5,
+      "layer": 2
+    }
+  }
+]
