@@ -29,7 +29,7 @@ export const VendorSelect: React.FC<VendorSelectProps> = ({
         htmlFor={id}
         className="text-xs font-medium text-muted-foreground mb-1.5 block"
       >
-        Vendor for {tier} plan
+        Vendor
       </label>
       <Select
         value={selectedVendor}
