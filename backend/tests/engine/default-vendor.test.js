@@ -111,12 +111,15 @@ test('AC3: null budget cap does not filter plans by total', () => {
   const { result, ctx } = runSelector(plans);
 
   assert.equal(result.CE, 'Vendor A');
+  const budgetEntry = ctx.ledger.find(
+    (entry) => entry.field === 'defaultVendor.budgetFilter'
+  );
+
+  assert.ok(budgetEntry);
+  assert.equal(budgetEntry.valueUsed, null);
+  assert.ok(budgetEntry.reason.includes('under15k'));
   assert.ok(
-    ctx.ledger.some(
-      (entry) =>
-        entry.field === 'defaultVendor.budgetFilter' &&
-        entry.reason.includes('no budget filtering is applied')
-    )
+    budgetEntry.reason.includes('no budget filtering is applied')
   );
 });
 
@@ -235,19 +238,45 @@ test('AC8: CE and HP defaults are selected independently', () => {
     makePlan({ vendor: 'Vendor C', planType: 'HP', total: 25000 }),
   ];
 
-  const { result, ctx } = runSelector(plans);
+  const { result, ctx } = runSelector(
+    plans,
+    makeInput({
+      itSupport: 'inHouse',
+      downtime: 'everyMinute',
+      management: 'dashboard',
+    })
+  );
 
   assert.deepEqual(result, {
     CE: 'Vendor A',
-    HP: 'Vendor B',
+    HP: 'Vendor C',
   });
 
+  const selectionRuleEntry = ctx.ledger.find(
+    (entry) => entry.field === 'defaultVendor.selectionRule'
+  );
+
+  assert.ok(selectionRuleEntry);
+  assert.ok(selectionRuleEntry.valueUsed.includes('lowest total'));
+
+  const managementEntry = ctx.ledger.find(
+    (entry) => entry.field === 'defaultVendor.managementPreference'
+  );
+
+  assert.ok(managementEntry);
+  assert.equal(managementEntry.valueUsed, 'dashboard');
+
+  const excludedInputsEntry = ctx.ledger.find(
+    (entry) => entry.field === 'defaultVendor.excludedInputs'
+  );
+
+  assert.ok(excludedInputsEntry);
+  assert.deepEqual(excludedInputsEntry.valueUsed, {
+    itSupport: 'inHouse',
+    downtime: 'everyMinute',
+  });
   assert.ok(
-    ctx.ledger.some(
-      (entry) =>
-        entry.field === 'defaultVendor.excludedInputs' &&
-        entry.reason.includes('not separate inputs')
-    )
+    excludedInputsEntry.reason.includes('not separate inputs')
   );
 });
 
@@ -366,4 +395,24 @@ test('EDGE: selector does not mutate the original plans array', () => {
   const { result } = runSelector(plans);
 
   assert.equal(result.CE, 'Vendor D');
+});
+
+test('returns null and adds a flag when no complete HP plan exists', () => {
+  const plans = [
+    makePlan({
+      vendor: 'Vendor A',
+      planType: 'HP',
+      complete: false,
+      total: 10000
+    })
+  ];
+
+  const { result, ctx } = runSelector(plans);
+
+  assert.equal(result.HP, null);
+  assert.ok(
+    ctx.flags.some(
+      (flag) => flag.code === 'DEFAULT_VENDOR_NO_COMPLETE_HP_PLAN'
+    )
+  );
 });

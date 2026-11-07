@@ -4,7 +4,9 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 
 const {
+    CONTRACT_VERSION,
     validateVendorDescriptors,
+    validateEngineResult,
     ValidationError
 } = require('../../src/types/engine/contracts.js');
 
@@ -166,5 +168,112 @@ test('rejects an unsupported management mode', () => {
         () => validateVendorDescriptors([vendor]),
         (error) => error instanceof ValidationError
             && error.field === 'vendors[0].managementModes'
+    );
+});
+
+// ============================================================
+// ENGINE RESULT: DEFAULT VENDOR CONTRACT
+// ============================================================
+
+function makeValidEngineResult(defaultVendor = { CE: 'Vendor A', HP: 'Vendor B' }) {
+    return {
+        contractVersion: CONTRACT_VERSION,
+        generatedAt: '2026-11-07T00:00:00.000Z',
+        requirements: {},
+        ledger: [],
+        flags: [],
+        plans: [],
+        defaultVendor
+    };
+}
+
+test('accepts valid CE and HP default vendors', () => {
+    assert.equal(
+        validateEngineResult(makeValidEngineResult({
+            CE: 'Vendor A',
+            HP: 'Vendor B'
+        })),
+        true
+    );
+});
+
+test('accepts null when neither plan type has a default vendor', () => {
+    assert.equal(
+        validateEngineResult(makeValidEngineResult({
+            CE: null,
+            HP: null
+        })),
+        true
+    );
+});
+
+test('accepts one default vendor and one null default', () => {
+    assert.equal(
+        validateEngineResult(makeValidEngineResult({
+            CE: 'Vendor A',
+            HP: null
+        })),
+        true
+    );
+});
+
+test('rejects a missing defaultVendor object', () => {
+    const result = makeValidEngineResult();
+    delete result.defaultVendor;
+
+    assert.throws(
+        () => validateEngineResult(result),
+        (error) => error instanceof ValidationError
+            && error.field === 'defaultVendor'
+    );
+});
+
+test('rejects a missing CE default vendor key', () => {
+    assert.throws(
+        () => validateEngineResult(makeValidEngineResult({
+            HP: 'Vendor B'
+        })),
+        (error) => error instanceof ValidationError
+            && error.field === 'defaultVendor.CE'
+    );
+});
+
+test('rejects a missing HP default vendor key', () => {
+    assert.throws(
+        () => validateEngineResult(makeValidEngineResult({
+            CE: 'Vendor A'
+        })),
+        (error) => error instanceof ValidationError
+            && error.field === 'defaultVendor.HP'
+    );
+});
+
+test('rejects an empty CE vendor name', () => {
+    assert.throws(
+        () => validateEngineResult(makeValidEngineResult({
+            CE: '   ',
+            HP: 'Vendor B'
+        })),
+        (error) => error instanceof ValidationError
+            && error.field === 'defaultVendor.CE'
+    );
+});
+
+test('rejects a non-string HP default vendor value', () => {
+    assert.throws(
+        () => validateEngineResult(makeValidEngineResult({
+            CE: 'Vendor A',
+            HP: 123
+        })),
+        (error) => error instanceof ValidationError
+            && error.field === 'defaultVendor.HP'
+    );
+});
+
+test('rejects a non-object defaultVendor value', () => {
+    assert.throws(
+        () => validateEngineResult(makeValidEngineResult(null)),
+        (error) => error instanceof ValidationError
+            && error.field === 'defaultVendor'
     );
 });
