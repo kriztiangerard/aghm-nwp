@@ -965,3 +965,87 @@ test('buildPlan rejects a Generic gateway SKU', () => {
       /vendor consistency defect/i.test(error.message),
   );
 });
+
+const validTestBom = {
+  currency: 'PHP',
+  lines: [],
+  total: null,
+  totalIsPartial: true,
+};
+
+test('runEngine calls buildBom once per vendor-plan and passes the plan and catalog', () => {
+  const calls = [];
+  const testCatalog = [...catalog];
+
+  const result = runEngine(
+    input,
+    requirements,
+    testCatalog,
+    [omadaVendor],
+    {
+      ...mockSteps,
+      buildBom: (plan, receivedCatalog) => {
+        calls.push({ plan, receivedCatalog });
+        return { ...validTestBom };
+      },
+    },
+  );
+
+  assert.equal(result.plans.length, 2);
+  assert.equal(calls.length, 2);
+
+  result.plans.forEach((plan, index) => {
+    assert.strictEqual(calls[index].plan, plan);
+    assert.strictEqual(calls[index].receivedCatalog, testCatalog);
+    assert.deepEqual(plan.bom, validTestBom);
+  });
+});
+
+test('buildPlan rejects invalid BOM output from the injected builder', () => {
+  const { buildPlan } = require('../../src/types/engine/orchestration');
+
+  assert.throws(
+    () =>
+      buildPlan(
+        omadaVendor,
+        'CE',
+        requirements,
+        input,
+        catalog,
+        createCtx(),
+        {
+          ...mockSteps,
+          buildBom: () => ({
+            currency: 'PHP',
+            lines: [],
+            total: -1,
+            totalIsPartial: true,
+          }),
+        },
+      ),
+    (error) =>
+      error.name === 'ValidationError' &&
+      error.field === 'bom.total',
+  );
+});
+
+test('buildPlan leaves the placeholder BOM when no builder is injected', () => {
+  const { buildPlan } = require('../../src/types/engine/orchestration');
+
+  const plan = buildPlan(
+    omadaVendor,
+    'CE',
+    requirements,
+    input,
+    catalog,
+    createCtx(),
+    mockSteps,
+  );
+
+  assert.deepEqual(plan.bom, {
+    currency: catalog[0]?.currency || 'PHP',
+    lines: [],
+    total: null,
+    totalIsPartial: true,
+  });
+});

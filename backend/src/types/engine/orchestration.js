@@ -10,6 +10,7 @@ const {
   validateRequirements,
   validateCatalogSku,
   validateVendorDescriptors,
+  validateBom,
 } = require('./contracts');
 const { createCtx } = require('./ctx');
 
@@ -385,6 +386,13 @@ const resolvedItems = selectedDeviceItems;
 
   // Power recommendation is advisory; it does not select or add equipment.
   plan.powerProtection = recommendPower({ input });
+
+  // BOM assembly is injected until BOM-001 provides its implementation.
+  if (typeof steps.buildBom === 'function') {
+    const bom = steps.buildBom(plan, catalog);
+    validateBom(bom);
+    plan.bom = bom;
+  }
 
   return plan;
 }
