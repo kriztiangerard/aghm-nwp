@@ -128,7 +128,7 @@ function assertSelectedVendor(selection, vendor, category) {
   // Generic is allowed only for enclosure selection.
   if (
     selectedVendor === vendor.name ||
-    (category === 'enclosure' && selectedVendor === 'Generic')
+    (category === 'enclosure' && selectedVendor === require('./params').GENERIC_VENDOR_NAME)
   ) {
     return;
   }
