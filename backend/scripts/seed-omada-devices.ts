@@ -203,6 +203,8 @@ async function insertDeviceWithSpecs(
       deviceId,
       device.ap_specs,
     );
+  } else {
+    throw new Error(`Unsupported device category: ${device.category}`);
   }
 
   return deviceId;
@@ -228,31 +230,9 @@ async function seedOneDevice(device: any): Promise<number> {
 }
 
 async function main() {
-  const counts: SeedCounts = { inserted: 0, updated: 0, skipped: 0 };
-  let databaseFailure = false;
+  console.log("Starting device seeding...");
 
-  console.log("Starting Omada device catalog seeding...");
-
-  for (const file of catalogFiles) {
-    const entries = await readCatalogFile(file, counts);
-
-    for (const [index, entry] of entries.entries()) {
-      const source = `${file.fileName}[${index}]`;
-      try {
-        const outcome = await seedEntry(file, source, entry);
-        counts[outcome] += 1;
-        console.log(`${source}: ${outcome} ${String(
-          isRecord(entry) ? entry.sku : "entry"
-        )}`);
-      } catch (error) {
-        counts.skipped += 1;
-        if (error instanceof DatabaseSeedError) {
-          databaseFailure = true;
-        }
-        console.error(`${source}: skipped:`, error);
-      }
-    }
-  }
+  const result = await pool.query("SELECT NOW()");
 
   console.log("Database connection successful.");
   console.log("Database time:", result.rows[0].now);
@@ -268,6 +248,11 @@ async function main() {
   console.log(`Loaded ${aps.length} access points.`);
   console.log(`Loaded ${devices.length} devices total.`);
 
+  if (routers.length === 0) {
+    throw new Error("No routers found to test device insertion.");
+  }
+
+  // Test only one router until the RDS schema mismatch is resolved.
   const deviceId = await seedOneDevice(routers[0]);
 
   console.log(`Inserted device with ID: ${deviceId}`);
@@ -281,3 +266,4 @@ main()
   .finally(async () => {
     await pool.end();
   });
+
