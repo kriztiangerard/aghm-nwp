@@ -30,6 +30,7 @@ export const SelectedPlanProvider: React.FC<{ children: React.ReactNode }> = ({ 
   return <SelectedPlanContext.Provider value={value}>{children}</SelectedPlanContext.Provider>;
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useSelectedPlan = (): SelectedPlanValue => {
   const ctx = useContext(SelectedPlanContext);
   if (!ctx) throw new Error("useSelectedPlan must be used inside <SelectedPlanProvider>");

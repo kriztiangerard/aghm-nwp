@@ -35,7 +35,7 @@ export const VendorSelect: React.FC<VendorSelectProps> = ({
         value={selectedVendor}
         onValueChange={(value) => onVendorChange(value as VendorName)}
       >
-        <SelectTrigger id={id} className="w-full">
+        <SelectTrigger id={id} className="w-full" aria-label={`Vendor for ${tier} plan`}>
           <SelectValue placeholder="Choose a vendor..." />
         </SelectTrigger>
         <SelectContent>

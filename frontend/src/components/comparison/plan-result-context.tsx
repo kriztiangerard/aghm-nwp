@@ -28,6 +28,7 @@ export const PlanResultProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   return <PlanResultContext.Provider value={value}>{children}</PlanResultContext.Provider>;
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const usePlanResult = (): PlanResultValue => {
   const ctx = useContext(PlanResultContext);
   if (!ctx) throw new Error("usePlanResult must be used inside <PlanResultProvider>");
