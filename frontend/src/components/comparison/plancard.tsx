@@ -44,6 +44,9 @@ export const PlanCard: React.FC<PlanCardProps> = ({
   const isCostEfficient = tier === "Cost-Efficient";
   // A partial total with nothing priced would read as 0.00, so say so instead.
   const nothingPriced = planData.totalIsPartial && planData.totalCost === 0;
+  // The engine also marks a total partial when the plan is incomplete, so the
+  // note must not claim missing prices unless a line really has none.
+  const hasUnpriced = planData.bom.some((l) => l.unitPrice === null);
 
   // NWP-COMPARE-002
   const titleId = useId();
@@ -143,7 +146,9 @@ export const PlanCard: React.FC<PlanCardProps> = ({
           </span>
           {planData.totalIsPartial && (
             <span className="text-[11px] text-amber-700 dark:text-amber-400 block">
-              Excludes items with unavailable prices
+              {hasUnpriced
+                ? "Excludes items with unavailable prices"
+                : "Excludes the unmet requirements listed above"}
             </span>
           )}
         </div>

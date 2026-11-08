@@ -10,25 +10,34 @@ import {
 } from "./types";
 
 // ---------------------------------------------------------------------------
-// ENGINE SHAPES (contracts.js, CONTRACT_VERSION 3)
-// Only the fields this adapter reads. Plan.bom is already priced by the engine
-// (NWP-BOM-001), so nothing is recomputed here.
+// ENGINE SHAPES (contracts.js v3, checked against a real engine output)
+// Plan.bom is already priced by the engine (NWP-BOM-001), so nothing is
+// recomputed here. Fields marked "contract-required" are missing from the
+// engine's actual BOM lines today, so the adapter falls back instead of crashing.
 // ---------------------------------------------------------------------------
-const EXPECTED_CONTRACT_VERSION = 3;
+const EXPECTED_CONTRACT_MAJOR = 3;
 
 type EngineTier = "CE" | "HP";
 type EngineBomCategory = "gateway" | "controller" | "switch" | "access_point" | "enclosure";
 
-interface EngineBomLine {
+interface EngineItem {
   category: EngineBomCategory;
   sku: string;
-  name: string;
-  vendor: string;
+  qty: number;
+}
+
+interface EngineBomLine {
+  sku: string;
   qty: number;
   unitPrice: number | null; // null = price on request
   lineTotal: number | null; // null whenever unitPrice is null
-  status: "ACTIVE" | "SUNSETTING";
-  isGeneric: boolean;
+  // Contract-required, currently absent from engine output (fallbacks in adaptLine):
+  category?: EngineBomCategory;
+  name?: string;
+  vendor?: string;
+  status?: "ACTIVE" | "SUNSETTING";
+  isGeneric?: boolean;
+  // Contract-optional:
   priceSource?: "synchronized" | "manual";
   isStale?: boolean;
   priceUpdatedAt?: string;
@@ -38,13 +47,19 @@ interface EngineBom {
   currency: string;
   lines: EngineBomLine[];
   total: number | null; // null when nothing is priced
-  totalIsPartial: boolean; // true when any line is unpriced or the plan is incomplete
+  totalIsPartial: boolean; // true when any line is unpriced OR the plan is incomplete
 }
 
 interface EngineUnmet {
   category?: string;
   vendor?: string;
   reason?: string;
+}
+
+interface EngineFlag {
+  code: string;
+  message?: string;
+  [key: string]: unknown;
 }
 
 // A requirement only, never a BOM line (NWP-ENGINE-012).
@@ -58,14 +73,17 @@ interface EnginePlan {
   vendor: string;
   planType: EngineTier;
   complete: boolean;
+  items: EngineItem[];
   bom: EngineBom;
   unmet: EngineUnmet[];
+  flags?: EngineFlag[];
   limitations?: string[];
   optics?: EngineOptics | null;
 }
 
 export interface EngineResult {
-  contractVersion: number;
+  // The contract says the number 3; the engine currently sends "3.0.0". Both are accepted.
+  contractVersion: number | string;
   generatedAt: string; // stamped by the handler, since the engine has no clock
   plans: EnginePlan[];
   defaultVendor?: { CE?: string | null; HP?: string | null };
@@ -97,20 +115,44 @@ const toVendorName = (raw: string): VendorName | null => {
   return VENDOR_ALIASES[raw] ?? null;
 };
 
-const adaptLine = (line: EngineBomLine): BomLineItem => ({
-  sku: line.sku,
-  name: line.name,
-  category: CATEGORY_MAP[line.category],
-  quantity: line.qty,
-  unitPrice: line.unitPrice,
-  subtotal: line.lineTotal,
-  status: line.status,
-  // Provenance is optional on the contract; these fallbacks keep the UI type satisfied.
-  priceSource: line.priceSource ?? "manual",
-  isStale: line.isStale ?? false,
-  priceUpdatedAt: line.priceUpdatedAt ?? null,
-  isGeneric: line.isGeneric,
-});
+const SUNSETTING_FLAG = "SKU_SUNSETTING";
+
+// Interim: until the engine sets `status` on BOM lines, a SKU counts as sunsetting
+// when a SKU_SUNSETTING flag's message names it (e.g. "SG3428: confirm availability").
+const sunsettingSkusOf = (plan: EnginePlan): Set<string> => {
+  const messages = (plan.flags ?? [])
+    .filter((f) => f.code === SUNSETTING_FLAG && typeof f.message === "string")
+    .map((f) => f.message as string);
+  return new Set(
+    plan.items.map((i) => i.sku).filter((sku) => messages.some((m) => m.includes(sku)))
+  );
+};
+
+const adaptLine = (
+  line: EngineBomLine,
+  categoryBySku: Map<string, EngineBomCategory>,
+  sunsetting: Set<string>
+): BomLineItem => {
+  const category = line.category ?? categoryBySku.get(line.sku);
+  if (!category) {
+    // Failing loudly beats showing a line with no category.
+    throw new Error(`[adapter] BOM line ${line.sku} has no category and is not in plan.items`);
+  }
+  return {
+    sku: line.sku,
+    name: line.name ?? line.sku,
+    category: CATEGORY_MAP[category],
+    quantity: line.qty,
+    unitPrice: line.unitPrice,
+    subtotal: line.lineTotal,
+    status: line.status ?? (sunsetting.has(line.sku) ? "SUNSETTING" : "ACTIVE"),
+    // Provenance is optional on the contract; these fallbacks keep the UI type satisfied.
+    priceSource: line.priceSource ?? "manual",
+    isStale: line.isStale ?? false,
+    priceUpdatedAt: line.priceUpdatedAt ?? null,
+    isGeneric: line.isGeneric ?? false,
+  };
+};
 
 const formatUnmet = (u: EngineUnmet): string => {
   const reason = u.reason ?? "Requirement not met";
@@ -128,18 +170,30 @@ const opticsAdvisory = (optics?: EngineOptics | null): string[] =>
       ]
     : [];
 
+// Manuscript: sunsetting devices may be recommended but must carry a notice to confirm availability.
+const sunsettingAdvisories = (plan: EnginePlan): string[] =>
+  (plan.flags ?? [])
+    .filter((f) => f.code === SUNSETTING_FLAG && typeof f.message === "string")
+    .map((f) => f.message as string);
+
 const adaptPlan = (
   plan: EnginePlan,
   tier: PlanTier,
   vendor: VendorName,
   generatedAt: string
 ): NetworkPlanData => {
-  const advisories = [...(plan.limitations ?? []), ...opticsAdvisory(plan.optics)];
+  const categoryBySku = new Map(plan.items.map((i) => [i.sku, i.category]));
+  const sunsetting = sunsettingSkusOf(plan);
+  const advisories = [
+    ...(plan.limitations ?? []),
+    ...sunsettingAdvisories(plan),
+    ...opticsAdvisory(plan.optics),
+  ];
 
   return {
     vendor,
     tier,
-    bom: plan.bom.lines.map(adaptLine),
+    bom: plan.bom.lines.map((l) => adaptLine(l, categoryBySku, sunsetting)),
     // bom.total is null when nothing is priced. 0 plus totalIsPartial lets the
     // card show "price unavailable" instead of a misleading 0.00.
     totalCost: plan.bom.total ?? 0,
@@ -158,9 +212,10 @@ export interface AdaptedPlans {
 }
 
 export function adaptEngineResult(result: EngineResult): AdaptedPlans {
-  if (result.contractVersion !== EXPECTED_CONTRACT_VERSION) {
+  const major = Number.parseInt(String(result.contractVersion), 10);
+  if (major !== EXPECTED_CONTRACT_MAJOR) {
     console.warn(
-      `[adapter] Expected contract v${EXPECTED_CONTRACT_VERSION}, received v${result.contractVersion}`
+      `[adapter] Expected contract v${EXPECTED_CONTRACT_MAJOR}, received "${result.contractVersion}"`
     );
   }
 

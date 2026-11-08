@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useMemo, useState } from "react";
 import type { NetworkPlanData } from "./types";
-import type { PlanChoice } from "./comparison";
+import type { PlanChoice } from "./Comparison";
 
 // Plain React state only. Nothing touches localStorage, sessionStorage or router
 // state, so a refresh clears it (manuscript delimitation: no persisted projects).
