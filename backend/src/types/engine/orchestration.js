@@ -437,8 +437,13 @@ const resolvedItems = selectedDeviceItems;
 }
 
 
-function runEngine(input, reqs, catalog, vendors, steps = DEFAULT_STEPS) {
+function runEngine(input, reqs, catalog, vendors, steps = DEFAULT_STEPS, sharedCtx = createCtx()) {
   validateEngineInputs(input, reqs, catalog, vendors);
+
+  if (!sharedCtx || !Array.isArray(sharedCtx.ledger)
+      || !Array.isArray(sharedCtx.flags) || !Array.isArray(sharedCtx.unmet)) {
+    throw new TypeError('runEngine requires a sharedCtx from createCtx()');
+  }
 
   const plans = [];
 
@@ -469,17 +474,18 @@ function runEngine(input, reqs, catalog, vendors, steps = DEFAULT_STEPS) {
     selectionCtx,
   );
 
-  // Aggregate plan-level context without removing the context kept on each plan.
+  // Shared (requirements-phase) entries come first, then plan-level entries.
+  // Each plan keeps its own context; the aggregate only copies from it.
   const planLedger = plans.flatMap((plan) => plan.ledger || []);
   const planFlags = plans.flatMap((plan) => plan.flags || []);
   const planUnmet = plans.flatMap((plan) => plan.unmet || []);
 
-  return {
+    return {
     contractVersion: CONTRACT_VERSION,
     requirements: reqs,
-    ledger: [...planLedger, ...selectionCtx.ledger],
-    flags: [...planFlags, ...selectionCtx.flags],
-    unmet: planUnmet,
+    ledger: [...sharedCtx.ledger, ...planLedger, ...selectionCtx.ledger],
+    flags: [...sharedCtx.flags, ...planFlags, ...selectionCtx.flags],
+    unmet: [...sharedCtx.unmet, ...planUnmet],
     plans,
     defaultVendor,
   };
