@@ -1493,6 +1493,28 @@ test('Omada snapshot and vendor 999 fixtures exercise the complete orchestration
     'the unpriced synthetic switch should use the normal unpriced-selection flag path',
   );
 
+  const unpricedSyntheticSwitch = normalizedSyntheticCatalog.find(
+    (sku) => sku.sku === 'SYN-SW-003',
+  );
+
+  assert.ok(unpricedSyntheticSwitch, 'the null-priced synthetic switch fixture must exist');
+  assert.equal(unpricedSyntheticSwitch.price, null);
+  assert.ok(
+    syntheticPlans.every((plan) =>
+      plan.items
+        .filter((item) => item.category === 'switch')
+        .every((item) => item.sku !== 'SYN-SW-003'),
+    ),
+    'the null-priced synthetic switch must not be selected into either plan',
+  );
+
+  assert.ok(
+    syntheticPlans.every((plan) =>
+      plan.flags.some((flag) => flag.code === 'UNPRICED_SKUS_EXCLUDED'),
+    ),
+    'each synthetic plan must expose the unpriced exclusion through its normal flag path',
+  );
+
   assert.ok(
     syntheticProductLines.every((line) => line.vendor_id === 999),
     'synthetic product-line fixture should use vendor_id 999',
@@ -1501,6 +1523,21 @@ test('Omada snapshot and vendor 999 fixtures exercise the complete orchestration
   assert.ok(
     result.plans.every((plan) => plan.vendor !== 'Generic'),
     'Generic must not become a plan vendor',
+  );
+
+  assert.ok(
+    normalizedSyntheticCatalog
+      .filter((sku) => sku.category === 'gateway')
+      .length > 0,
+    'the synthetic catalog must contain gateway fixtures',
+  );
+  assert.ok(
+    normalizedSyntheticCatalog
+      .filter((sku) => sku.category === 'gateway')
+      .every((sku) =>
+        !Object.prototype.hasOwnProperty.call(sku, 'max_vpn_tunnels'),
+      ),
+    'synthetic gateway fixtures must exercise the missing max_vpn_tunnels field',
   );
 
   const missingNullableFieldRun = runEngine(
@@ -1519,13 +1556,20 @@ test('Omada snapshot and vendor 999 fixtures exercise the complete orchestration
     ),
     'missing max_vpn_tunnels should produce the normal flag and unmet results without throwing',
   );
+  const sunsettingSyntheticAp = normalizedSyntheticCatalog.find(
+    (sku) => sku.sku === 'SYN-AP-005',
+  );
+
+  assert.ok(sunsettingSyntheticAp, 'the sunsetting AP fixture must exist');
+  assert.equal(sunsettingSyntheticAp.status, 'SUNSETTING');
+
   assert.ok(
     missingNullableFieldRun.plans.some((plan) =>
       plan.items.some((item) =>
         item.category === 'access_point' && item.sku === 'SYN-AP-005',
       ),
     ),
-    'a sunsetting synthetic AP should be selectable through the normal AP selector',
+    'a SUNSETTING synthetic AP must remain eligible through the normal AP selector',
   );
 });
 
