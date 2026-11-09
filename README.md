@@ -90,7 +90,6 @@ The NWP Story ID should identify the specific story or task being worked on.
 | `test/`    | Tests                     | `test/BOM-10-validation`                  |
 | `docs/`    | Documentation             | `docs/OTHER-26-update-readme`             |
 | `chore/`   | Maintenance/configuration | `chore/INFRA-04-update-dependencies`      |
- 
 ### Branch Naming Rules
 - Always include the applicable NWP Story ID (see Notion board for appropriate prefix to use). Remove the NWP prefix.
 - If there is no associated story for the branch, do not make your own. Just write the short description instead.
