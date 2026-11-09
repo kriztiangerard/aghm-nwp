@@ -19,6 +19,7 @@ const { selectAccessPoints } = require('./devices/aps');
 const { computePoeBudget } = require('./devices/poe');
 const { selectSwitches } = require('./devices/switches');
 const { selectDefaultVendors } = require('./default-vendor.js');
+const controllerStep = require('./devices/controller');
 
 const {
   computeRequiredRackUnits,
@@ -334,6 +335,36 @@ function buildPlan(vendor, planType, reqs, input, catalog, ctx, steps = {}) {
 
       recordUnmetIfMissing(ctx, switchResult.unmet, vendor.name);
       plan.complete = false;
+    }
+  }
+
+    // NWP-ENGINE-015 AC7: controller step. Selection logic lives in NWP-ENGINE-018.
+  if (vendor.needController && gatewayResult.ok) {
+    const controller = steps.controller || controllerStep;
+
+    if (!controller.integratedControllerCheck(gatewayResult.sku, ctx)) {
+      const counts = controller.countManagedDevices(plan.items);
+      const controllerResult = controller.selectController(
+        vendor.name, planType, counts, catalog, ctx,
+      );
+
+      validateSelectionResult(controllerResult);
+      assertSelectedVendor(controllerResult, vendor, 'controller');
+
+      if (controllerResult.ok) {
+        plan.items.push({
+          category: 'controller',
+          sku: controllerResult.sku.sku,
+          qty: controllerResult.qty,
+        });
+        selectedDeviceItems.push({
+          sku: controllerResult.sku,
+          qty: controllerResult.qty,
+        });
+      } else {
+        recordUnmetIfMissing(ctx, controllerResult.unmet, vendor.name);
+        plan.complete = false;
+      }
     }
   }
 
