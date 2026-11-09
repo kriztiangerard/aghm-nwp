@@ -27,7 +27,7 @@ const {
   chooseEnclosure,
 } = require('./devices/enclosure');
 
-const { recommendPower } = require('./devices/power');
+const { buildPowerProtection } = require('./devices/power');
 const { planOptics } = require('./devices/optics');
 
 const DEFAULT_STEPS = Object.freeze({
@@ -423,8 +423,14 @@ const resolvedItems = selectedDeviceItems;
     plan.complete = false;
   }
 
-  // Power recommendation is advisory; it does not select or add equipment.
-  plan.powerProtection = recommendPower({ input });
+  // Power protection is advisory; it does not select equipment or affect the BOM.
+  plan.powerProtection = buildPowerProtection(
+    reqs,
+    input,
+    plan.items,
+    ctx,
+    catalog,
+  );
 
   // BOM assembly is injected until BOM-001 provides its implementation.
   if (typeof steps.buildBom === 'function') {
