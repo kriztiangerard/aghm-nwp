@@ -310,3 +310,4 @@ test('returns null for max power draw when the selected AP has no value', () => 
   assert.equal(result.ok, true);
   assert.equal(result.maxPowerDrawW, null);
 });
+
