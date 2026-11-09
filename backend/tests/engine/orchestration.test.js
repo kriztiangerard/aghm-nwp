@@ -190,6 +190,51 @@ test('buildPlan records a successful gateway selection', () => {
     { category: 'gateway', sku: 'TEST-GW-01', qty: 1 },
   ]);
 });
+test('buildPlan keeps UPS recommendations advisory and excludes UPS equipment', () => {
+  const { buildPlan } = require('../../src/types/engine/orchestration');
+
+  const gatewaySku = {
+    sku: 'TEST-GW-POWER',
+    vendor: omadaVendor.name,
+    category: 'gateway',
+  };
+
+  for (const [power, expectedLevel] of [
+    ['stable', 'advisory'],
+    ['frequent', 'prominent'],
+  ]) {
+    const plan = buildPlan(
+      omadaVendor,
+      'CE',
+      requirements,
+      {
+        ...input,
+        power,
+      },
+      [gatewaySku],
+      createCtx(),
+      {
+        selectGateway: () => ({
+          ok: true,
+          sku: gatewaySku,
+          qty: 1,
+          flags: [],
+        }),
+      },
+    );
+
+    assert.deepEqual(plan.powerProtection, {
+      upsRecommendation: 'UPS recommended for network equipment.',
+      upsRecommendationLevel: expectedLevel,
+    });
+
+    assert.equal(plan.complete, true);
+    assert.deepEqual(plan.items, [
+      { category: 'gateway', sku: gatewaySku.sku, qty: 1 },
+    ]);
+  }
+});
+
 test('buildPlan marks the plan incomplete when gateway selection is unmet', () => {
   const { buildPlan } = require('../../src/types/engine/orchestration');
 
@@ -248,6 +293,75 @@ test('buildPlan propagates unexpected gateway selector errors', () => {
     (error) => error === selectorError,
   );
 });
+test('runEngine preserves a successful plan when the other plan has an unmet gateway', () => {
+  const result = runEngine(
+    input,
+    requirements,
+    catalog,
+    [omadaVendor],
+    {
+      selectGateway: ({ plan, vendor }) => {
+        if (plan === 'cost_efficient') {
+          const sku = {
+            sku: 'TEST-CE-GATEWAY',
+            vendor,
+            category: 'gateway',
+          };
+
+          return {
+            ok: true,
+            sku,
+            qty: 1,
+            flags: [],
+          };
+        }
+
+        return {
+          ok: false,
+          unmet: {
+            category: 'gateway',
+            vendor,
+            reason: 'HP gateway unavailable for isolation test.',
+          },
+          flags: [],
+        };
+      },
+    },
+  );
+
+  assert.equal(result.plans.length, 2);
+
+  const cePlan = result.plans.find((plan) => plan.planType === 'CE');
+  const hpPlan = result.plans.find((plan) => plan.planType === 'HP');
+
+  assert.ok(cePlan);
+  assert.ok(hpPlan);
+
+  assert.equal(cePlan.complete, true);
+  assert.ok(
+    cePlan.items.some(
+      (item) => item.category === 'gateway' && item.sku === 'TEST-CE-GATEWAY',
+    ),
+  );
+  assert.equal(cePlan.unmet.length, 0);
+
+  assert.equal(hpPlan.complete, false);
+  assert.ok(
+    hpPlan.unmet.some(
+      (item) =>
+        item.category === 'gateway' &&
+        item.reason === 'HP gateway unavailable for isolation test.',
+    ),
+  );
+
+  assert.ok(
+    !cePlan.unmet.some(
+      (item) => item.reason === 'HP gateway unavailable for isolation test.',
+    ),
+    'HP failure must not leak into the CE plan context',
+  );
+});
+
 test('runEngine continues building every vendor-plan combination when gateway is unmet', () => {
   const vendors = [omadaVendor, testVendor];
   const testVendorCatalog = catalog.map((sku) => ({
@@ -653,6 +767,142 @@ assert.ok(
   assert.equal(plan.complete, true);
 });
 
+test('buildPlan records exactly one fiber link and two optic modules for a single-floor site', () => {
+  const { buildPlan } = require('../../src/types/engine/orchestration');
+  const { selectSwitches } = require('../../src/types/engine/devices/switches');
+
+  const ctx = createCtx();
+
+  const gatewaySku = {
+    sku: 'TEST-SINGLE-FLOOR-GATEWAY',
+    vendor: omadaVendor.name,
+    category: 'gateway',
+  };
+
+  const apSku = {
+    sku: 'TEST-SINGLE-FLOOR-AP',
+    vendor: omadaVendor.name,
+    category: 'access_point',
+    name: 'Test Wi-Fi 6E Access Point',
+    ap_specs: {
+      max_power_draw_w: 15,
+      poe_standard: 'at',
+    },
+  };
+
+  const switchSku = {
+    sku: 'TEST-SINGLE-FLOOR-SWITCH',
+    vendor: omadaVendor.name,
+    category: 'switch',
+    name: 'Test 24-Port PoE++ Switch',
+    price: 1000,
+    status: 'ACTIVE',
+    switch_specs: {
+      copper_ports: 24,
+      port_count: 24,
+      poe_ports: 24,
+      poe_budget_w: 500,
+      sfp_ports: 4,
+      sfp_form_factor: 'SFP',
+    },
+  };
+
+  const plan = buildPlan(
+    omadaVendor,
+    'CE',
+    {
+      ...requirements,
+      backbone: 'fiber',
+    },
+    {
+      ...input,
+      floors: 1,
+    },
+    [gatewaySku, apSku, switchSku],
+    ctx,
+    {
+      selectGateway: () => ({
+        ok: true,
+        sku: gatewaySku,
+        qty: 1,
+        flags: [],
+      }),
+      selectAccessPoints: () => ({
+        ok: true,
+        sku: apSku,
+        qty: 2,
+        flags: [],
+      }),
+      computePoeBudget,
+      selectSwitches,
+    },
+  );
+
+  assert.equal(plan.switchSelection.ok, true);
+
+  assert.deepEqual(plan.optics, {
+    links: 1,
+    modules: 2,
+    formFactor: 'SFP',
+  });
+
+  assert.ok(
+    plan.items.every((item) => item.category !== 'optics'),
+    'Optics must remain advisory and must not be added to plan.items',
+  );
+
+  assert.equal(plan.complete, true);
+});
+
+test('buildPlan keeps UPS power protection advisory and out of selected equipment', () => {
+  const { buildPlan } = require('../../src/types/engine/orchestration');
+
+  for (const [power, expectedLevel] of [
+    ['stable', 'advisory'],
+    ['frequent', 'prominent'],
+  ]) {
+    const ctx = createCtx();
+
+    const gatewaySku = {
+      sku: 'TEST-POWER-GATEWAY',
+      vendor: omadaVendor.name,
+      category: 'gateway',
+    };
+
+    const plan = buildPlan(
+      omadaVendor,
+      'CE',
+      requirements,
+      {
+        ...input,
+        power,
+      },
+      [gatewaySku],
+      ctx,
+      {
+        selectGateway: () => ({
+          ok: true,
+          sku: gatewaySku,
+          qty: 1,
+          flags: [],
+        }),
+      },
+    );
+
+    assert.deepEqual(plan.powerProtection, {
+      upsRecommendation: 'UPS recommended for network equipment.',
+      upsRecommendationLevel: expectedLevel,
+    });
+
+    assert.equal(
+      plan.items.some(item => item.category === 'ups' || item.category === 'power_protection'),
+      false,
+    );
+
+    assert.equal(plan.complete, true);
+  }
+});
+
 test('buildPlan selects a Generic enclosure when rack space is required', () => {
   const { buildPlan } = require('../../src/types/engine/orchestration');
 
@@ -720,6 +970,81 @@ test('buildPlan selects a Generic enclosure when rack space is required', () => 
         item.category === 'enclosure' &&
         item.sku === genericEnclosureSku.sku &&
         item.qty === 1,
+    ),
+  );
+});
+
+test('buildPlan accounts for gateway quantity when calculating required enclosure capacity', () => {
+  const { buildPlan } = require('../../src/types/engine/orchestration');
+
+  const ctx = createCtx();
+
+  const gatewaySku = {
+    sku: 'TEST-GATEWAY-2U',
+    vendor: omadaVendor.name,
+    category: 'gateway',
+    rack_units: 2,
+  };
+
+  const undersizedEnclosure = {
+    sku: 'TEST-GENERIC-RACK-2U',
+    vendor: 'Generic',
+    category: 'enclosure',
+    name: 'Test 2U Rack Enclosure',
+    form_factor: 'rack',
+    rack_units: 2,
+    price: 2500,
+    status: 'ACTIVE',
+  };
+
+  const correctlySizedEnclosure = {
+    sku: 'TEST-GENERIC-RACK-4U',
+    vendor: 'Generic',
+    category: 'enclosure',
+    name: 'Test 4U Rack Enclosure',
+    form_factor: 'rack',
+    rack_units: 4,
+    price: 5000,
+    status: 'ACTIVE',
+  };
+
+  const plan = buildPlan(
+    omadaVendor,
+    'CE',
+    requirements,
+    {
+      ...input,
+      housing: 'closet',
+    },
+    [gatewaySku, undersizedEnclosure, correctlySizedEnclosure],
+    ctx,
+    {
+      selectGateway: () => ({
+        ok: true,
+        sku: gatewaySku,
+        qty: 2,
+        flags: [],
+      }),
+      selectAccessPoints: () => ({
+        ok: false,
+        unmet: {
+          category: 'access_point',
+          vendor: omadaVendor.name,
+          reason: 'Not needed for this test.',
+        },
+        flags: [],
+      }),
+    },
+  );
+
+  assert.equal(plan.enclosureSelection.ok, true);
+  assert.equal(plan.enclosureSelection.sku.sku, correctlySizedEnclosure.sku);
+  assert.equal(plan.enclosureSelection.qty, 1);
+  assert.ok(
+    plan.items.some(
+      item =>
+        item.category === 'enclosure' &&
+        item.sku === correctlySizedEnclosure.sku,
     ),
   );
 });
@@ -987,8 +1312,12 @@ test('runEngine calls buildBom once per vendor-plan and passes the plan and cata
     {
       ...mockSteps,
       buildBom: (plan, receivedCatalog) => {
-        calls.push({ plan, receivedCatalog });
-        return { ...validTestBom };
+        assert.ok(plan.enclosureSelection, 'Enclosure selection must precede BOM assembly');
+        assert.ok(plan.powerProtection, 'Power recommendation must precede BOM assembly');
+
+        const bom = { ...validTestBom };
+        calls.push({ plan, receivedCatalog, bom });
+        return bom;
       },
     },
   );
@@ -1000,6 +1329,8 @@ test('runEngine calls buildBom once per vendor-plan and passes the plan and cata
     assert.strictEqual(calls[index].plan, plan);
     assert.strictEqual(calls[index].receivedCatalog, testCatalog);
     assert.deepEqual(plan.bom, validTestBom);
+    assert.strictEqual(plan.bom, calls[index].bom,
+      'Orchestration must retain the exact BOM returned by the builder');
   });
 });
 
@@ -1156,4 +1487,773 @@ test('runEngine aggregates plan context into the top-level result', () => {
   1,
 );
   });
+});
+
+test('runEngine produces identical results for repeated identical inputs', () => {
+  const first = runEngine(input, requirements, catalog, [omadaVendor]);
+  const second = runEngine(input, requirements, catalog, [omadaVendor]);
+
+  assert.deepEqual(first, second);
+});
+
+test('runEngine passes the same catalog snapshot to every vendor-plan selector', () => {
+  const receivedCatalogs = [];
+
+  const vendors = [
+    omadaVendor,
+    {
+      name: 'Vendor B',
+      needController: false,
+      managementModes: ['dashboard'],
+    },
+  ];
+
+  runEngine(input, requirements, catalog, vendors, {
+    selectGateway: ({ catalog: receivedCatalog, vendor }) => {
+      receivedCatalogs.push({ receivedCatalog, vendor });
+
+      return {
+        ok: false,
+        unmet: {
+          category: 'gateway',
+          vendor,
+          reason: 'Test selection unavailable.',
+        },
+      };
+    },
+  });
+
+  assert.equal(receivedCatalogs.length, 4);
+  assert.ok(receivedCatalogs.every(
+    ({ receivedCatalog }) => receivedCatalog === catalog,
+  ));
+});
+
+
+
+
+
+test('runEngine stops before selector execution when input validation fails', () => {
+  let selectorCalls = 0;
+
+  const steps = {
+    selectGateway: () => {
+      selectorCalls += 1;
+      return {
+        ok: false,
+        unmet: {
+          category: 'gateway',
+          vendor: omadaVendor.name,
+          reason: 'Test selector result.',
+        },
+      };
+    },
+  };
+
+  assert.throws(
+    () =>
+      runEngine(
+        { ...input, contractVersion: -1 },
+        requirements,
+        catalog,
+        [omadaVendor],
+        steps,
+      ),
+    (error) =>
+      error.name === 'ValidationError' &&
+      error.field === 'contractVersion',
+  );
+
+  assert.equal(selectorCalls, 0);
+});
+
+test('buildPlan rejects an access switch SKU from another vendor', () => {
+  const { buildPlan } = require('../../src/types/engine/orchestration');
+
+  const ctx = createCtx();
+
+  const gatewaySku = {
+    sku: 'TEST-GATEWAY',
+    vendor: omadaVendor.name,
+    category: 'gateway',
+  };
+
+  const apSku = {
+    sku: 'TEST-AP',
+    vendor: omadaVendor.name,
+    category: 'access_point',
+  };
+
+  const foreignSwitchSku = {
+    sku: 'FOREIGN-SWITCH',
+    vendor: 'Another Vendor',
+    category: 'switch',
+  };
+
+  assert.throws(
+    () =>
+      buildPlan(
+        omadaVendor,
+        'CE',
+        requirements,
+        input,
+        [gatewaySku, apSku, foreignSwitchSku],
+        ctx,
+        {
+          selectGateway: () => ({
+            ok: true,
+            sku: gatewaySku,
+            qty: 1,
+            flags: [],
+          }),
+          selectAccessPoints: () => ({
+            ok: true,
+            sku: apSku,
+            qty: 1,
+            flags: [],
+          }),
+          computePoeBudget: () => ({
+            perFloor: [{ loadW: 20, budgetW: 24 }],
+          }),
+          selectSwitches: () => ({
+            ok: true,
+            accessSwitches: [
+              {
+                sku: foreignSwitchSku,
+                qty: 1,
+              },
+            ],
+          }),
+        },
+      ),
+    (error) =>
+      error.name === 'OrchestrationDefect' &&
+      /vendor consistency defect/i.test(error.message),
+  );
+});
+
+test('runEngine aggregates default-vendor selection context without mixing it into plans', () => {
+  const gatewaySku = {
+    sku: 'TEST-DEFAULT-VENDOR-GATEWAY',
+    vendor: omadaVendor.name,
+    category: 'gateway',
+  };
+
+  const result = runEngine(
+    input,
+    requirements,
+    catalog,
+    [omadaVendor],
+    {
+      selectGateway: () => ({
+        ok: true,
+        sku: gatewaySku,
+        qty: 1,
+        flags: [],
+      }),
+    },
+  );
+
+  assert.equal(result.plans.length, 2);
+  assert.ok(
+    result.plans.every((plan) => plan.complete === true),
+    'Both plans must be complete for default-vendor selection',
+  );
+
+  for (const planType of ['CE', 'HP']) {
+    assert.ok(
+      result.ledger.some(
+        (entry) => entry.field === `defaultVendor.${planType}`,
+      ),
+      `Expected ${planType} default-vendor ledger entry at the top level`,
+    );
+  }
+
+  for (const plan of result.plans) {
+    assert.equal(
+      plan.ledger.some(
+        (entry) => entry.field.startsWith('defaultVendor.'),
+      ),
+      false,
+      'Default-vendor selection entries must not be mixed into plan ledgers',
+    );
+  }
+});
+
+test('buildPlan propagates ValidationError from a selector unchanged', () => {
+  const { buildPlan } = require('../../src/types/engine/orchestration');
+  const { ValidationError } = require('../../src/types/engine/contracts');
+
+  const selectorError = new ValidationError(
+    'gateway.requirements',
+    'Invalid selector requirements.',
+  );
+
+  assert.throws(
+    () =>
+      buildPlan(
+        omadaVendor,
+        'CE',
+        requirements,
+        input,
+        catalog,
+        createCtx(),
+        {
+          selectGateway: () => {
+            throw selectorError;
+          },
+        },
+      ),
+    (error) =>
+      error === selectorError &&
+      error.name === 'ValidationError' &&
+      error.field === 'gateway.requirements',
+  );
+});
+
+test('buildPlan records access-point unmet result against the current vendor', () => {
+  const { buildPlan } = require('../../src/types/engine/orchestration');
+
+  const gatewaySku = {
+    sku: 'TEST-AP-UNMET-GATEWAY',
+    vendor: omadaVendor.name,
+    category: 'gateway',
+  };
+
+  const plan = buildPlan(
+    omadaVendor,
+    'CE',
+    requirements,
+    input,
+    catalog,
+    createCtx(),
+    {
+      selectGateway: () => ({
+        ok: true,
+        sku: gatewaySku,
+        qty: 1,
+        flags: [],
+      }),
+      selectAccessPoints: () => ({
+        ok: false,
+        unmet: {
+          category: 'access_point',
+          vendor: omadaVendor.name,
+          reason: 'No suitable access point available.',
+        },
+        flags: [],
+      }),
+    },
+  );
+
+  assert.equal(plan.complete, false);
+  assert.ok(
+    plan.unmet.some(
+      (item) =>
+        item.category === 'access_point' &&
+        item.vendor === omadaVendor.name &&
+        item.reason === 'No suitable access point available.',
+    ),
+    'The AP unmet result should be attributed to the current vendor',
+  );
+});
+
+test('runEngine keeps empty-catalog vendor plans incomplete without affecting another vendor', () => {
+  const emptyCatalogVendor = {
+    name: 'Empty Catalog Vendor',
+    needController: false,
+    managementModes: ['dashboard'],
+  };
+
+  assert.equal(
+    catalog.some((sku) => sku.vendor === emptyCatalogVendor.name),
+    false,
+    'The test vendor must have no catalog rows',
+  );
+
+  const gatewaySku = {
+    sku: 'TEST-OMADA-GATEWAY',
+    vendor: omadaVendor.name,
+    category: 'gateway',
+  };
+
+  const result = runEngine(
+    input,
+    requirements,
+    catalog,
+    [emptyCatalogVendor, omadaVendor],
+    {
+      selectGateway: ({ vendor }) => {
+        if (vendor === emptyCatalogVendor.name) {
+          return {
+            ok: false,
+            unmet: {
+              category: 'gateway',
+              vendor,
+              reason: 'No catalog rows are available for this vendor.',
+            },
+            flags: [],
+          };
+        }
+
+        return {
+          ok: true,
+          sku: gatewaySku,
+          qty: 1,
+          flags: [],
+        };
+      },
+    },
+  );
+
+  assert.equal(result.plans.length, 4);
+
+  const emptyVendorPlans = result.plans.filter(
+    (plan) => plan.vendor === emptyCatalogVendor.name,
+  );
+  const omadaPlans = result.plans.filter(
+    (plan) => plan.vendor === omadaVendor.name,
+  );
+
+  assert.equal(emptyVendorPlans.length, 2);
+  assert.ok(emptyVendorPlans.every((plan) => plan.complete === false));
+  assert.ok(
+    emptyVendorPlans.every((plan) =>
+      plan.unmet.some(
+        (item) =>
+          item.category === 'gateway' &&
+          item.vendor === emptyCatalogVendor.name,
+      ),
+    ),
+  );
+
+  assert.equal(omadaPlans.length, 2);
+  assert.ok(
+    omadaPlans.every((plan) => plan.complete === true),
+    'Omada plans should remain complete despite the other vendor having no catalog rows',
+  );
+});
+
+test('AC6 continues building other vendor-plan combinations when enclosure is unmet', () => {
+  const secondVendor = {
+    name: 'Test Vendor',
+    needController: false,
+    managementModes: ['dashboard'],
+  };
+
+  const result = runEngine(
+    { ...input, housing: 'closet' },
+    requirements,
+    catalog,
+    [omadaVendor, secondVendor],
+    {
+      selectGateway: ({ vendor, plan }) => ({
+        ok: true,
+        sku: {
+          sku: `TEST-${vendor}-${plan}`,
+          vendor,
+          category: 'gateway',
+          rack_units:
+            vendor === omadaVendor.name && plan === 'cost_efficient'
+              ? 1
+              : 0,
+        },
+        qty: 1,
+        flags: [],
+      }),
+    },
+  );
+
+  assert.equal(result.plans.length, 4);
+
+  const failedPlan = result.plans.find(
+    (plan) =>
+      plan.vendor === omadaVendor.name &&
+      plan.planType === 'CE',
+  );
+
+  assert.ok(failedPlan);
+  assert.equal(failedPlan.complete, false);
+  assert.equal(failedPlan.enclosureSelection.ok, false);
+  assert.ok(
+    failedPlan.unmet.some(
+      (item) =>
+        item.category === 'enclosure' &&
+        item.vendor === omadaVendor.name,
+    ),
+  );
+
+  const remainingPlans = result.plans.filter(
+    (plan) => plan !== failedPlan,
+  );
+
+  assert.equal(remainingPlans.length, 3);
+  assert.ok(
+    remainingPlans.every((plan) => plan.complete === true),
+    'The other vendor-plan combinations should complete despite the enclosure unmet',
+  );
+});
+
+test('AC7 calls controller selection after counting selected devices and adds the controller', () => {
+  const { buildPlan } = require('../../src/types/engine/orchestration');
+  const vendor = { ...testVendor };
+  const ctx = createCtx();
+
+  const gatewaySku = {
+    sku: 'TEST-GW-HA',
+    vendor: vendor.name,
+    category: 'gateway',
+  };
+  const apSku = {
+    sku: 'TEST-AP',
+    vendor: vendor.name,
+    category: 'access_point',
+  };
+  const switchSku = {
+    sku: 'TEST-SW',
+    vendor: vendor.name,
+    category: 'switch',
+  };
+  const controllerSku = {
+    sku: 'TEST-CONTROLLER',
+    vendor: vendor.name,
+    category: 'controller',
+  };
+
+  const calls = [];
+
+  const plan = buildPlan(
+    vendor,
+    'CE',
+    requirements,
+    input,
+    [gatewaySku, apSku, switchSku, controllerSku],
+    ctx,
+    {
+      selectGateway: () => ({
+        ok: true,
+        sku: gatewaySku,
+        qty: 2,
+        flags: [],
+      }),
+      selectAccessPoints: () => ({
+        ok: true,
+        sku: apSku,
+        qty: 2,
+        flags: [],
+      }),
+      computePoeBudget: () => ({ perFloor: [{ loadW: 20, budgetW: 24 }] }),
+      selectSwitches: () => ({
+        ok: true,
+        accessSwitches: [{ sku: switchSku, qty: 3 }],
+      }),
+      controller: {
+        integratedControllerCheck: (selectedGateway, receivedCtx) => {
+          calls.push('integratedControllerCheck');
+          assert.strictEqual(selectedGateway, gatewaySku);
+          assert.strictEqual(receivedCtx, ctx);
+          return false;
+        },
+        countManagedDevices: (items) => {
+          calls.push('countManagedDevices');
+          return {
+            aps: items.filter((item) => item.category === 'access_point')
+              .reduce((sum, item) => sum + item.qty, 0),
+            switches: items.filter((item) => item.category === 'switch')
+              .reduce((sum, item) => sum + item.qty, 0),
+            gateways: items.filter((item) => item.category === 'gateway')
+              .reduce((sum, item) => sum + item.qty, 0),
+          };
+        },
+        selectController: (receivedVendor, planType, counts, receivedCatalog, receivedCtx) => {
+          calls.push('selectController');
+          assert.equal(receivedVendor, vendor.name);
+          assert.equal(planType, 'CE');
+          assert.deepEqual(counts, {
+            aps: 2,
+            switches: 3,
+            gateways: 2,
+          });
+          assert.strictEqual(receivedCatalog[0], gatewaySku);
+          assert.strictEqual(receivedCtx, ctx);
+
+          return {
+            ok: true,
+            sku: controllerSku,
+            qty: 1,
+            flags: [],
+          };
+        },
+      },
+    },
+  );
+
+  assert.deepEqual(calls, [
+    'integratedControllerCheck',
+    'countManagedDevices',
+    'selectController',
+  ]);
+  assert.ok(
+    plan.items.some(
+      (item) =>
+        item.category === 'controller' &&
+        item.sku === controllerSku.sku &&
+        item.qty === 1,
+    ),
+  );
+});
+
+test('AC7 skips separate controller selection when the gateway has an integrated controller', () => {
+  const { buildPlan } = require('../../src/types/engine/orchestration');
+  const vendor = { ...testVendor };
+  const ctx = createCtx();
+
+  const gatewaySku = {
+    sku: 'TEST-GW-INTEGRATED',
+    vendor: vendor.name,
+    category: 'gateway',
+    capabilities: ['controller'],
+  };
+
+  let controllerSelectionCalls = 0;
+
+  const plan = buildPlan(
+    vendor,
+    'CE',
+    requirements,
+    input,
+    [gatewaySku],
+    ctx,
+    {
+      selectGateway: () => ({
+        ok: true,
+        sku: gatewaySku,
+        qty: 1,
+        flags: [],
+      }),
+      controller: {
+        integratedControllerCheck: (selectedGateway, receivedCtx) => {
+          assert.strictEqual(selectedGateway, gatewaySku);
+          assert.strictEqual(receivedCtx, ctx);
+
+          const controllerStep = require('../../src/types/engine/devices/controller');
+          return controllerStep.integratedControllerCheck(selectedGateway, receivedCtx);
+        },
+        countManagedDevices: () => {
+          throw new Error('Must not count devices for an integrated controller.');
+        },
+        selectController: () => {
+          controllerSelectionCalls += 1;
+          throw new Error('Must not select a separate controller.');
+        },
+      },
+    },
+  );
+
+  assert.equal(controllerSelectionCalls, 0);
+  assert.equal(plan.complete, true);
+  assert.equal(
+    plan.items.some((item) => item.category === 'controller'),
+    false,
+  );
+  assert.ok(
+    ctx.flags.some(
+      (flag) => flag.code === 'CONTROLLER_CAPACITY_NOT_VERIFIED',
+    ),
+  );
+});
+
+test('AC7 skips controller checks when vendor needController is false', () => {
+  const { buildPlan } = require('../../src/types/engine/orchestration');
+  const vendor = { ...omadaVendor, needController: false };
+  const ctx = createCtx();
+  const gatewaySku = {
+    sku: 'TEST-GW-NO-CONTROLLER',
+    vendor: vendor.name,
+    category: 'gateway',
+  };
+
+  const controller = {
+    integratedControllerCheck: () => {
+      throw new Error('Controller check must be skipped.');
+    },
+    countManagedDevices: () => {
+      throw new Error('Device counting must be skipped.');
+    },
+    selectController: () => {
+      throw new Error('Controller selection must be skipped.');
+    },
+  };
+
+  const plan = buildPlan(
+    vendor,
+    'CE',
+    requirements,
+    input,
+    [gatewaySku],
+    ctx,
+    {
+      selectGateway: () => ({
+        ok: true,
+        sku: gatewaySku,
+        qty: 1,
+        flags: [],
+      }),
+      controller,
+    },
+  );
+
+  assert.equal(plan.complete, true);
+  assert.equal(
+    plan.items.some((item) => item.category === 'controller'),
+    false,
+  );
+  assert.equal(
+    ctx.flags.some((flag) => flag.code === 'CONTROLLER_CAPACITY_NOT_VERIFIED'),
+    false,
+  );
+});
+
+test('AC6 records controller unmet against the plan vendor and marks the plan incomplete', () => {
+  const { buildPlan } = require('../../src/types/engine/orchestration');
+  const vendor = { ...testVendor };
+  const ctx = createCtx();
+  const gatewaySku = {
+    sku: 'TEST-GW-NON-INTEGRATED',
+    vendor: vendor.name,
+    category: 'gateway',
+  };
+
+  const plan = buildPlan(
+    vendor,
+    'CE',
+    requirements,
+    input,
+    [gatewaySku],
+    ctx,
+    {
+      selectGateway: () => ({
+        ok: true,
+        sku: gatewaySku,
+        qty: 1,
+        flags: [],
+      }),
+    },
+  );
+
+  assert.equal(plan.complete, false);
+  assert.ok(
+    plan.unmet.some(
+      (item) =>
+        item.category === 'controller' &&
+        item.vendor === vendor.name &&
+        item.reason === 'controller selection not implemented yet',
+    ),
+  );
+});
+
+test('AC6 propagates ValidationError from the controller selector unchanged', () => {
+  const { buildPlan } = require('../../src/types/engine/orchestration');
+  const { ValidationError } = require('../../src/types/engine/contracts');
+  const vendor = { ...testVendor };
+  const gatewaySku = {
+    sku: 'TEST-GW-CONTROLLER-ERROR',
+    vendor: vendor.name,
+    category: 'gateway',
+  };
+  const selectorError = new ValidationError(
+    'controller.catalog',
+    'Invalid controller catalog.',
+  );
+
+  assert.throws(
+    () =>
+      buildPlan(
+        vendor,
+        'CE',
+        requirements,
+        input,
+        [gatewaySku],
+        createCtx(),
+        {
+          selectGateway: () => ({
+            ok: true,
+            sku: gatewaySku,
+            qty: 1,
+            flags: [],
+          }),
+          controller: {
+            integratedControllerCheck: () => false,
+            countManagedDevices: () => ({
+              aps: 0,
+              switches: 0,
+              gateways: 1,
+            }),
+            selectController: () => {
+              throw selectorError;
+            },
+          },
+        },
+      ),
+    (error) =>
+      error === selectorError &&
+      error.name === 'ValidationError' &&
+      error.field === 'controller.catalog',
+  );
+});
+
+test('AC6 continues producing other vendor plans when controller selection is unmet', () => {
+  const vendors = [omadaVendor, testVendor];
+  const testVendorCatalog = catalog.map((sku) => ({
+    ...sku,
+    vendor: testVendor.name,
+  }));
+
+  const result = runEngine(
+    input,
+    requirements,
+    [...catalog, ...testVendorCatalog],
+    vendors,
+    {
+      selectGateway: ({ vendor }) => {
+        const sku = {
+          sku: `${vendor.replace(/\s+/g, '-')}-GATEWAY`,
+          vendor,
+          category: 'gateway',
+        };
+
+        return {
+          ok: true,
+          sku,
+          qty: 1,
+          flags: [],
+        };
+      },
+    },
+  );
+
+  assert.equal(result.plans.length, 4);
+
+  const omadaPlans = result.plans.filter(
+    (plan) => plan.vendor === omadaVendor.name,
+  );
+  const testVendorPlans = result.plans.filter(
+    (plan) => plan.vendor === testVendor.name,
+  );
+
+  assert.equal(omadaPlans.length, 2);
+  assert.ok(omadaPlans.every((plan) => plan.complete === true));
+  assert.ok(omadaPlans.every((plan) => plan.unmet.length === 0));
+
+  assert.equal(testVendorPlans.length, 2);
+  assert.ok(testVendorPlans.every((plan) => plan.complete === false));
+  assert.ok(
+    testVendorPlans.every((plan) =>
+      plan.unmet.some(
+        (item) =>
+          item.category === 'controller' &&
+          item.vendor === testVendor.name,
+      ),
+    ),
+  );
 });
