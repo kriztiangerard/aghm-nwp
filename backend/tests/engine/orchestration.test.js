@@ -10,6 +10,7 @@ const { normalize } = require('../../src/types/engine/normalize');
 const { createCtx } = require('../../src/types/engine/ctx');
 const { computePoeBudget } = require('../../src/types/engine/devices/poe');
 const { runEngine, validateEngineInputs } = require('../../src/types/engine/orchestration');
+const { flatRowToCatalogSku } = require('../../src/types/engine/catalog-mapping');
 const syntheticEdgeCases = require('../fixtures/catalogs/synthetic-catalog-edgecases.json');
 const syntheticProductLines = require('../fixtures/catalogs/synthetic-catalog-productlines.json');
 
@@ -39,6 +40,39 @@ const mockSteps = {
     },
   }),
 };
+
+function mapCatalogRows(rows) {
+  return rows.map((row) => flatRowToCatalogSku(row).sku);
+}
+
+function omadaCatalogWithRepresentativeTestPrices() {
+  return catalog.map((row) => {
+    const sku = flatRowToCatalogSku(row).sku;
+    let price;
+
+    if (sku.category === 'gateway') {
+      price = sku.sku === 'ER7212PC'
+        ? 1000
+        : 5000 + sku.line_rank * 1000;
+    } else if (sku.category === 'access_point') {
+      price = sku.sku === 'EAP770'
+        ? null
+        : sku.sku === 'EAP787'
+          ? 1000
+          : 5000 + sku.line_rank * 1000;
+    } else if (sku.category === 'switch') {
+      price = sku.sku === 'SG3428XMPP'
+        ? 1000
+        : sku.sku === 'SG5428XMPP'
+          ? 2000
+          : 10000 + sku.line_rank * 1000;
+    } else {
+      price = sku.price;
+    }
+
+    return { ...sku, price };
+  });
+}
 
 test('validates normalized input, requirements, catalog rows, and vendor descriptors', () => {
   assert.doesNotThrow(() =>
@@ -1052,24 +1086,29 @@ test('buildPlan leaves the placeholder BOM when no builder is injected', () => {
   });
 });
 
-test('Omada snapshot and vendor 999 synthetic fixtures produce four plans', () => {
+test('Omada snapshot and vendor 999 fixtures exercise the complete orchestration pipeline', () => {
+  const omadaIntegrationVendor = {
+    ...omadaVendor,
+    needController: true,
+  };
   const syntheticVendor = {
     name: 'Synthetic Vendor',
     needController: false,
     managementModes: ['dashboard'],
   };
 
+  // Test-only catalog values make device selection deterministic; these are not market data.
+  const pricedOmadaCatalog = omadaCatalogWithRepresentativeTestPrices();
+  const normalizedSyntheticCatalog = mapCatalogRows(syntheticEdgeCases);
   const combinedCatalog = [
-    ...catalog,
-    ...syntheticEdgeCases,
+    ...pricedOmadaCatalog,
+    ...normalizedSyntheticCatalog,
   ];
-
   const result = runEngine(
     input,
     requirements,
     combinedCatalog,
-    [omadaVendor, syntheticVendor],
-    mockSteps,
+    [omadaIntegrationVendor, syntheticVendor],
   );
 
   assert.equal(result.plans.length, 4);
@@ -1084,6 +1123,45 @@ test('Omada snapshot and vendor 999 synthetic fixtures produce four plans', () =
     ],
   );
 
+  const omadaPlans = result.plans.filter(
+    (plan) => plan.vendor === omadaIntegrationVendor.name,
+  );
+  const ceOmada = omadaPlans.find((plan) => plan.planType === 'CE');
+  const hpOmada = omadaPlans.find((plan) => plan.planType === 'HP');
+  assert.equal(ceOmada.complete, false);
+  assert.equal(hpOmada.complete, false);
+  assert.equal(ceOmada.items.find((item) => item.category === 'gateway').sku, 'ER7212PC');
+  for (const plan of omadaPlans) {
+    assert.ok(
+      ['gateway', 'access_point', 'switch'].every((category) =>
+        plan.items.some((item) => item.category === category),
+      ),
+      `${plan.planType} should complete each selectable device step`,
+    );
+  }
+  assert.notEqual(
+    hpOmada.items.find((item) => item.category === 'gateway').sku,
+    'ER7212PC',
+  );
+  assert.ok(
+    ceOmada.unmet.every((item) => item.category === 'enclosure'),
+    'the integrated ER7212PC plan should only be blocked by the missing generic enclosure',
+  );
+  assert.deepEqual(
+    hpOmada.unmet.map((item) => item.category),
+    ['controller', 'enclosure'],
+  );
+
+  const syntheticPlans = result.plans.filter(
+    (plan) => plan.vendor === syntheticVendor.name,
+  );
+  assert.ok(
+    syntheticPlans.every((plan) =>
+      plan.flags.some((flag) => flag.code === 'UNPRICED_SKUS_EXCLUDED'),
+    ),
+    'the unpriced synthetic switch should use the normal unpriced-selection flag path',
+  );
+
   assert.ok(
     syntheticProductLines.every((line) => line.vendor_id === 999),
     'synthetic product-line fixture should use vendor_id 999',
@@ -1092,6 +1170,31 @@ test('Omada snapshot and vendor 999 synthetic fixtures produce four plans', () =
   assert.ok(
     result.plans.every((plan) => plan.vendor !== 'Generic'),
     'Generic must not become a plan vendor',
+  );
+
+  const missingNullableFieldRun = runEngine(
+    input,
+    {
+      ...requirements,
+      vpnTunnelsNeeded: { CE: 1, HP: 1 },
+    },
+    normalizedSyntheticCatalog,
+    [syntheticVendor],
+  );
+  assert.ok(
+    missingNullableFieldRun.plans.every((plan) =>
+      plan.flags.some((flag) => flag.code === 'GATEWAY_VPN_CAPACITY_UNKNOWN') &&
+      plan.unmet.some((item) => item.category === 'gateway'),
+    ),
+    'missing max_vpn_tunnels should produce the normal flag and unmet results without throwing',
+  );
+  assert.ok(
+    missingNullableFieldRun.plans.some((plan) =>
+      plan.items.some((item) =>
+        item.category === 'access_point' && item.sku === 'SYN-AP-005',
+      ),
+    ),
+    'a sunsetting synthetic AP should be selectable through the normal AP selector',
   );
 });
 
