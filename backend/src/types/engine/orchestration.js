@@ -30,6 +30,13 @@ const {
 const { recommendPower } = require('./devices/power');
 const { planOptics } = require('./devices/optics');
 
+const DEFAULT_STEPS = Object.freeze({
+  selectGateway,
+  selectAccessPoints,
+  computePoeBudget,
+  selectSwitches,
+});
+
 function getPlanRequirements(reqs, planType) {
   if (planType !== 'CE' && planType !== 'HP') {
     throw new Error(`Unknown plan type '${planType}'`);
@@ -430,7 +437,7 @@ const resolvedItems = selectedDeviceItems;
 }
 
 
-function runEngine(input, reqs, catalog, vendors, steps = { selectGateway }) {
+function runEngine(input, reqs, catalog, vendors, steps = DEFAULT_STEPS) {
   validateEngineInputs(input, reqs, catalog, vendors);
 
   const plans = [];
