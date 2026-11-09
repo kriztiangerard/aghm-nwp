@@ -1,6 +1,6 @@
 'use strict';
 
-// NWP-ENGINE-015 � Vendor � plan orchestration.
+// NWP-ENGINE-015: Vendor x plan orchestration.
 // This module coordinates existing engine steps; it does not implement their algorithms.
 
 const {
@@ -12,7 +12,8 @@ const {
   validateVendorDescriptors,
   validateBom,
 } = require('./contracts');
-const { createCtx } = require('./ctx');
+const { createCtx, addLedger } = require('./ctx');
+const { assembleEngineResult } = require('./steps/assemble');
 
 const { selectGateway } = require('./devices/gateway');
 const { selectAccessPoints } = require('./devices/aps');
@@ -303,6 +304,50 @@ function buildPlan(vendor, planType, reqs, input, catalog, ctx, steps = {}) {
         );
       }
 
+      // NWP-ENGINE-016: the core switch is listed first among the switch items; the topology treats the first
+      // switch item as the core and every later one as an access switch.
+      // Preferred source: switchResult.coreSwitch ({ sku, qty }) from the core-switch selector in switches.js.
+      // Stopgap until that selector exists: reuse the first access switch SKU, and only when the building has more
+      // than one floor (a single-floor site has no uplinks to a core, so its access switch also serves as the core).
+      let coreSwitch = null;
+
+      if (switchResult.coreSwitch) {
+        coreSwitch = switchResult.coreSwitch;
+      } else if (
+        switchResult.uplinksPerFloor > 0 &&
+        switchResult.accessSwitches.length > 0 &&
+        Number.isFinite(switchResult.coreSwitchQuantity) &&
+        switchResult.coreSwitchQuantity > 0
+      ) {
+        coreSwitch = {
+          sku: switchResult.accessSwitches[0].sku,
+          qty: switchResult.coreSwitchQuantity,
+        };
+        addLedger(
+          ctx,
+          'coreSwitch',
+          coreSwitch.sku.sku,
+          'ESTIMATE: no core switch selector exists yet, so the first access switch model is used as the core switch.',
+        );
+      }
+
+      if (coreSwitch) {
+        assertSelectedVendor({ ok: true, sku: coreSwitch.sku }, vendor, 'switch');
+        if (!coreSwitch.sku?.sku || !Number.isFinite(coreSwitch.qty)) {
+          throw new TypeError('The core switch must include a SKU and quantity.');
+        }
+
+        plan.items.push({
+          category: 'switch',
+          sku: coreSwitch.sku.sku,
+          qty: coreSwitch.qty,
+        });
+        selectedDeviceItems.push({
+          sku: coreSwitch.sku,
+          qty: coreSwitch.qty,
+        });
+      }
+
       switchResult.accessSwitches.forEach((accessSwitch) => {
         assertSelectedVendor(
   { ok: true, sku: accessSwitch.sku },
@@ -474,21 +519,25 @@ function runEngine(input, reqs, catalog, vendors, steps = DEFAULT_STEPS, sharedC
     selectionCtx,
   );
 
-  // Shared (requirements-phase) entries come first, then plan-level entries.
-  // Each plan keeps its own context; the aggregate only copies from it.
-  const planLedger = plans.flatMap((plan) => plan.ledger || []);
-  const planFlags = plans.flatMap((plan) => plan.flags || []);
-  const planUnmet = plans.flatMap((plan) => plan.unmet || []);
-
-    return {
-    contractVersion: CONTRACT_VERSION,
-    requirements: reqs,
-    ledger: [...sharedCtx.ledger, ...planLedger, ...selectionCtx.ledger],
-    flags: [...sharedCtx.flags, ...planFlags, ...selectionCtx.flags],
-    unmet: [...sharedCtx.unmet, ...planUnmet],
-    plans,
-    defaultVendor,
+  // NWP-ENGINE-016: topology, configuration plan, limitations, and the merged ledger and flags.
+  // Shared entries (requirements phase, then default-vendor selection) come first; assembleEngineResult then adds
+  // each plan's own entries in plan order. Selector internals that hold full catalog rows are removed first so the
+  // result stays free of catalog rows. The handler stamps generatedAt with finalizeEngineResult.
+  const publicPlans = plans.map(({ switchSelection, enclosureSelection, ...plan }) => plan);
+  const sharedForOutput = {
+    ledger: [...sharedCtx.ledger, ...selectionCtx.ledger],
+    flags: [...sharedCtx.flags, ...selectionCtx.flags],
+    unmet: [],
   };
+
+  return assembleEngineResult({
+    requirements: reqs,
+    sharedCtx: sharedForOutput,
+    plans: publicPlans,
+    defaultVendor,
+    input,
+    catalog,
+  });
 }
 
 
