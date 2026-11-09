@@ -9,6 +9,7 @@ const catalogSnapshot = require('../fixtures/catalogs/omada.snapshot.json');
 const { normalize } = require('../../src/types/engine/normalize');
 const { createCtx } = require('../../src/types/engine/ctx');
 const { computePoeBudget } = require('../../src/types/engine/devices/poe');
+const { buildBom } = require('../../src/types/engine/bom');
 const { runEngine, validateEngineInputs } = require('../../src/types/engine/orchestration');
 const { flatRowToCatalogSku } = require('../../src/types/engine/catalog-mapping');
 const syntheticEdgeCases = require('../fixtures/catalogs/synthetic-catalog-edgecases.json');
@@ -1366,6 +1367,135 @@ test('runEngine calls buildBom once per vendor-plan and passes the plan and cata
     assert.strictEqual(plan.bom, calls[index].bom,
       'Orchestration must retain the exact BOM returned by the builder');
   });
+});
+
+
+test('buildPlan records deduplicated BOM price, stale-price, and incomplete-plan advisories', () => {
+  const { buildPlan } = require('../../src/types/engine/orchestration');
+  const ctx = createCtx();
+  const bom = {
+    currency: 'PHP',
+    lines: [
+      {
+        category: 'access_point',
+        sku: 'AP-UNPRICED',
+        name: 'Unpriced access point',
+        vendor: omadaVendor.name,
+        qty: 1,
+        unitPrice: null,
+        lineTotal: null,
+        status: 'ACTIVE',
+        isGeneric: false,
+        isStale: true,
+        priceUpdatedAt: '2026-01-15',
+      },
+      {
+        category: 'switch',
+        sku: 'SW-STALE',
+        name: 'Stale switch',
+        vendor: omadaVendor.name,
+        qty: 1,
+        unitPrice: 100,
+        lineTotal: 100,
+        status: 'ACTIVE',
+        isGeneric: false,
+        isStale: true,
+        priceUpdatedAt: '2026-02-20',
+      },
+    ],
+    total: 100,
+    totalIsPartial: true,
+  };
+
+  const plan = buildPlan(
+    omadaVendor,
+    'CE',
+    requirements,
+    input,
+    catalog,
+    ctx,
+    { ...mockSteps, buildBom: () => bom },
+  );
+
+  const codes = plan.flags.map((flag) => flag.code);
+  assert.equal(codes.filter((code) => code === 'BOM_PARTIAL_PRICE').length, 1);
+  assert.equal(codes.filter((code) => code === 'BOM_PLAN_INCOMPLETE').length, 1);
+  assert.equal(codes.filter((code) => code === 'BOM_PRICE_STALE').length, 1);
+
+  const partialPrice = plan.flags.find((flag) => flag.code === 'BOM_PARTIAL_PRICE');
+  assert.match(partialPrice.message, /AP-UNPRICED/);
+
+  const incomplete = plan.flags.find((flag) => flag.code === 'BOM_PLAN_INCOMPLETE');
+  assert.match(incomplete.message, /required equipment.*missing/i);
+
+  const stale = plan.flags.find((flag) => flag.code === 'BOM_PRICE_STALE');
+  assert.match(stale.message, /AP-UNPRICED/);
+  assert.match(stale.message, /SW-STALE/);
+  assert.match(stale.message, /2026-01-15/);
+  assert.match(stale.message, /2026-02-20/);
+});
+
+test('buildPlan emits BOM advisories from the real builder and catalog provenance', () => {
+  const { buildPlan } = require('../../src/types/engine/orchestration');
+  const ctx = createCtx();
+  const mappedCatalog = mapCatalogRows(catalog);
+  const gateway = mappedCatalog.find((row) => row.category === 'gateway' && row.rack_units > 0);
+
+  assert.ok(gateway, 'Omada snapshot must contain a gateway SKU');
+
+  const staleUnpricedGateway = {
+    ...gateway,
+    price: null,
+    is_stale: true,
+    price_updated_at: '2026-02-20',
+  };
+  const testCatalog = mappedCatalog.map((row) =>
+    row.sku === gateway.sku ? staleUnpricedGateway : row
+  );
+
+  const plan = buildPlan(
+    omadaVendor,
+    'CE',
+    requirements,
+    input,
+    testCatalog,
+    ctx,
+    {
+      selectGateway: () => ({
+        ok: true,
+        sku: staleUnpricedGateway,
+        qty: 1,
+        flags: [],
+      }),
+      buildBom,
+    },
+  );
+
+  assert.equal(plan.bom.lines.length, 1);
+  assert.equal(plan.bom.lines[0].sku, gateway.sku);
+  assert.equal(plan.bom.lines[0].unitPrice, null);
+  assert.equal(plan.bom.lines[0].isStale, true);
+  assert.equal(plan.bom.lines[0].priceUpdatedAt, '2026-02-20');
+  assert.equal(plan.bom.total, null);
+  assert.equal(plan.bom.totalIsPartial, true);
+
+  const codes = plan.flags.map((flag) => flag.code);
+  assert.equal(codes.filter((code) => code === 'BOM_PARTIAL_PRICE').length, 1);
+  assert.equal(codes.filter((code) => code === 'BOM_PLAN_INCOMPLETE').length, 1);
+  assert.equal(codes.filter((code) => code === 'BOM_PRICE_STALE').length, 1);
+
+  assert.match(
+    plan.flags.find((flag) => flag.code === 'BOM_PARTIAL_PRICE').message,
+    new RegExp(gateway.sku),
+  );
+  assert.match(
+    plan.flags.find((flag) => flag.code === 'BOM_PLAN_INCOMPLETE').message,
+    /required equipment.*missing/i,
+  );
+  assert.match(
+    plan.flags.find((flag) => flag.code === 'BOM_PRICE_STALE').message,
+    /2026-02-20/,
+  );
 });
 
 test('buildPlan rejects invalid BOM output from the injected builder', () => {
