@@ -701,8 +701,53 @@ test('runEngine includes advisory installation materials for default CE and HP p
     assert.ok(Array.isArray(plan.installationMaterials.items));
     assert.equal(plan.installationMaterials.currency, 'PHP');
     assert.ok(plan.items.every((item) => item.category !== 'installation_material'));
-    assert.deepEqual(plan.bom.lines, []);
-    assert.equal(plan.bom.total, null);
+    assert.ok(Array.isArray(plan.bom.lines));
+  }
+});
+
+test('AC7 default runEngine builds BOM lines, carries stale metadata, and adds BOM advisories', () => {
+  const staleCatalog = omadaCatalogWithRepresentativeTestPrices().map((sku) => ({
+    ...sku,
+    is_stale: true,
+    price_updated_at: '2026-10-01',
+  }));
+  const result = runEngine(input, requirements, staleCatalog, [omadaVendor]);
+
+  assert.equal(result.plans.length, 2);
+
+  for (const plan of result.plans) {
+    assert.ok(plan.bom, `${plan.planType} must contain a BOM`);
+    assert.ok(plan.bom.lines.length > 0, `${plan.planType} must contain selected BOM lines`);
+
+    const selected = new Map();
+    plan.items.forEach((item) => {
+      const key = `${item.category}:${item.sku}`;
+      selected.set(key, (selected.get(key) || 0) + item.qty);
+    });
+    const bomItems = new Map(
+      plan.bom.lines.map((line) => [`${line.category}:${line.sku}`, line.qty]),
+    );
+    assert.deepEqual(bomItems, selected, `${plan.planType} BOM reflects selected equipment`);
+
+    for (const line of plan.bom.lines) {
+      assert.equal(line.isStale, true, `${line.sku} carries stale-price metadata`);
+      assert.equal(line.priceUpdatedAt, '2026-10-01');
+    }
+
+    assert.ok(
+      plan.flags.some((flag) => flag.code === 'BOM_PRICE_STALE'),
+      `${plan.planType} includes the stale-price advisory`,
+    );
+    if (plan.bom.lines.some((line) => line.unitPrice === null)) {
+      assert.ok(
+        plan.flags.some((flag) => flag.code === 'BOM_PARTIAL_PRICE'),
+        `${plan.planType} includes the unpriced-item advisory`,
+      );
+    }
+    assert.match(
+      plan.flags.find((flag) => flag.code === 'BOM_PRICE_STALE').message,
+      new RegExp(plan.bom.lines[0].sku),
+    );
   }
 });
 
