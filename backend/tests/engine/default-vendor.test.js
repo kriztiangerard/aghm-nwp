@@ -47,6 +47,45 @@ function runSelector(plans, input = makeInput(), vendorList = vendors) {
   return { result, ctx };
 }
 
+function runSelectorWithBudgetCaps(
+  plans,
+  input,
+  vendorList,
+  budgetCaps
+) {
+  const paramsPath = require.resolve('../../src/types/engine/params.js');
+  const selectorPath = require.resolve('../../src/types/engine/default-vendor.js');
+
+  const originalParamsModule = require.cache[paramsPath];
+  const originalSelectorModule = require.cache[selectorPath];
+
+  require.cache[paramsPath] = {
+    ...originalParamsModule,
+    exports: Object.freeze({
+      ...originalParamsModule.exports,
+      BUDGET_BAND_PLAN_CAP_PHP: budgetCaps,
+    }),
+  };
+
+  delete require.cache[selectorPath];
+
+  try {
+    const { selectDefaultVendors: select } = require(selectorPath);
+    const ctx = createCtx();
+    const result = select(plans, input, vendorList, ctx);
+
+    return { result, ctx };
+  } finally {
+    require.cache[paramsPath] = originalParamsModule;
+
+    if (originalSelectorModule) {
+      require.cache[selectorPath] = originalSelectorModule;
+    } else {
+      delete require.cache[selectorPath];
+    }
+  }
+}
+
 test('AC1: only complete plans are candidates', () => {
   const plans = [
     makePlan({ vendor: 'Vendor A', complete: false, total: 1000 }),
@@ -426,4 +465,99 @@ test('returns null and adds a flag when no complete HP plan exists', () => {
       (flag) => flag.code === 'DEFAULT_VENDOR_NO_COMPLETE_HP_PLAN'
     )
   );
+});
+
+test('AC3: numeric budget cap filters candidates above the cap', () => {
+  const plans = [
+    makePlan({ vendor: 'Vendor A', total: 20000 }),
+    makePlan({ vendor: 'Vendor B', total: 12000 }),
+  ];
+
+  const { result, ctx } = runSelectorWithBudgetCaps(
+    plans,
+    makeInput(),
+    vendors,
+    15000
+  );
+
+  assert.equal(result.CE, 'Vendor B');
+
+  const entry = ctx.ledger.find(
+    (item) => item.field === 'defaultVendor.CE.budgetFilter'
+  );
+
+  assert.ok(entry);
+  assert.equal(entry.valueUsed, 15000);
+  assert.ok(entry.reason.includes('at or below PHP 15000'));
+});
+
+test('AC3: per-band budget cap uses the selected monthly budget band', () => {
+  const plans = [
+    makePlan({ vendor: 'Vendor A', total: 20000 }),
+    makePlan({ vendor: 'Vendor B', total: 12000 }),
+  ];
+
+  const { result, ctx } = runSelectorWithBudgetCaps(
+    plans,
+    makeInput({ monthlyBudgetBand: 'under15k' }),
+    vendors,
+    { under15k: 13000, mainstream: 35000 }
+  );
+
+  assert.equal(result.CE, 'Vendor B');
+
+  const entry = ctx.ledger.find(
+    (item) => item.field === 'defaultVendor.CE.budgetFilter'
+  );
+
+  assert.ok(entry);
+  assert.equal(entry.valueUsed, 13000);
+});
+
+test('AC3: missing budget-band cap does not filter candidates', () => {
+  const plans = [
+    makePlan({ vendor: 'Vendor A', total: 20000 }),
+    makePlan({ vendor: 'Vendor B', total: 12000 }),
+  ];
+
+  const { result, ctx } = runSelectorWithBudgetCaps(
+    plans,
+    makeInput({ monthlyBudgetBand: 'unconfigured-band' }),
+    vendors,
+    { under15k: 13000 }
+  );
+
+  assert.equal(result.CE, 'Vendor B');
+
+  const entry = ctx.ledger.find(
+    (item) => item.field === 'defaultVendor.CE.budgetFilter'
+  );
+
+  assert.ok(entry);
+  assert.equal(entry.valueUsed, 'not applied');
+  assert.ok(entry.reason.includes('unconfigured-band'));
+});
+
+test('AC6: budget filter is relaxed when no candidate fits the cap', () => {
+  const plans = [
+    makePlan({ vendor: 'Vendor A', total: 50000 }),
+    makePlan({ vendor: 'Vendor B', total: 60000 }),
+  ];
+
+  const { result, ctx } = runSelectorWithBudgetCaps(
+    plans,
+    makeInput(),
+    vendors,
+    15000
+  );
+
+  assert.equal(result.CE, 'Vendor A');
+
+  const entry = ctx.ledger.find(
+    (item) => item.field === 'defaultVendor.CE.budgetFilter'
+  );
+
+  assert.ok(entry);
+  assert.equal(entry.valueUsed, 'ignored');
+  assert.ok(entry.reason.includes('budget filter was dropped'));
 });

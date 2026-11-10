@@ -5,6 +5,27 @@ const { addLedger, addFlag } = require('./ctx.js');
 
 const PLAN_TYPES = ['CE', 'HP'];
 
+function getBudgetCap(input) {
+  const caps = params.BUDGET_BAND_PLAN_CAP_PHP;
+
+  if (caps == null || input.monthlyBudgetBand == null) {
+    return null;
+  }
+
+  if (typeof caps === 'number') {
+    return caps;
+  }
+
+  if (
+    typeof caps === 'object' &&
+    Object.prototype.hasOwnProperty.call(caps, input.monthlyBudgetBand)
+  ) {
+    return caps[input.monthlyBudgetBand];
+  }
+
+  return null;
+}
+
 function getPlanTotal(plan) {
   const total = plan?.bom?.total;
 
@@ -79,7 +100,7 @@ function selectDefaultVendors(plans, input, vendors, ctx) {
     params.BUDGET_BAND_PLAN_CAP_PHP,
     params.BUDGET_BAND_PLAN_CAP_PHP === null
       ? `No plan-total cap is defined for monthly budget band ${input.monthlyBudgetBand}; no budget filtering is applied.`
-      : 'A budget cap is configured, but its per-band structure has not yet been defined.'
+      : 'The configured plan-total cap is evaluated separately for each plan type and monthly budget band.'
   );
 
   addLedger(
@@ -154,8 +175,40 @@ function selectDefaultVendors(plans, input, vendors, ctx) {
       );
     }
 
-    // The budget cap parameter is currently null, so no budget filter applies.
-    // Do not invent a cap or per-band configuration before the team defines it.
+    const budgetCap = getBudgetCap(input);
+
+    if (budgetCap === null) {
+      addLedger(
+        ctx,
+        `defaultVendor.${planType}.budgetFilter`,
+        'not applied',
+        `No plan-total cap is configured for monthly budget band ${input.monthlyBudgetBand}; no budget filtering was applied.`
+      );
+    } else {
+      const budgetCandidates = candidates.filter(({ plan }) => {
+        const total = getPlanTotal(plan);
+        return total !== null && total <= budgetCap;
+      });
+
+      if (budgetCandidates.length > 0) {
+        candidates = budgetCandidates;
+
+        addLedger(
+          ctx,
+          `defaultVendor.${planType}.budgetFilter`,
+          budgetCap,
+          `Only ${planType} candidates with a valid BOM total at or below PHP ${budgetCap} were retained.`
+        );
+      } else {
+        addLedger(
+          ctx,
+          `defaultVendor.${planType}.budgetFilter`,
+          'ignored',
+          `No complete ${planType} candidates fit the budget cap of PHP ${budgetCap}; the budget filter was dropped.`
+        );
+      }
+    }
+
     candidates.sort((a, b) => compareCandidates(a, b, vendorOrder));
 
     const winner = candidates[0].plan;
