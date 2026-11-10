@@ -31,6 +31,39 @@ test('recommendPower marks stable power as advisory', () => {
   assert.equal(result.upsRecommendationLevel, 'advisory');
 });
 
+test('computePlanLoadW computes the exact 380 W estimated load', () => {
+  const ctx = createCtx();
+
+  const planItems = [
+    {
+      category: 'gateway',
+      sku: { sku: 'GW-1', max_draw_w: 30 },
+      qty: 1,
+    },
+    {
+      category: 'switch',
+      sku: { sku: 'SW-1', max_draw_w: 150 },
+      qty: 2,
+    },
+    {
+      category: 'controller',
+      sku: { sku: 'CTRL-1', controller_type: 'hardware', max_draw_w: 20 },
+      qty: 1,
+    },
+    {
+      category: 'firewall',
+      sku: { sku: 'FW-1', max_draw_w: 30 },
+      qty: 1,
+    },
+  ];
+
+  const result = computePlanLoadW(planItems, ctx);
+
+  assert.equal(result.estimatedLoadW, 380);
+  assert.equal(result.knownDeviceCount, 4);
+  assert.equal(ctx.flags.length, 0);
+});
+
 test('computePlanLoadW sums eligible device draw multiplied by quantity', () => {
   const ctx = createCtx();
 
@@ -130,6 +163,32 @@ test('buildPowerProtection preserves the supplied recommendation level', () => {
   assert.equal(result.minUpsRatingW, 100);
 });
 
+test('buildPowerProtection preserves prominent when power is stable', () => {
+  const ctx = createCtx();
+
+  const result = buildPowerProtection(
+    { upsRecommendationLevel: 'prominent' },
+    { power: 'stable' },
+    [{ category: 'gateway', sku: { sku: 'GW-1', max_draw_w: 80 }, qty: 1 }],
+    ctx
+  );
+
+  assert.equal(result.level, 'prominent');
+});
+
+test('buildPowerProtection preserves advisory when power outages are frequent', () => {
+  const ctx = createCtx();
+
+  const result = buildPowerProtection(
+    { upsRecommendationLevel: 'advisory' },
+    { power: 'frequent' },
+    [{ category: 'gateway', sku: { sku: 'GW-1', max_draw_w: 80 }, qty: 1 }],
+    ctx
+  );
+
+  assert.equal(result.level, 'advisory');
+});
+
 test('buildPowerProtection keeps the UPS outside BOM and cost calculations', () => {
   const ctx = createCtx();
 
@@ -158,6 +217,47 @@ test('buildPowerProtection returns a null rating when no eligible device has kno
   assert.equal(result.estimatedLoadW, null);
   assert.equal(result.minUpsRatingW, null);
   assert.ok(result.assumptions.length > 0);
+});
+
+
+test('TC-003 verifies the 400 W and 90 W UPS ratings', () => {
+  for (const [loadW, expectedRatingW] of [
+    [400, 500],
+    [90, 113],
+  ]) {
+    const ctx = createCtx();
+
+    const result = buildPowerProtection(
+      { upsRecommendationLevel: 'advisory' },
+      { power: 'stable' },
+      [{ category: 'switch', sku: { sku: `SW-${loadW}`, max_draw_w: loadW }, qty: 1 }],
+      ctx
+    );
+
+    assert.equal(result.estimatedLoadW, loadW);
+    assert.equal(result.minUpsRatingW, expectedRatingW);
+  }
+});
+
+test('TC-003 verifies minimum UPS ratings for every integer load from 1 to 2000 W', () => {
+  for (let loadW = 1; loadW <= 2000; loadW++) {
+    const ctx = createCtx();
+
+    const result = buildPowerProtection(
+      { upsRecommendationLevel: 'advisory' },
+      { power: 'stable' },
+      [{ category: 'switch', sku: { sku: `SW-${loadW}`, max_draw_w: loadW }, qty: 1 }],
+      ctx
+    );
+
+    const expectedRatingW = Math.floor((loadW * 100 + 79) / 80);
+
+    assert.equal(
+      result.minUpsRatingW,
+      expectedRatingW,
+      `Incorrect UPS rating for estimated load of ${loadW} W`
+    );
+  }
 });
 
 test('buildPowerProtection rounds the minimum UPS rating up to a whole watt', () => {
@@ -252,6 +352,41 @@ test('records the unsourced UPS load-ratio assumption in the ledger', () => {
   assert.ok(entry, 'UPS load-ratio ledger entry should exist');
   assert.equal(entry.valueUsed, 0.8);
   assert.match(entry.reason, /UNSOURCED/i);
+});
+
+
+test('flags every eligible SKU with unknown power draw', () => {
+  const ctx = createCtx();
+
+  const result = buildPowerProtection(
+    { upsRecommendationLevel: 'advisory' },
+    { power: 'stable' },
+    [
+      { category: 'gateway', sku: { sku: 'GW-UNKNOWN-1' }, qty: 1 },
+      { category: 'switch', sku: { sku: 'SW-UNKNOWN-1' }, qty: 1 },
+      { category: 'firewall', sku: { sku: 'FW-UNKNOWN-1' }, qty: 1 },
+    ],
+    ctx
+  );
+
+  const unknownFlags = ctx.flags.filter(
+    (flag) => flag.code === 'POWER_DRAW_UNKNOWN'
+  );
+
+  assert.equal(result.estimatedLoadW, null);
+  assert.equal(result.minUpsRatingW, null);
+  assert.equal(unknownFlags.length, 3);
+
+  for (const sku of ['GW-UNKNOWN-1', 'SW-UNKNOWN-1', 'FW-UNKNOWN-1']) {
+    assert.ok(
+      unknownFlags.some((flag) => flag.message.includes(sku)),
+      `Expected warning for ${sku}`
+    );
+  }
+
+  assert.ok(
+    unknownFlags.every((flag) => /may be understated/i.test(flag.message))
+  );
 });
 
 test('POWER_DRAW_UNKNOWN identifies the SKU and warns about understated rating', () => {
