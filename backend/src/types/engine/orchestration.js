@@ -30,12 +30,14 @@ const {
 
 const { recommendPower } = require('./devices/power');
 const { planOptics } = require('./devices/optics');
+const { buildInstallationMaterials } = require('./bom');
 
 const DEFAULT_STEPS = Object.freeze({
   selectGateway,
   selectAccessPoints,
   computePoeBudget,
   selectSwitches,
+  buildInstallationMaterials,
 });
 
 function getPlanRequirements(reqs, planType) {

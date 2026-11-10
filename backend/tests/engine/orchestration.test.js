@@ -690,6 +690,48 @@ test('runEngine uses the real gateway selector when steps are omitted', () => {
   }
 });
 
+test('runEngine includes advisory installation materials for default CE and HP plans', () => {
+  const result = runEngine(input, requirements, catalog, [omadaVendor]);
+
+  assert.deepEqual(
+    result.plans.map(({ planType }) => planType),
+    ['CE', 'HP'],
+  );
+  for (const plan of result.plans) {
+    assert.ok(Array.isArray(plan.installationMaterials.items));
+    assert.equal(plan.installationMaterials.currency, 'PHP');
+    assert.ok(plan.items.every((item) => item.category !== 'installation_material'));
+    assert.deepEqual(plan.bom.lines, []);
+    assert.equal(plan.bom.total, null);
+  }
+});
+
+test('runEngine preserves injected installation-materials builders', () => {
+  const injectedResult = { items: [{ item: 'custom-advisory' }] };
+  const calls = [];
+  const result = runEngine(
+    input,
+    requirements,
+    catalog,
+    [omadaVendor],
+    {
+      ...mockSteps,
+      buildInstallationMaterials: (plan, receivedRequirements) => {
+        calls.push({ plan, receivedRequirements });
+        return injectedResult;
+      },
+    },
+  );
+
+  assert.equal(calls.length, 2);
+  for (const plan of result.plans) {
+    assert.equal(plan.installationMaterials, injectedResult);
+    assert.deepEqual(plan.items, []);
+    assert.deepEqual(plan.bom.lines, []);
+    assert.equal(plan.bom.total, null);
+  }
+});
+
 test('buildPlan integrates the real switch selector and records selected access switches', () => {
   const { buildPlan } = require('../../src/types/engine/orchestration');
   const { selectSwitches } = require('../../src/types/engine/devices/switches');
