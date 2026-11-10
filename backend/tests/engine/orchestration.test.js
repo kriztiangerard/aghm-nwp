@@ -9,6 +9,7 @@ const catalogSnapshot = require('../fixtures/catalogs/omada.snapshot.json');
 const { normalize } = require('../../src/types/engine/normalize');
 const { createCtx } = require('../../src/types/engine/ctx');
 const { computePoeBudget } = require('../../src/types/engine/devices/poe');
+const { buildBom } = require('../../src/types/engine/bom');
 const { runEngine, validateEngineInputs } = require('../../src/types/engine/orchestration');
 const { flatRowToCatalogSku } = require('../../src/types/engine/catalog-mapping');
 const syntheticEdgeCases = require('../fixtures/catalogs/synthetic-catalog-edgecases.json');
@@ -689,6 +690,93 @@ test('runEngine uses the real gateway selector when steps are omitted', () => {
   }
 });
 
+test('runEngine includes advisory installation materials for default CE and HP plans', () => {
+  const result = runEngine(input, requirements, catalog, [omadaVendor]);
+
+  assert.deepEqual(
+    result.plans.map(({ planType }) => planType),
+    ['CE', 'HP'],
+  );
+  for (const plan of result.plans) {
+    assert.ok(Array.isArray(plan.installationMaterials.items));
+    assert.equal(plan.installationMaterials.currency, 'PHP');
+    assert.ok(plan.items.every((item) => item.category !== 'installation_material'));
+    assert.ok(Array.isArray(plan.bom.lines));
+  }
+});
+
+test('AC7 default runEngine builds BOM lines, carries stale metadata, and adds BOM advisories', () => {
+  const staleCatalog = omadaCatalogWithRepresentativeTestPrices().map((sku) => ({
+    ...sku,
+    is_stale: true,
+    price_updated_at: '2026-10-01',
+  }));
+  const result = runEngine(input, requirements, staleCatalog, [omadaVendor]);
+
+  assert.equal(result.plans.length, 2);
+
+  for (const plan of result.plans) {
+    assert.ok(plan.bom, `${plan.planType} must contain a BOM`);
+    assert.ok(plan.bom.lines.length > 0, `${plan.planType} must contain selected BOM lines`);
+
+    const selected = new Map();
+    plan.items.forEach((item) => {
+      const key = `${item.category}:${item.sku}`;
+      selected.set(key, (selected.get(key) || 0) + item.qty);
+    });
+    const bomItems = new Map(
+      plan.bom.lines.map((line) => [`${line.category}:${line.sku}`, line.qty]),
+    );
+    assert.deepEqual(bomItems, selected, `${plan.planType} BOM reflects selected equipment`);
+
+    for (const line of plan.bom.lines) {
+      assert.equal(line.isStale, true, `${line.sku} carries stale-price metadata`);
+      assert.equal(line.priceUpdatedAt, '2026-10-01');
+    }
+
+    assert.ok(
+      plan.flags.some((flag) => flag.code === 'BOM_PRICE_STALE'),
+      `${plan.planType} includes the stale-price advisory`,
+    );
+    if (plan.bom.lines.some((line) => line.unitPrice === null)) {
+      assert.ok(
+        plan.flags.some((flag) => flag.code === 'BOM_PARTIAL_PRICE'),
+        `${plan.planType} includes the unpriced-item advisory`,
+      );
+    }
+    assert.match(
+      plan.flags.find((flag) => flag.code === 'BOM_PRICE_STALE').message,
+      new RegExp(plan.bom.lines[0].sku),
+    );
+  }
+});
+
+test('runEngine preserves injected installation-materials builders', () => {
+  const injectedResult = { items: [{ item: 'custom-advisory' }] };
+  const calls = [];
+  const result = runEngine(
+    input,
+    requirements,
+    catalog,
+    [omadaVendor],
+    {
+      ...mockSteps,
+      buildInstallationMaterials: (plan, receivedRequirements) => {
+        calls.push({ plan, receivedRequirements });
+        return injectedResult;
+      },
+    },
+  );
+
+  assert.equal(calls.length, 2);
+  for (const plan of result.plans) {
+    assert.equal(plan.installationMaterials, injectedResult);
+    assert.deepEqual(plan.items, []);
+    assert.deepEqual(plan.bom.lines, []);
+    assert.equal(plan.bom.total, null);
+  }
+});
+
 test('buildPlan integrates the real switch selector and records selected access switches', () => {
   const { buildPlan } = require('../../src/types/engine/orchestration');
   const { selectSwitches } = require('../../src/types/engine/devices/switches');
@@ -1359,13 +1447,174 @@ test('runEngine calls buildBom once per vendor-plan and passes the plan and cata
   assert.equal(result.plans.length, 2);
   assert.equal(calls.length, 2);
 
-  result.plans.forEach((plan, index) => {
-    assert.strictEqual(calls[index].plan, plan);
-    assert.strictEqual(calls[index].receivedCatalog, testCatalog);
-    assert.deepEqual(plan.bom, validTestBom);
-    assert.strictEqual(plan.bom, calls[index].bom,
-      'Orchestration must retain the exact BOM returned by the builder');
+  result.plans.forEach((outputPlan, index) => {
+  const { plan, receivedCatalog, bom } = calls[index];
+
+    assert.equal(receivedCatalog, testCatalog);                       // catalog passed through
+    assert.equal(outputPlan.vendor, plan.vendor);
+    assert.equal(outputPlan.planType, plan.planType);
+    assert.deepEqual(outputPlan.items, plan.items);
+    assert.equal(outputPlan.bom, bom);                                // the BOM object is carried over by reference
+    });
+  assert.equal(calls.length, result.plans.length);                    // once per vendor-plan
   });
+
+
+test('buildPlan records deduplicated BOM price, stale-price, and incomplete-plan advisories', () => {
+  const { buildPlan } = require('../../src/types/engine/orchestration');
+  const ctx = createCtx();
+  const bom = {
+    currency: 'PHP',
+    lines: [
+      {
+        category: 'access_point',
+        sku: 'AP-UNPRICED',
+        name: 'Unpriced access point',
+        vendor: omadaVendor.name,
+        qty: 1,
+        unitPrice: null,
+        lineTotal: null,
+        status: 'ACTIVE',
+        isGeneric: false,
+        isStale: true,
+        priceUpdatedAt: '2026-01-15',
+      },
+      {
+        category: 'switch',
+        sku: 'SW-STALE',
+        name: 'Stale switch',
+        vendor: omadaVendor.name,
+        qty: 1,
+        unitPrice: 100,
+        lineTotal: 100,
+        status: 'ACTIVE',
+        isGeneric: false,
+        isStale: true,
+        priceUpdatedAt: '2026-02-20',
+      },
+    ],
+    total: 100,
+    totalIsPartial: true,
+  };
+
+  const plan = buildPlan(
+    omadaVendor,
+    'CE',
+    requirements,
+    input,
+    catalog,
+    ctx,
+    { ...mockSteps, buildBom: () => bom },
+  );
+
+  const codes = plan.flags.map((flag) => flag.code);
+  assert.equal(codes.filter((code) => code === 'BOM_PARTIAL_PRICE').length, 1);
+  assert.equal(codes.filter((code) => code === 'BOM_PLAN_INCOMPLETE').length, 1);
+  assert.equal(codes.filter((code) => code === 'BOM_PRICE_STALE').length, 1);
+
+  const partialPrice = plan.flags.find((flag) => flag.code === 'BOM_PARTIAL_PRICE');
+  assert.match(partialPrice.message, /AP-UNPRICED/);
+
+  const incomplete = plan.flags.find((flag) => flag.code === 'BOM_PLAN_INCOMPLETE');
+  assert.match(incomplete.message, /required equipment.*missing/i);
+
+  const stale = plan.flags.find((flag) => flag.code === 'BOM_PRICE_STALE');
+  assert.match(stale.message, /AP-UNPRICED/);
+  assert.match(stale.message, /SW-STALE/);
+  assert.match(stale.message, /2026-01-15/);
+  assert.match(stale.message, /2026-02-20/);
+});
+
+test('buildPlan emits BOM advisories from the real builder and catalog provenance', () => {
+  const { buildPlan } = require('../../src/types/engine/orchestration');
+  const { assembleEngineResult } = require('../../src/types/engine/steps/assemble');
+  const ctx = createCtx();
+  const mappedCatalog = mapCatalogRows(catalog);
+  const gateway = mappedCatalog.find((row) => row.category === 'gateway' && row.rack_units > 0);
+
+  assert.ok(gateway, 'Omada snapshot must contain a gateway SKU');
+
+  const staleUnpricedGateway = {
+    ...gateway,
+    price: null,
+    is_stale: true,
+    price_updated_at: '2026-02-20',
+  };
+  const testCatalog = mappedCatalog.map((row) =>
+    row.sku === gateway.sku ? staleUnpricedGateway : row
+  );
+
+  const plan = buildPlan(
+    omadaVendor,
+    'CE',
+    requirements,
+    input,
+    testCatalog,
+    ctx,
+    {
+      selectGateway: () => ({
+        ok: true,
+        sku: staleUnpricedGateway,
+        qty: 1,
+        flags: [],
+      }),
+      buildBom,
+    },
+  );
+
+  assert.equal(plan.bom.lines.length, 1);
+  assert.equal(plan.bom.lines[0].sku, gateway.sku);
+  assert.equal(plan.bom.lines[0].unitPrice, null);
+  assert.equal(plan.bom.lines[0].isStale, true);
+  assert.equal(plan.bom.lines[0].priceUpdatedAt, '2026-02-20');
+  assert.equal(plan.bom.total, null);
+  assert.equal(plan.bom.totalIsPartial, true);
+
+  const codes = plan.flags.map((flag) => flag.code);
+  assert.equal(codes.filter((code) => code === 'BOM_PARTIAL_PRICE').length, 1);
+  assert.equal(codes.filter((code) => code === 'BOM_PLAN_INCOMPLETE').length, 1);
+  assert.equal(codes.filter((code) => code === 'BOM_PRICE_STALE').length, 1);
+
+  assert.match(
+    plan.flags.find((flag) => flag.code === 'BOM_PARTIAL_PRICE').message,
+    new RegExp(gateway.sku),
+  );
+  assert.match(
+    plan.flags.find((flag) => flag.code === 'BOM_PLAN_INCOMPLETE').message,
+    /required equipment.*missing/i,
+  );
+  assert.match(
+    plan.flags.find((flag) => flag.code === 'BOM_PRICE_STALE').message,
+    /2026-02-20/,
+  );
+  assert.ok(
+    ctx.flags.some((flag) => flag.code === 'BOM_PRICE_STALE'),
+    'the stale-price advisory belongs to the plan context passed to buildPlan',
+  );
+  assert.equal(
+    plan.flags.filter((flag) => flag.code === 'BOM_PRICE_STALE').length,
+    1,
+  );
+
+  const assembled = assembleEngineResult({
+    requirements,
+    sharedCtx: createCtx(),
+    plans: [plan],
+    defaultVendor: { CE: omadaVendor.name, HP: null },
+    input,
+    catalog: testCatalog,
+  });
+  const assembledStaleFlag = assembled.flags.find(
+    (flag) => flag.code === 'BOM_PRICE_STALE',
+  );
+  assert.ok(assembledStaleFlag, 'E016 preserves the stale-price advisory');
+  assert.deepEqual(assembledStaleFlag.plan, {
+    vendor: omadaVendor.name,
+    planType: 'CE',
+  });
+  assert.ok(
+    assembled.plans[0].flags.some((flag) => flag.code === 'BOM_PRICE_STALE'),
+  );
 });
 
 test('buildPlan rejects invalid BOM output from the injected builder', () => {
