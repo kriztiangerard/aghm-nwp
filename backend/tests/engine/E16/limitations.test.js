@@ -69,6 +69,14 @@ test('AC9: the assumed-layout note appears only when the plan has a topology', (
   assert.ok(has(build(makePlan({ topology: { nodes: [], edges: [] } })), /assumed layout/));
 });
 
+test('AC9: unknown other-device counts add a note only when that node has a null count', () => {
+  const withNull = makePlan({ topology: { nodes: [{ id: 'client-other_devices', clientKind: 'other_devices', count: null }], edges: [] } });
+  assert.ok(has(build(withNull), /number of other devices was not provided/));
+  const withCount = makePlan({ topology: { nodes: [{ id: 'client-other_devices', clientKind: 'other_devices', count: 3 }], edges: [] } });
+  assert.ok(!has(build(withCount), /number of other devices/));
+  assert.ok(!has(build(), /number of other devices/));
+});
+
 test('AC9: a generic enclosure adds the generic-size note', () => {
   const plan = makePlan();
   plan.bom = { ...plan.bom, lines: [...plan.bom.lines, bomLine('enclosure', 'GEN', 'Generic 9U', 1, { isGeneric: true })] };

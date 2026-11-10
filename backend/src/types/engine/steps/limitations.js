@@ -22,6 +22,9 @@ const ASSUMED_LAYOUT_NOTICE =
 const GENERIC_ENCLOSURE_NOTICE =
   'The rack or cabinet in the Bill of Materials is a generic size. Any rack or wall cabinet model with at least that capacity (in rack units) can be used.';
 
+const UNKNOWN_OTHER_DEVICES_NOTICE =
+  'The number of other devices was not provided, so they are drawn as one group without a count.';
+
 const TOPOLOGY_LEDGER_FIELD = 'topology.attachment';
 
 const sentence = (text) => {
@@ -72,6 +75,10 @@ function buildLimitations(plan, input, ledger = []) {
 
   if (plan.topology) {
     lines.push(ASSUMED_LAYOUT_NOTICE);
+    const nodes = Array.isArray(plan.topology.nodes) ? plan.topology.nodes : [];
+    if (nodes.some((node) => node.clientKind === 'other_devices' && node.count === null)) {
+      lines.push(UNKNOWN_OTHER_DEVICES_NOTICE);
+    }
   }
 
   if (bomLines.some((line) => line.category === 'enclosure' && line.isGeneric === true)) {

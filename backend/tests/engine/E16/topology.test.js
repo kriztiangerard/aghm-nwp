@@ -31,7 +31,7 @@ test('AC1: nodes for WAN, gateway, separate firewall, controller, switches, AP a
   assert.equal(groups.wifi_devices, 40);
   assert.equal(groups.voip_phones, 2);
   assert.equal(groups.cameras, 2);
-  assert.ok('other_devices' in groups);
+  assert.equal(groups.other_devices, null, 'other devices have no count in the input, so count is an explicit null');
 });
 
 test('AC1: device nodes carry exact sku, qty and a layer hint', () => {
@@ -139,12 +139,26 @@ test('AC4: APs fill PoE ports in switch order and each AP lands on exactly one s
   );
 });
 
-test('AC4: wired devices are counted exactly once across switches', () => {
+test('AC4: every device is assigned to exactly one switch; per-switch counts add up to the group total', () => {
+  // A group that spans several switches is drawn as one node with one counted edge per switch. Each device is
+  // assigned to a single switch, so the counts across those edges equal the group total and nothing is counted twice.
   const { topology } = build();
-  const total = edgesOf(topology, 'access')
-    .filter((edge) => edge.target === 'client-wired_pcs')
-    .reduce((sum, edge) => sum + edge.count, 0);
-  assert.equal(total, 5);
+  const switchIds = new Set(topology.nodes.filter((node) => node.role === 'switch').map((node) => node.id));
+  const totals = {};
+  edgesOf(topology, 'access').concat(edgesOf(topology, 'poe')).forEach((edge) => {
+    if (!switchIds.has(edge.source) || edge.count === undefined) return;
+    totals[edge.target] = (totals[edge.target] ?? 0) + edge.count;
+  });
+  assert.equal(totals['client-wired_pcs'], 5);
+  assert.equal(totals['client-voip_phones'], 2);
+  assert.equal(totals['client-cameras'], 2);
+  assert.equal(totals['access_point-AP1-0'], 6);
+});
+
+test('AC4: Wi-Fi devices attach to the AP node, never to a switch', () => {
+  const { topology } = build();
+  const wifiEdges = topology.edges.filter((edge) => edge.target === 'client-wifi_devices');
+  assert.deepEqual(wifiEdges.map((edge) => [edge.source, edge.medium]), [['access_point-AP1-0', 'wireless']]);
 });
 
 test('AC4: the attachment is recorded in the ledger as an ESTIMATE', () => {

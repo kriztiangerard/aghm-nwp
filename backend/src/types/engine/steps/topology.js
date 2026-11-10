@@ -274,6 +274,7 @@ function buildTopology(plan, reqs, input, ctx, catalog) {
           role: 'client_group',
           layer: 'edge',
           label: group.label,
+          count: null, // the input says whether other devices exist, not how many; null is an explicit "not given"
           clientKind: group.kind,
         });
       }
