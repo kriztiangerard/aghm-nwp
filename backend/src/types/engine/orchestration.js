@@ -55,6 +55,12 @@ const PLAN_TYPES = Object.freeze([
   { planType: 'HP', selectorPlan: 'high_performance' },
 ]);
 
+const BOM_FLAG_CODES = Object.freeze({
+  PARTIAL_PRICE: 'BOM_PARTIAL_PRICE',
+  PLAN_INCOMPLETE: 'BOM_PLAN_INCOMPLETE',
+  PRICE_STALE: 'BOM_PRICE_STALE',
+});
+
 function validateEngineInputs(input, reqs, catalog, vendors) {
   validateNormalizedInput(input);
   validateRequirements(reqs);
@@ -476,6 +482,54 @@ const resolvedItems = selectedDeviceItems;
     const bom = steps.buildBom(plan, catalog);
     validateBom(bom);
     plan.bom = bom;
+
+    const addBomAdvisory = (code, message) => {
+      if (!ctx.flags.some((flag) => flag.code === code)) {
+        addFlag(ctx, code, message);
+      }
+    };
+
+    const unpricedLines = bom.lines.filter(
+      (line) => line.unitPrice === null,
+    );
+
+    if (unpricedLines.length > 0) {
+      const skus = unpricedLines.map((line) => line.sku).sort();
+      addBomAdvisory(
+        BOM_FLAG_CODES.PARTIAL_PRICE,
+        `No catalog price is available for selected SKU(s): ${skus.join(', ')}.`,
+      );
+    }
+
+    if (plan.complete === false || plan.unmet.length > 0) {
+      const missing = plan.unmet
+        .map((item) => `${item.category}: ${item.reason}`)
+        .join('; ');
+
+      addBomAdvisory(
+        BOM_FLAG_CODES.PLAN_INCOMPLETE,
+        missing
+          ? `Required equipment is missing from this plan: ${missing}`
+          : 'Required equipment is missing from this plan.',
+      );
+    }
+
+    const staleLines = bom.lines.filter((line) => line.isStale === true);
+
+    if (staleLines.length > 0) {
+      const details = staleLines
+        .sort((a, b) => a.sku.localeCompare(b.sku))
+        .map((line) => (
+          line.priceUpdatedAt
+            ? `${line.sku} (last verified: ${line.priceUpdatedAt})`
+            : `${line.sku} (last verified date unavailable)`
+        ));
+
+      addBomAdvisory(
+        BOM_FLAG_CODES.PRICE_STALE,
+        `Catalog prices are stale for selected SKU(s): ${details.join(', ')}.`,
+      );
+    }
   }
 
   return plan;
