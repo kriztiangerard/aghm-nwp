@@ -1,0 +1,38 @@
+{
+  "currency": "PHP",
+  "asOfDate": "2026-11-10",
+  "items": [
+    {
+      "item": "cat6_cabling",
+      "description": "PROLINK Cat6 UTP LAN cable for horizontal network connections.",
+      "unit": "meter",
+      "representativeUnitPrice": 11.3,
+      "priceReference": "PROLINK Cat6 UTP LAN Cable, 305m easy-pull box priced at PHP 3445; unit price derived per meter.",
+      "sourceUrl": "https://www.compex.com.ph/seihin.php?prd_id=8293&cat_id=36"
+    },
+    {
+      "item": "patch_cords",
+      "description": "PROLINK Cat6 Ethernet patch cords for connecting network equipment and patch panels.",
+      "unit": "piece",
+      "representativeUnitPrice": 85.0,
+      "priceReference": "PROLINK Cat6 UTP network patch cord, listed in 2m, 3m and 5m variants.",
+      "sourceUrl": "https://www.compex.com.ph/seihin.php?cat_id=36&prd_id=8294"
+    },
+    {
+      "item": "rj45_connectors",
+      "description": "Adlink shielded RJ45 CAT6 connectors for terminating Cat6 Ethernet cables.",
+      "unit": "piece",
+      "representativeUnitPrice": 2.5,
+      "priceReference": "Adlink RJ45 Connector Shielded for CAT6, SKU 0000040629, 100-piece package priced at PHP 250; unit price derived per piece.",
+      "sourceUrl": "https://pcworx.ph/products/adlink-rj45-connector-shielded-for-cat6-100pcs-per-jar-box"
+    },
+    {
+      "item": "patch_panels",
+      "description": "D-Link 24-port Cat6 UTP patch panel for organizing and terminating horizontal network cabling.",
+      "unit": "piece",
+      "representativeUnitPrice": 1670.0,
+      "priceReference": "D-Link NPP-C61BLK241, 24-port Cat6 unshielded fully loaded patch panel.",
+      "sourceUrl": "https://www.compex.com.ph/seihin.php?cat_id=36&prd_id=8766"
+    }
+  ]
+}
