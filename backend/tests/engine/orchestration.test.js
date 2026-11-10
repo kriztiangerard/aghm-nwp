@@ -1360,14 +1360,17 @@ test('runEngine calls buildBom once per vendor-plan and passes the plan and cata
   assert.equal(result.plans.length, 2);
   assert.equal(calls.length, 2);
 
-  result.plans.forEach((plan, index) => {
-    assert.strictEqual(calls[index].plan, plan);
-    assert.strictEqual(calls[index].receivedCatalog, testCatalog);
-    assert.deepEqual(plan.bom, validTestBom);
-    assert.strictEqual(plan.bom, calls[index].bom,
-      'Orchestration must retain the exact BOM returned by the builder');
+  result.plans.forEach((outputPlan, index) => {
+  const { plan, receivedCatalog, bom } = calls[index];
+
+    assert.equal(receivedCatalog, testCatalog);                       // catalog passed through
+    assert.equal(outputPlan.vendor, plan.vendor);
+    assert.equal(outputPlan.planType, plan.planType);
+    assert.deepEqual(outputPlan.items, plan.items);
+    assert.equal(outputPlan.bom, bom);                                // the BOM object is carried over by reference
+    });
+  assert.equal(calls.length, result.plans.length);                    // once per vendor-plan
   });
-});
 
 
 test('buildPlan records deduplicated BOM price, stale-price, and incomplete-plan advisories', () => {

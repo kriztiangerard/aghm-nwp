@@ -61,6 +61,26 @@ const BOM_FLAG_CODES = Object.freeze({
   PRICE_STALE: 'BOM_PRICE_STALE',
 });
 
+// NWP-ENGINE-016 AC10: the result must not hold full catalog rows. Selector results (switchSelection,
+// enclosureSelection) are kept on the plan, but every embedded SKU object is replaced by its SKU string.
+function toPublicSelection(value) {
+  if (Array.isArray(value)) return value.map(toPublicSelection);
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, entry]) => [
+        key,
+        key === 'sku' && entry && typeof entry === 'object' ? entry.sku : toPublicSelection(entry),
+      ]),
+    );
+  }
+  return value;
+}
+
+function appendUnique(list, extra) {
+  const seen = new Set(list.map((entry) => JSON.stringify(entry)));
+  return [...list, ...extra.filter((entry) => !seen.has(JSON.stringify(entry)))];
+}
+
 function validateEngineInputs(input, reqs, catalog, vendors) {
   validateNormalizedInput(input);
   validateRequirements(reqs);
@@ -580,24 +600,31 @@ function runEngine(input, reqs, catalog, vendors, steps = DEFAULT_STEPS, sharedC
   );
 
   // NWP-ENGINE-016: topology, configuration plan, limitations, and the merged ledger and flags.
-  // Shared entries (requirements phase, then default-vendor selection) come first; assembleEngineResult then adds
-  // each plan's own entries in plan order. Selector internals that hold full catalog rows are removed first so the
-  // result stays free of catalog rows. The handler stamps generatedAt with finalizeEngineResult.
-  const publicPlans = plans.map(({ switchSelection, enclosureSelection, ...plan }) => plan);
-  const sharedForOutput = {
-    ledger: [...sharedCtx.ledger, ...selectionCtx.ledger],
-    flags: [...sharedCtx.flags, ...selectionCtx.flags],
-    unmet: [],
-  };
+  // Shared (requirements-phase) entries come first, then each plan's own entries (assembleEngineResult), then the
+  // default-vendor selection entries, as before. Selector results stay on the plan with SKU objects reduced to SKU
+  // strings, so the result holds no catalog rows. The handler stamps generatedAt with finalizeEngineResult.
+  const publicPlans = plans.map((plan) => {
+    const next = { ...plan };
+    if (plan.switchSelection !== undefined) next.switchSelection = toPublicSelection(plan.switchSelection);
+    if (plan.enclosureSelection !== undefined) next.enclosureSelection = toPublicSelection(plan.enclosureSelection);
+    return next;
+  });
 
-  return assembleEngineResult({
+  const assembled = assembleEngineResult({
     requirements: reqs,
-    sharedCtx: sharedForOutput,
+    sharedCtx: { ledger: sharedCtx.ledger, flags: sharedCtx.flags, unmet: [] },
     plans: publicPlans,
     defaultVendor,
     input,
     catalog,
   });
+
+  return {
+    ...assembled,
+    ledger: appendUnique(assembled.ledger, selectionCtx.ledger),
+    flags: appendUnique(assembled.flags, selectionCtx.flags),
+    unmet: [...sharedCtx.unmet, ...plans.flatMap((plan) => plan.unmet || [])],
+  };
 }
 
 
