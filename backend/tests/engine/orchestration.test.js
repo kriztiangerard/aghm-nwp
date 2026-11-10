@@ -1482,6 +1482,7 @@ test('buildPlan records deduplicated BOM price, stale-price, and incomplete-plan
 
 test('buildPlan emits BOM advisories from the real builder and catalog provenance', () => {
   const { buildPlan } = require('../../src/types/engine/orchestration');
+  const { assembleEngineResult } = require('../../src/types/engine/steps/assemble');
   const ctx = createCtx();
   const mappedCatalog = mapCatalogRows(catalog);
   const gateway = mappedCatalog.find((row) => row.category === 'gateway' && row.rack_units > 0);
@@ -1540,6 +1541,34 @@ test('buildPlan emits BOM advisories from the real builder and catalog provenanc
   assert.match(
     plan.flags.find((flag) => flag.code === 'BOM_PRICE_STALE').message,
     /2026-02-20/,
+  );
+  assert.ok(
+    ctx.flags.some((flag) => flag.code === 'BOM_PRICE_STALE'),
+    'the stale-price advisory belongs to the plan context passed to buildPlan',
+  );
+  assert.equal(
+    plan.flags.filter((flag) => flag.code === 'BOM_PRICE_STALE').length,
+    1,
+  );
+
+  const assembled = assembleEngineResult({
+    requirements,
+    sharedCtx: createCtx(),
+    plans: [plan],
+    defaultVendor: { CE: omadaVendor.name, HP: null },
+    input,
+    catalog: testCatalog,
+  });
+  const assembledStaleFlag = assembled.flags.find(
+    (flag) => flag.code === 'BOM_PRICE_STALE',
+  );
+  assert.ok(assembledStaleFlag, 'E016 preserves the stale-price advisory');
+  assert.deepEqual(assembledStaleFlag.plan, {
+    vendor: omadaVendor.name,
+    planType: 'CE',
+  });
+  assert.ok(
+    assembled.plans[0].flags.some((flag) => flag.code === 'BOM_PRICE_STALE'),
   );
 });
 

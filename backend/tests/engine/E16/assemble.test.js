@@ -98,6 +98,63 @@ test('topology flags and ledger entries are added to the plan, and the top-level
   assert.ok(result.ledger.some((entry) => entry.field === 'topology.attachment'));
 });
 
+test('assembled representative plan distributes mixed devices across multiple switches', () => {
+  const result = assemble([makePlan()]);
+  const plan = result.plans[0];
+  const switches = plan.topology.nodes.filter((node) => node.role === 'switch');
+  const switchIds = new Set(switches.map((node) => node.id));
+  const accessSwitchIds = new Set(
+    switches.filter((node) => node.layer === 'access').map((node) => node.id),
+  );
+  const edges = plan.topology.edges;
+  const apNode = plan.topology.nodes.find((node) => node.role === 'access_point');
+  const wiredNode = plan.topology.nodes.find(
+    (node) => node.role === 'client_group' && node.clientKind === 'wired_pcs',
+  );
+  const wifiNode = plan.topology.nodes.find(
+    (node) => node.role === 'client_group' && node.clientKind === 'wifi_devices',
+  );
+  const voipNode = plan.topology.nodes.find(
+    (node) => node.role === 'client_group' && node.clientKind === 'voip_phones',
+  );
+  const cameraNode = plan.topology.nodes.find(
+    (node) => node.role === 'client_group' && node.clientKind === 'cameras',
+  );
+  const apEdges = edges.filter(
+    (edge) => edge.type === 'poe' && edge.target === apNode.id,
+  );
+  const wiredEdges = edges.filter(
+    (edge) => edge.type === 'access' && edge.target === wiredNode.id,
+  );
+  const wifiEdges = edges.filter((edge) => edge.target === wifiNode.id);
+
+  assert.ok(accessSwitchIds.size > 1, 'representative plan includes multiple access switches');
+  assert.equal(apNode.qty, 6, 'one AP model represents multiple selected APs');
+  assert.ok(
+    new Set(apEdges.map((edge) => edge.source)).size > 1,
+    'PoE access points are assigned across switches',
+  );
+  assert.equal(apEdges.reduce((sum, edge) => sum + edge.count, 0), apNode.qty);
+  assert.ok(
+    new Set(wiredEdges.map((edge) => edge.source).filter((source) => switchIds.has(source))).size > 1,
+    'non-PoE wired clients are distributed across switches',
+  );
+  assert.equal(wiredEdges.reduce((sum, edge) => sum + edge.count, 0), 5);
+  assert.deepEqual(
+    wifiEdges.map((edge) => [edge.source, edge.type, edge.medium]),
+    [[apNode.id, 'access', 'wireless']],
+  );
+  for (const poeClient of [voipNode, cameraNode]) {
+    const clientEdges = edges.filter(
+      (edge) => edge.type === 'poe' && edge.target === poeClient.id,
+    );
+    assert.equal(
+      clientEdges.reduce((sum, edge) => sum + edge.count, 0),
+      poeClient.count,
+    );
+  }
+});
+
 test('result order follows the plans given (CE before HP) and carries the contract version', () => {
   const result = assemble([makePlan({ planType: 'CE' }), makePlan({ planType: 'HP' })]);
   assert.deepEqual(result.plans.map((plan) => plan.planType), ['CE', 'HP']);
