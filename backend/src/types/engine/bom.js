@@ -1,5 +1,9 @@
 'use strict';
 
+// BOM assembly (NWP-BOM-001) and the advisory installation-materials summary (NWP-BOM-002).
+// Installation materials are reference information, not BOM lines, and are not part of the BOM total.
+
+const installationMaterialsConfig = require('./installation-materials.json');
 const {
   ValidationError,
   validateCatalogSku,
@@ -208,7 +212,54 @@ function buildBom(plan, catalog) {
   return bom;
 }
 
+
+// NWP-BOM-002: advisory installation-materials summary. Reads plan.optics and requirements.horizontalCablingOptions;
+// returns plain JSON-safe data that the output assembly carries to the result unchanged.
+function buildInstallationMaterials(plan, requirements = {}) {
+  if (!plan || typeof plan !== 'object') {
+    throw new TypeError('plan must be an object');
+  }
+
+  const horizontalCablingOptions = requirements.horizontalCablingOptions;
+
+  const configuredItems = installationMaterialsConfig.items.filter((item) => {
+    if (item.item !== 'cat6_cabling' || horizontalCablingOptions === undefined) {
+      return true;
+    }
+
+    return horizontalCablingOptions.includes('Cat6');
+  });
+
+  const items = configuredItems.map((item) => ({
+    ...item,
+    priceDisplay: item.representativeUnitPrice === null
+      ? 'price on request'
+      : `${installationMaterialsConfig.currency} ${item.representativeUnitPrice.toFixed(2)} per ${item.unit}`,
+  }));
+
+  if (plan.optics !== undefined && plan.optics !== null) {
+    const { links, modules, formFactor } = plan.optics;
+    items.push({
+      item: 'sfp_modules',
+      description: `SFP modules; estimate based on ${links} fiber uplink${links === 1 ? '' : 's'}.`,
+      unit: 'module',
+      links,
+      modules,
+      formFactor: formFactor === null ? 'form factor not determined' : formFactor,
+    });
+  }
+
+  return {
+    currency: installationMaterialsConfig.currency,
+    asOfDate: installationMaterialsConfig.asOfDate,
+    pricingBasis: 'Representative unit prices',
+    items,
+    note: 'Actual material quantities must be determined through a physical site survey and detailed deployment planning.',
+  };
+}
+
 module.exports = {
   buildBom,
   assembleBom: buildBom,
+  buildInstallationMaterials,
 };
