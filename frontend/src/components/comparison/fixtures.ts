@@ -69,6 +69,6 @@ export const scenarios: Record<string, VendorPlansPayload | undefined> = {
         unmet: ["No gateway in the catalog meets the required 2,000 Mbps routing throughput."],
       }),
     },
-    ...engineScenarios, // engineSample, engineSampleComplete, engineSampleMixed
   },
+  ...engineScenarios, // engineSample, engineSampleComplete, engineSampleMixed
 };
