@@ -1,7 +1,8 @@
 'use strict';
-// NWP-ENGINE-001 — thin Lambda handler. Keep it thin: parse, call run(), return JSON.
-// Handler string for CDK: "lambda-handler.handler" (asset root = backend/src/engine).
+
 const { run } = require('./index');
+const { finalizeEngineResult } = require('./steps/assemble');
+const { validateEngineResult } = require('./contracts');
 
 const json = (statusCode, body) => ({
   statusCode,
@@ -17,12 +18,22 @@ exports.handler = async (event) => {
     return json(400, { errors: [{ message: 'Request body is not valid JSON.' }] });
   }
 
+  let assembled;
   try {
-    return json(200, await run(payload));
+    assembled = await run(payload);
   } catch (err) {
     if (err.name === 'ValidationError') {
       return json(400, { errors: [{ field: err.field, message: err.message }] });
     }
+    console.error(err);
+    return json(500, { errors: [{ message: 'Internal error.' }] });
+  }
+
+  try {
+    const result = finalizeEngineResult(assembled, new Date().toISOString());
+    validateEngineResult(result);
+    return json(200, result);
+  } catch (err) {
     console.error(err);
     return json(500, { errors: [{ message: 'Internal error.' }] });
   }

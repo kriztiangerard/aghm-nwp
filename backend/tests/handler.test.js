@@ -7,9 +7,13 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const path = require('node:path');
-const { ValidationError } = require('../src/types/engine/contracts');
+const {
+  CONTRACT_VERSION,
+  ValidationError,
+  validateEngineResult,
+} = require('../src/types/engine/contracts');
 
-// ---- Assumptions about src/engine/lambda-handler.js: change these if yours differs ----
+// The handler and pipeline paths follow backend/src/types/engine.
 const HANDLER_MODULE = '../src/types/engine/lambda-handler'; // exports { handler }
 const PIPELINE_MODULE = '../src/types/engine/index'; // exports { run }, which the handler calls
 // The event is an API Gateway proxy event: the payload is a JSON string in event.body.
@@ -17,9 +21,15 @@ const makeEvent = (payload) => ({ body: JSON.stringify(payload) });
 // The response is { statusCode, body }, where body is a JSON string.
 const readBody = (res) => (typeof res.body === 'string' ? JSON.parse(res.body) : res.body);
 
-// The raw questionnaire shape is still on the Day-1 agenda, and until the normalize step
-// (NWP-ENGINE-002) exists the pipeline ignores the payload's shape, so a fixture stands in.
 const VALID_PAYLOAD = require(path.join(__dirname, 'fixtures', 'normalized-input', 'input1-baseline.json'));
+const ASSEMBLED_RESULT = {
+  contractVersion: CONTRACT_VERSION,
+  requirements: {},
+  ledger: [],
+  flags: [],
+  plans: [],
+  defaultVendor: { CE: null, HP: null },
+};
 
 // Loads a fresh copy of the handler with the pipeline's run() replaced by runImpl.
 // This works whether the handler destructures `run` or calls `index.run(...)`, because
@@ -40,17 +50,17 @@ function loadHandlerWith(runImpl) {
 }
 
 test('a valid payload returns plans, defaultVendor, ledger and errors', async () => {
-  const { handler } = require(HANDLER_MODULE);
+  const handler = loadHandlerWith(async () => ASSEMBLED_RESULT);
   const res = await handler(makeEvent(VALID_PAYLOAD));
   assert.equal(res.statusCode, 200);
 
   const body = readBody(res);
-  for (const key of ['plans', 'defaultVendor', 'ledger', 'errors']) {
+  for (const key of ['plans', 'defaultVendor', 'ledger', 'generatedAt']) {
     assert.ok(Object.hasOwn(body, key), `the response body is missing "${key}"`);
   }
   assert.ok(Array.isArray(body.plans), 'plans should be an array');
   assert.ok(Array.isArray(body.ledger), 'ledger should be an array');
-  assert.ok(Array.isArray(body.errors), 'errors should be an array');
+  assert.equal(validateEngineResult(body), true);
 });
 
 // The 400 test throws from a stand-in pipeline step, not the real one. 
