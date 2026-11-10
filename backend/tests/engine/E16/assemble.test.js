@@ -11,7 +11,7 @@ const {
   finalizeEngineResult,
   assertJsonSafe,
 } = require('../../steps/assemble.js');
-const { catalog, makePlan, requirements, input, deepFreeze } = require('../../fixtures/e16-fixtures.js');
+const { catalog, makePlan, requirements, input, deepFreeze } = require('./fixtures.js');
 
 const STAMP = '2026-11-10T00:00:00.000Z';
 

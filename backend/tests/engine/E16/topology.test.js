@@ -3,7 +3,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { createCtx } = require('../../ctx.js');
 const { buildTopology } = require('../../steps/topology.js');
-const { catalog, makePlan, requirements, input, deepFreeze } = require('../../fixtures/e16-fixtures.js');
+const { catalog, makePlan, requirements, input, deepFreeze } = require('./fixtures.js');
 
 const build = (plan = makePlan(), reqs = requirements(), inp = input(), cat = catalog) => {
   const ctx = createCtx();
