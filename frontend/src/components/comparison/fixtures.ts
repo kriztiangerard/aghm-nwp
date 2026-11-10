@@ -1,5 +1,6 @@
 // src/components/comparison/fixtures.ts  (dev/QA only, never imported by Comparison)
 import type { BomLineItem, NetworkPlanData, PlanTier, VendorName, VendorPlansPayload } from "./types";
+import { engineScenarios } from "./engine-sample-fixtures.ts";
 
 const AT = "Oct 28, 2026, 9:00 AM";
 
@@ -68,5 +69,6 @@ export const scenarios: Record<string, VendorPlansPayload | undefined> = {
         unmet: ["No gateway in the catalog meets the required 2,000 Mbps routing throughput."],
       }),
     },
+    ...engineScenarios, // engineSample, engineSampleComplete, engineSampleMixed
   },
 };
