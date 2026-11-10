@@ -268,3 +268,54 @@ test('buildBom rejects discontinued catalog rows', () => {
     ValidationError,
   );
 });
+
+test('buildBom returns a null total when all selected lines are unpriced', () => {
+  const catalog = [
+    sku({ sku: 'GW-01', price: null }),
+    sku({ sku: 'GW-02', price: null }),
+  ];
+
+  const bom = buildBom({
+    items: [
+      { category: 'gateway', sku: 'GW-01', qty: 1 },
+      { category: 'gateway', sku: 'GW-02', qty: 2 },
+    ],
+  }, catalog);
+
+  assert.equal(bom.lines.length, 2);
+  assert.equal(bom.lines.every((line) => line.unitPrice === null), true);
+  assert.equal(bom.lines.every((line) => line.lineTotal === null), true);
+  assert.equal(bom.total, null);
+  assert.equal(bom.totalIsPartial, true);
+});
+
+test('buildBom preserves SUNSETTING status on selected catalog lines', () => {
+  const bom = buildBom({
+    items: [{ category: 'gateway', sku: 'GW-01', qty: 1 }],
+  }, [sku({ status: 'SUNSETTING' })]);
+
+  assert.equal(bom.lines.length, 1);
+  assert.equal(bom.lines[0].status, 'SUNSETTING');
+  assert.equal(validateBom(bom), true);
+});
+
+test('buildBom rejects unsupported equipment and installation-material categories', () => {
+  const unsupportedCategories = [
+    'ups',
+    'optic',
+    'cabling',
+    'patch_cord',
+    'connector',
+    'installation_material',
+  ];
+
+  for (const category of unsupportedCategories) {
+    assert.throws(
+      () => buildBom({
+        items: [{ category, sku: 'UNSUPPORTED-01', qty: 1 }],
+      }, []),
+      ValidationError,
+      `Expected category '${category}' to be rejected`,
+    );
+  }
+});
