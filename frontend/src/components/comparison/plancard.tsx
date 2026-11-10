@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useId } from "react";
 import {
   Card,
   CardContent,
@@ -8,8 +8,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 // import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button"; // NWP-COMPARE-002
 import { Separator } from "@/components/ui/separator";
 import { AlertTriangle, CheckCircle2, Clock } from "lucide-react";
+import { cn } from "@/lib/utils"; // NWP-COMPARE-002
 import { formatCurrency, formatDateTime, PRICE_UNAVAILABLE } from "./format";
 import type { NetworkPlanData, PlanTier, VendorName } from "./types";
 import { VendorSelect } from "./vendorselect";
@@ -22,6 +24,11 @@ interface PlanCardProps {
   availableVendors: VendorName[];
   onVendorChange: (vendor: VendorName) => void;
   planData: NetworkPlanData;
+  // NWP-COMPARE-002
+  isSelected: boolean;
+  onSelect: () => void;
+  /** The plan's `complete` flag. False disables selection. */
+  selectable: boolean;
 }
 
 export const PlanCard: React.FC<PlanCardProps> = ({
@@ -30,17 +37,60 @@ export const PlanCard: React.FC<PlanCardProps> = ({
   availableVendors,
   onVendorChange,
   planData,
+  isSelected,
+  onSelect,
+  selectable,
 }) => {
   const isCostEfficient = tier === "Cost-Efficient";
   // A partial total with nothing priced would read as 0.00, so say so instead.
   const nothingPriced = planData.totalIsPartial && planData.totalCost === 0;
+  // The engine also marks a total partial when the plan is incomplete, so the
+  // note must not claim missing prices unless a line really has none.
+  const hasUnpriced = planData.bom.some((l) => l.unitPrice === null);
+
+  // NWP-COMPARE-002
+  const titleId = useId();
+
+  const handleCardClick = () => {
+    if (selectable) onSelect();
+  };
+
+  // Only act when the card itself has focus, so Enter/Space inside the vendor
+  // dropdown or the select button keep their own behaviour.
+  const handleCardKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.target !== e.currentTarget) return;
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      if (selectable) onSelect();
+    }
+  };
+
+  // React events bubble through portals, so this also stops clicks inside the
+  // dropdown list (rendered outside the card in the DOM) from reaching the card.
+  const stopBubbling = (e: React.SyntheticEvent) => e.stopPropagation();
 
   return (
-    <Card className="flex flex-col h-full min-w-0 border-border/80 shadow-sm">
-      <CardHeader className="pb-4 space-y-4">
-        <div className="space-y-1">
+    <Card
+      role="radio"
+      aria-checked={isSelected}
+      aria-disabled={!selectable}
+      aria-labelledby={titleId}
+      tabIndex={selectable ? 0 : -1}
+      onClick={handleCardClick}
+      onKeyDown={handleCardKeyDown}
+      className={cn(
+        "flex flex-col h-full min-w-0 outline-none transition-[box-shadow,border-color]",
+        "focus-visible:ring-2 focus-visible:ring-ring",
+        selectable && "cursor-pointer",
+        isSelected
+          ? "border-primary ring-2 ring-primary shadow-xl shadow-primary/40"
+          : "border-border/80 shadow-sm",
+      )}
+    >
+      <CardHeader className="pb-4 space-y-0 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="space-y-1 min-w-0">
           <div className="flex items-center gap-2">
-            <CardTitle className="text-xl font-bold">
+            <CardTitle id={titleId} className="text-xl font-bold">
               {isCostEfficient ? "Cost-Efficient Plan" : "High-Performance Plan"}
             </CardTitle>
           </div>
@@ -51,12 +101,14 @@ export const PlanCard: React.FC<PlanCardProps> = ({
           </CardDescription>
         </div>
 
-        <VendorSelect
-          tier={tier}
-          selectedVendor={selectedVendor}
-          availableVendors={availableVendors}
-          onVendorChange={onVendorChange}
-        />
+        <div className="sm:w-52 shrink-0" onClick={stopBubbling} onKeyDown={stopBubbling}>
+          <VendorSelect
+            tier={tier}
+            selectedVendor={selectedVendor}
+            availableVendors={availableVendors}
+            onVendorChange={onVendorChange}
+          />
+        </div>
       </CardHeader>
 
       <Separator />
@@ -94,10 +146,26 @@ export const PlanCard: React.FC<PlanCardProps> = ({
           </span>
           {planData.totalIsPartial && (
             <span className="text-[11px] text-amber-700 dark:text-amber-400 block">
-              Excludes items with unavailable prices
+              {hasUnpriced
+                ? "Excludes items with unavailable prices"
+                : "Excludes the unmet requirements listed above"}
             </span>
           )}
         </div>
+
+        {/* NWP-COMPARE-002 */}
+        <Button
+          type="button"
+          className="w-full"
+          variant={isSelected ? "default" : "outline"}
+          disabled={!selectable}
+          onClick={(e) => {
+            e.stopPropagation();
+            onSelect();
+          }}
+        >
+          {isSelected ? "Selected" : "Select this plan"}
+        </Button>
       </CardContent>
 
       <CardFooter className="pt-2 pb-4 border-t bg-muted/20 flex flex-wrap items-center justify-between gap-2 text-[11px] text-muted-foreground">
