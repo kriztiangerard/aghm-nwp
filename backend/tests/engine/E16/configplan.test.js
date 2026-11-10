@@ -1,7 +1,7 @@
 'use strict';
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { buildConfigurationPlan } = require('../../steps/configPlan.js');
+const { buildConfigurationPlan } = require('../../../src/types/engine/steps/configplan.js');
 const { makePlan, requirements, deepFreeze } = require('../../fixtures/e16-fixtures.js');
 
 const section = (result, id) => result.sections.find((item) => item.id === id);

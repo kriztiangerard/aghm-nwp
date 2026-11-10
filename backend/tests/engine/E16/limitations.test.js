@@ -1,7 +1,7 @@
 'use strict';
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { buildLimitations, STATIC_LIMITATIONS } = require('../../steps/limitations.js');
+const { buildLimitations, STATIC_LIMITATIONS } = require('../../../src/types/engine/steps/limitations.js');
 const { makePlan, input, bomLine } = require('../../fixtures/e16-fixtures.js');
 
 const build = (plan = makePlan(), inp = input(), ledger = []) => buildLimitations(plan, inp, ledger);

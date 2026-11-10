@@ -1,8 +1,8 @@
 'use strict';
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { createCtx } = require('../../ctx.js');
-const { buildTopology } = require('../../steps/topology.js');
+const { createCtx } = require('../../../src/types/engine/ctx.js');
+const { buildTopology } = require('../../../src/types/engine/steps/topology.js');
 const { catalog, makePlan, requirements, input, deepFreeze } = require('../../fixtures/e16-fixtures.js');
 
 const build = (plan = makePlan(), reqs = requirements(), inp = input(), cat = catalog) => {
