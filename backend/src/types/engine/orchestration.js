@@ -12,7 +12,7 @@ const {
   validateVendorDescriptors,
   validateBom,
 } = require('./contracts');
-const { createCtx, addLedger } = require('./ctx');
+const { createCtx, addLedger, addFlag } = require('./ctx');
 const { assembleEngineResult } = require('./steps/assemble');
 
 const { selectGateway } = require('./devices/gateway');
@@ -530,6 +530,12 @@ const resolvedItems = selectedDeviceItems;
         `Catalog prices are stale for selected SKU(s): ${details.join(', ')}.`,
       );
     }
+  }
+
+  // NWP-BOM-002: advisory installation-materials summary (reference information, not BOM lines, not in the BOM total).
+  // Injected like buildBom. It reads plan.optics (set above) and the requirements; it is carried to the output untouched.
+  if (typeof steps.buildInstallationMaterials === 'function') {
+    plan.installationMaterials = steps.buildInstallationMaterials(plan, planRequirements);
   }
 
   return plan;
