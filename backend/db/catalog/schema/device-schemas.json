@@ -92,8 +92,7 @@
         "poe_ports": { "type": "integer", "minimum": 0 },
         "poe_budget_w": { "type": "integer", "minimum": 0 },
         "poe_standard": {
-          "type": "string",
-          "enum": ["af", "at", "bt3"],
+          "$ref": "#/$defs/poeStandard",
           "description": "Highest PoE standard supplied by the switch's PoE ports. Omit when unknown; the engine does not guess."
         },
         "switching_capacity_gbps": { "type": "number", "minimum": 0 },
@@ -126,8 +125,7 @@
         "supported_6ghz": { "type": "boolean" },
         "max_power_draw_w": { "type": "number", "minimum": 0 },
         "poe_standard": {
-          "type": "string",
-          "enum": ["af", "at", "bt3"],
+          "$ref": "#/$defs/poeStandard",
           "description": "Minimum PoE standard required by the access point. Omit when unknown; the engine does not guess."
         },
         "power_method": { "type": "string", "description": "e.g. PoE+, PoE++, DC adapter" }
@@ -197,6 +195,8 @@
       "enum": ["SFP", "SFP+", "SFP28", "QSFP+", "QSFP28"],
       "description": "Physical SFP-family form factor of a switch or gateway port. SFP modules themselves are not catalogued; they appear on the Installation Materials Summary."
     },
+
+    "poeStandard": { "type": "string", "enum": ["af", "at", "bt3"] },
 
     "gatewayRouterDevice": {
       "allOf": [

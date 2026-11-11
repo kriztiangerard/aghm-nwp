@@ -142,6 +142,18 @@ function getPoePortCapabilities(switchSku) {
     return { af: 0, at: 0, bt3: 0 };
   }
 
+  if (specs.poe_standard !== undefined) {
+    if (!['af', 'at', 'bt3'].includes(specs.poe_standard)) {
+      return { af: 0, at: 0, bt3: 0 };
+    }
+
+    return {
+      af: totalPoePorts,
+      at: specs.poe_standard === 'af' ? 0 : totalPoePorts,
+      bt3: specs.poe_standard === 'bt3' ? totalPoePorts : 0
+    };
+  }
+
   const mixedMatch = description.match(
     /(\d+)\s*-?\s*Port\s+PoE\+\s*&\s*(\d+)\s*-?\s*Port\s+PoE\+\+/i
   );
