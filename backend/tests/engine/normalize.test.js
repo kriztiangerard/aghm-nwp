@@ -212,18 +212,28 @@ test('blank Q11 defaults to notChecked and records the assumption', () => {
     ),
   );
 });
-test('engine runner returns normalized input and captures validation errors', () => {
+test('engine runner builds plans and rejects invalid questionnaire answers', async () => {
   const { run: runEngine } = require('../../src/types/engine');
+  const catalogSnapshot = require('../fixtures/catalogs/omada.snapshot.json');
+  const { flatRowToCatalogSku } = require('../../src/types/engine/catalog-mapping');
+  const engineData = {
+    catalog: catalogSnapshot.skus.map((row) => flatRowToCatalogSku(row).sku),
+    vendors: [{
+      name: 'TP-Link Omada',
+      needController: false,
+      managementModes: ['dashboard'],
+    }],
+  };
+  const dependencies = { loadEngineData: async () => engineData };
 
-  const valid = runEngine(baseline);
+  const valid = await runEngine(baseline, dependencies);
 
-  assert.ok(valid.normalizedInput);
-  assert.deepStrictEqual(valid.errors, []);
-  assert.ok(Array.isArray(valid.plans));
+  assert.equal(valid.plans.length, 2);
+  assert.deepStrictEqual(valid.plans.map(({ planType }) => planType), ['CE', 'HP']);
   assert.ok(Array.isArray(valid.ledger));
 
-  const invalid = runEngine({ ...baseline, Q3: 201 });
-
-  assert.strictEqual(invalid.normalizedInput, null);
-  assert.match(invalid.errors[0].message, /outside SME scope/);
+  await assert.rejects(
+    () => runEngine({ ...baseline, Q3: 201 }, dependencies),
+    /outside SME scope/,
+  );
 });

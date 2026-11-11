@@ -34,8 +34,9 @@ Until signed, the fixture does not count toward the AC.
     * SYN-GW-002: Price = 0
     * SYN-GW-003: Dual-role gateway (switch + controller)
     * SYN-SW-002: PoE ports exist but poe_budget_w is omitted to test fallback logic
-    * SYN-SW-003: Price is null; requires SFP conditional block validation.
+    * SYN-SW-003: Price is null; PoE+ capable and includes the SFP conditional block.
     * SYN-AP-003: Missing max_power_draw_w to test budget failure
+    * SYN-AP-005: Sunsetting Wi-Fi 6E access point for lifecycle selection coverage
     * It also includes regular entries for testing.
 
 * synthetic-catalog-omada.json - A snapshot of the Omada entries unmodified from NWP-SETUP-003.

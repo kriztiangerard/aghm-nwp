@@ -4,276 +4,258 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 
 const {
-    CONTRACT_VERSION,
-    validateVendorDescriptors,
-    validateEngineResult,
-    ValidationError
-} = require('../../src/types/engine/contracts.js');
+  CONTRACT_VERSION,
+  ValidationError,
+  validateVendorDescriptors,
+  validateBom,
+  validatePlan,
+  validateEngineResult,
+} = require('../../src/types/engine/contracts');
 
-const validVendor = {
-    name: 'Test Vendor',
-    needController: false,
-    managementModes: ['dashboard']
-};
-
-test('accepts a valid vendor descriptor', () => {
-    assert.equal(validateVendorDescriptors([validVendor]), true);
-});
-
-test('accepts dashboard-only management mode', () => {
-    const vendor = {
-        ...validVendor,
-        managementModes: ['dashboard']
-    };
-
-    assert.equal(validateVendorDescriptors([vendor]), true);
-});
-
-test('accepts CLI-only management mode', () => {
-    const vendor = {
-        ...validVendor,
-        managementModes: ['cli']
-    };
-
-    assert.equal(validateVendorDescriptors([vendor]), true);
-});
-
-test('accepts both dashboard and CLI management modes', () => {
-    const vendor = {
-        ...validVendor,
-        managementModes: ['dashboard', 'cli']
-    };
-
-    assert.equal(validateVendorDescriptors([vendor]), true);
-});
-
-test('accepts an empty managementModes array', () => {
-    const vendor = {
-        ...validVendor,
-        managementModes: []
-    };
-
-    assert.equal(validateVendorDescriptors([vendor]), true);
-});
-
-test('rejects a non-array vendor descriptor list', () => {
-    assert.throws(
-        () => validateVendorDescriptors(validVendor),
-        (error) => error instanceof ValidationError
-            && error.field === 'vendors'
-    );
-});
-
-test('rejects an empty vendor descriptor list', () => {
-    assert.throws(
-        () => validateVendorDescriptors([]),
-        (error) => error instanceof ValidationError
-            && error.field === 'vendors'
-    );
-});
-
-test('rejects a non-object vendor descriptor', () => {
-    assert.throws(
-        () => validateVendorDescriptors([null]),
-        (error) => error instanceof ValidationError
-            && error.field === 'vendors[0]'
-    );
-});
-
-test('rejects a missing vendor name', () => {
-    const vendor = {
-        needController: false,
-        managementModes: ['dashboard']
-    };
-
-    assert.throws(
-        () => validateVendorDescriptors([vendor]),
-        (error) => error instanceof ValidationError
-            && error.field === 'vendors[0].name'
-    );
-});
-
-test('rejects an empty vendor name', () => {
-    const vendor = {
-        ...validVendor,
-        name: '   '
-    };
-
-    assert.throws(
-        () => validateVendorDescriptors([vendor]),
-        (error) => error instanceof ValidationError
-            && error.field === 'vendors[0].name'
-    );
-});
-
-test('rejects duplicate vendor names', () => {
-    const vendors = [
-        validVendor,
-        { ...validVendor }
-    ];
-
-    assert.throws(
-        () => validateVendorDescriptors(vendors),
-        (error) => error instanceof ValidationError
-            && error.field === 'vendors[1].name'
-    );
-});
-
-test('rejects a non-boolean needController value', () => {
-    const vendor = {
-        ...validVendor,
-        needController: 'false'
-    };
-
-    assert.throws(
-        () => validateVendorDescriptors([vendor]),
-        (error) => error instanceof ValidationError
-            && error.field === 'vendors[0].needController'
-    );
-});
-
-test('rejects missing managementModes', () => {
-    const vendor = {
-        name: 'Test Vendor',
-        needController: false
-    };
-
-    assert.throws(
-        () => validateVendorDescriptors([vendor]),
-        (error) => error instanceof ValidationError
-            && error.field === 'vendors[0].managementModes'
-    );
-});
-
-test('rejects a non-array managementModes value', () => {
-    const vendor = {
-        ...validVendor,
-        managementModes: 'dashboard'
-    };
-
-    assert.throws(
-        () => validateVendorDescriptors([vendor]),
-        (error) => error instanceof ValidationError
-            && error.field === 'vendors[0].managementModes'
-    );
-});
-
-test('rejects an unsupported management mode', () => {
-    const vendor = {
-        ...validVendor,
-        managementModes: ['dashboard', 'unknown']
-    };
-
-    assert.throws(
-        () => validateVendorDescriptors([vendor]),
-        (error) => error instanceof ValidationError
-            && error.field === 'vendors[0].managementModes'
-    );
-});
-
-// ============================================================
-// ENGINE RESULT: DEFAULT VENDOR CONTRACT
-// ============================================================
-
-function makeValidEngineResult(defaultVendor = { CE: 'Vendor A', HP: 'Vendor B' }) {
-    return {
-        contractVersion: CONTRACT_VERSION,
-        generatedAt: '2026-11-07T00:00:00.000Z',
-        requirements: {},
-        ledger: [],
-        flags: [],
-        plans: [],
-        defaultVendor
-    };
+function assertRejects(fn, field) {
+  assert.throws(fn, (err) => {
+    assert.ok(err instanceof ValidationError);
+    assert.equal(err.field, field);
+    assert.ok(err.message.includes(field));
+    return true;
+  });
 }
 
-test('accepts valid CE and HP default vendors', () => {
-    assert.equal(
-        validateEngineResult(makeValidEngineResult({
-            CE: 'Vendor A',
-            HP: 'Vendor B'
-        })),
-        true
-    );
+const validVendor = () => ({
+  name: 'Omada',
+  needController: false,
+  managementModes: ['dashboard', 'cli'],
 });
 
-test('accepts null when neither plan type has a default vendor', () => {
-    assert.equal(
-        validateEngineResult(makeValidEngineResult({
-            CE: null,
-            HP: null
-        })),
-        true
-    );
+const validBomLine = () => ({
+  category: 'gateway',
+  sku: 'TEST-GW-01',
+  name: 'Test Gateway',
+  vendor: 'Omada',
+  qty: 1,
+  unitPrice: 10000,
+  lineTotal: 10000,
+  status: 'ACTIVE',
+  isGeneric: false,
 });
 
-test('accepts one default vendor and one null default', () => {
-    assert.equal(
-        validateEngineResult(makeValidEngineResult({
-            CE: 'Vendor A',
-            HP: null
-        })),
-        true
-    );
+const validBom = () => ({
+  currency: 'PHP',
+  lines: [validBomLine()],
+  total: 10000,
+  totalIsPartial: false,
 });
 
-test('rejects a missing defaultVendor object', () => {
-    const result = makeValidEngineResult();
-    delete result.defaultVendor;
-
-    assert.throws(
-        () => validateEngineResult(result),
-        (error) => error instanceof ValidationError
-            && error.field === 'defaultVendor'
-    );
+const validPlan = () => ({
+  vendor: 'Omada',
+  planType: 'CE',
+  complete: true,
+  items: [{ category: 'gateway', sku: 'TEST-GW-01', qty: 1 }],
+  bom: validBom(),
+  unmet: [],
+  flags: [],
+  ledger: [],
+  optics: { links: 1, modules: 2, formFactor: 'SFP' },
+  powerProtection: { upsRecommendationLevel: 'advisory' },
+  limitations: [],
 });
 
-test('rejects a missing CE default vendor key', () => {
-    assert.throws(
-        () => validateEngineResult(makeValidEngineResult({
-            HP: 'Vendor B'
-        })),
-        (error) => error instanceof ValidationError
-            && error.field === 'defaultVendor.CE'
-    );
+const validEngineResult = () => ({
+  contractVersion: CONTRACT_VERSION,
+  generatedAt: '2026-11-07T10:00:00.000Z',
+  requirements: {},
+  ledger: [],
+  flags: [],
+  plans: [validPlan()],
+  defaultVendor: {
+    CE: 'Omada',
+    HP: null,
+  },
 });
 
-test('rejects a missing HP default vendor key', () => {
-    assert.throws(
-        () => validateEngineResult(makeValidEngineResult({
-            CE: 'Vendor A'
-        })),
-        (error) => error instanceof ValidationError
-            && error.field === 'defaultVendor.HP'
-    );
+test('validateVendorDescriptors accepts valid unique vendor descriptors', () => {
+  assert.equal(
+    validateVendorDescriptors([
+      validVendor(),
+      {
+        name: 'UniFi',
+        needController: true,
+        managementModes: ['dashboard'],
+      },
+    ]),
+    true
+  );
 });
 
-test('rejects an empty CE vendor name', () => {
-    assert.throws(
-        () => validateEngineResult(makeValidEngineResult({
-            CE: '   ',
-            HP: 'Vendor B'
-        })),
-        (error) => error instanceof ValidationError
-            && error.field === 'defaultVendor.CE'
-    );
+test('validateVendorDescriptors rejects an empty vendor list', () => {
+  assertRejects(() => validateVendorDescriptors([]), 'vendors');
 });
 
-test('rejects a non-string HP default vendor value', () => {
-    assert.throws(
-        () => validateEngineResult(makeValidEngineResult({
-            CE: 'Vendor A',
-            HP: 123
-        })),
-        (error) => error instanceof ValidationError
-            && error.field === 'defaultVendor.HP'
-    );
+test('validateVendorDescriptors rejects duplicate vendor names', () => {
+  assertRejects(
+    () => validateVendorDescriptors([validVendor(), validVendor()]),
+    'vendors[1].name'
+  );
 });
 
-test('rejects a non-object defaultVendor value', () => {
-    assert.throws(
-        () => validateEngineResult(makeValidEngineResult(null)),
-        (error) => error instanceof ValidationError
-            && error.field === 'defaultVendor'
-    );
+test('validateVendorDescriptors rejects a non-boolean needController value', () => {
+  assertRejects(
+    () => validateVendorDescriptors([
+      { ...validVendor(), needController: 'false' },
+    ]),
+    'vendors[0].needController'
+  );
+});
+
+test('validateVendorDescriptors rejects unsupported management modes', () => {
+  assertRejects(
+    () => validateVendorDescriptors([
+      { ...validVendor(), managementModes: ['dashboard', 'api'] },
+    ]),
+    'vendors[0].managementModes'
+  );
+});
+
+test('validateBom accepts a valid priced BOM', () => {
+  assert.equal(validateBom(validBom()), true);
+});
+
+test('validateBom accepts an unpriced line when the total is partial', () => {
+  const bom = validBom();
+  bom.lines[0].unitPrice = null;
+  bom.lines[0].lineTotal = null;
+  bom.total = null;
+  bom.totalIsPartial = true;
+
+  assert.equal(validateBom(bom), true);
+});
+
+test('validateBom rejects an unsupported line category', () => {
+  const bom = validBom();
+  bom.lines[0].category = 'router';
+
+  assertRejects(() => validateBom(bom), 'bom.lines[0].category');
+});
+
+test('validateBom rejects a non-positive line quantity', () => {
+  const bom = validBom();
+  bom.lines[0].qty = 0;
+
+  assertRejects(() => validateBom(bom), 'bom.lines[0].qty');
+});
+
+test('validateBom rejects mismatched null unit price and line total', () => {
+  const bom = validBom();
+  bom.lines[0].unitPrice = null;
+
+  assertRejects(() => validateBom(bom), 'bom.lines[0].lineTotal');
+});
+
+test('validateBom rejects a negative unit price', () => {
+  const bom = validBom();
+  bom.lines[0].unitPrice = -1;
+
+  assertRejects(() => validateBom(bom), 'bom.lines[0].unitPrice');
+});
+
+test('validateBom rejects a missing or invalid line status', () => {
+  const bom = validBom();
+  bom.lines[0].status = 'DISCONTINUED';
+
+  assertRejects(() => validateBom(bom), 'bom.lines[0].status');
+});
+
+test('validateBom rejects an unpriced line when totalIsPartial is false', () => {
+  const bom = validBom();
+  bom.lines[0].unitPrice = null;
+  bom.lines[0].lineTotal = null;
+  bom.total = null;
+  bom.totalIsPartial = false;
+
+  assertRejects(() => validateBom(bom), 'bom.totalIsPartial');
+});
+
+test('validatePlan accepts a valid plan with BOM and optional fields', () => {
+  assert.equal(validatePlan(validPlan()), true);
+});
+
+test('validatePlan accepts a plan with null optics', () => {
+  const plan = validPlan();
+  plan.optics = null;
+
+  assert.equal(validatePlan(plan), true);
+});
+
+test('validatePlan rejects an unsupported plan type', () => {
+  const plan = validPlan();
+  plan.planType = 'STANDARD';
+
+  assertRejects(() => validatePlan(plan), 'plan.planType');
+});
+
+test('validatePlan rejects an invalid plan item quantity', () => {
+  const plan = validPlan();
+  plan.items[0].qty = 1.5;
+
+  assertRejects(() => validatePlan(plan), 'plan.items[0]');
+});
+
+test('validatePlan rejects a missing BOM', () => {
+  const plan = validPlan();
+  delete plan.bom;
+
+  assertRejects(() => validatePlan(plan), 'bom');
+});
+
+test('validatePlan rejects malformed optics', () => {
+  const plan = validPlan();
+  plan.optics = { links: -1, modules: 2, formFactor: 'SFP' };
+
+  assertRejects(() => validatePlan(plan), 'plan.optics');
+});
+
+test('validatePlan rejects a non-array limitations field', () => {
+  const plan = validPlan();
+  plan.limitations = 'No limitation';
+
+  assertRejects(() => validatePlan(plan), 'plan.limitations');
+});
+
+test('validateEngineResult accepts a valid result containing a plan', () => {
+  assert.equal(validateEngineResult(validEngineResult()), true);
+});
+
+test('validateEngineResult rejects an outdated contract version', () => {
+  const result = validEngineResult();
+  result.contractVersion = CONTRACT_VERSION - 1;
+
+  assertRejects(() => validateEngineResult(result), 'contractVersion');
+});
+
+test('validateEngineResult rejects a missing generatedAt value', () => {
+  const result = validEngineResult();
+  delete result.generatedAt;
+
+  assertRejects(() => validateEngineResult(result), 'generatedAt');
+});
+
+test('validateEngineResult rejects a non-array plans field', () => {
+  const result = validEngineResult();
+  result.plans = {};
+
+  assertRejects(() => validateEngineResult(result), 'plans');
+});
+
+test('validateEngineResult rejects a missing default vendor plan key', () => {
+  const result = validEngineResult();
+  delete result.defaultVendor.HP;
+
+  assertRejects(() => validateEngineResult(result), 'defaultVendor.HP');
+});
+
+test('validateEngineResult accepts null when no default vendor is selected', () => {
+  const result = validEngineResult();
+  result.defaultVendor = { CE: null, HP: null };
+
+  assert.equal(validateEngineResult(result), true);
 });

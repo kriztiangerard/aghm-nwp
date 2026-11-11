@@ -863,3 +863,74 @@ test('integrates the real PoE budget calculation with switch selection', () => {
     'INTEGRATION-POE-SWITCH'
   );
 });
+
+test('excludes the synthetic null-price switch after it meets technical requirements', () => {
+  const syntheticCatalog = require('../fixtures/catalogs/synthetic-catalog-edgecases.json');
+  const unpricedSwitch = syntheticCatalog.find(
+    (sku) => sku.sku === 'SYN-SW-003',
+  );
+  const ctx = createCtx();
+
+  assert.ok(unpricedSwitch, 'Synthetic switch fixture must exist');
+  assert.equal(unpricedSwitch.price, null);
+
+  const result = selectSwitches({
+    catalog: [unpricedSwitch],
+    vendor: 'Synthetic Vendor',
+    requirements: {
+      edgePorts: 0,
+      poeEdgePorts: 0,
+      wireless: {
+        CE: { perFloor: [0] },
+        HP: { perFloor: [0] },
+      },
+    },
+    poeBudget: { perFloor: [{ budgetW: 0 }] },
+    plan: 'CE',
+    ctx,
+  });
+
+  assert.equal(result.ok, false);
+  assert.equal(result.unmet.category, 'switch');
+  assert.equal(result.unmet.vendor, 'Synthetic Vendor');
+  assert.equal(result.unmet.reason, 'All qualifying SKUs are unpriced');
+});
+
+
+test('excludes the synthetic null-price switch and flags it when a priced candidate qualifies', () => {
+  const syntheticCatalog = require('../fixtures/catalogs/synthetic-catalog-edgecases.json');
+  const unpricedSwitch = syntheticCatalog.find(
+    (sku) => sku.sku === 'SYN-SW-003',
+  );
+  const pricedControlSwitch = {
+    ...unpricedSwitch,
+    sku: 'SYN-SW-003-PRICED-CONTROL',
+    price: 18000,
+  };
+  const ctx = createCtx();
+
+  assert.ok(unpricedSwitch, 'Synthetic switch fixture must exist');
+  assert.equal(unpricedSwitch.price, null);
+
+  const result = selectSwitches({
+    catalog: [unpricedSwitch, pricedControlSwitch],
+    vendor: 'Synthetic Vendor',
+    requirements: {
+      edgePorts: 0,
+      poeEdgePorts: 0,
+      wireless: {
+        CE: { perFloor: [0] },
+        HP: { perFloor: [0] },
+      },
+    },
+    poeBudget: { perFloor: [{ budgetW: 0 }] },
+    plan: 'CE',
+    ctx,
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(result.accessSwitches[0].sku.sku, 'SYN-SW-003-PRICED-CONTROL');
+  assert.ok(
+    ctx.flags.some((flag) => flag.code === 'UNPRICED_SKUS_EXCLUDED'),
+  );
+});
