@@ -1,6 +1,7 @@
 import { mapFormToNetworkConfiguration } from '../../lib/network-config-mapper'
 import { closeOpenSelectPortals } from '../../lib/closeOpenSelectPortals'
 import { useEffect, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom' // NWP-COMPARE-002
 import {
   FormProvider,
   useForm,
@@ -33,6 +34,11 @@ import SummaryPanel from './SummaryPanel'
 import { questionnaireSchema } from '../../schemas/questionnaireSchema'
 import { SECTION_TITLES } from '../../lib/summary'
 
+// NWP-COMPARE-002
+import { usePlanResult } from '../comparison/plan-result-context'
+import { useSelectedPlan } from '../comparison/selected-plan-context'
+import { adaptEngineResponse } from '../comparison/adapt-engine-response'
+
 const sectionSteps = [
   ProjectBasics,
   PhysicalSpace,
@@ -57,6 +63,11 @@ type FormField = FieldPath<FormInput>
 function Questionnaire() {
   const [currentStep, setCurrentStep] = useState(0)
   const [submitError, setSubmitError] = useState<string | null>(null)
+
+  // NWP-COMPARE-002
+  const navigate = useNavigate()
+  const { setResult } = usePlanResult()
+  const { clear: clearSelected } = useSelectedPlan()
 
   const sectionHeadingRef = useRef<HTMLHeadingElement>(null)
   const isInitialRender = useRef(true)
@@ -256,7 +267,19 @@ function Questionnaire() {
       }
 
       console.log('[Questionnaire] Request succeeded')
-      console.log('Recommendation result:', responseBody)
+
+      // NWP-COMPARE-002: store the generated plans in memory (no storage, no router
+      // state), drop any previous selection, then go to the comparison page.
+      // This was `console.log('Recommendation result:', responseBody)`.
+      try {
+        setResult(adaptEngineResponse(responseBody))
+      } catch (adaptError) {
+        console.error('[Questionnaire] Unexpected response shape:', adaptError)
+        setSubmitError('We received an unexpected response. Please try again.')
+        return
+      }
+      clearSelected()
+      navigate('/comparison')
     } catch (error) {
       const fetchError = error instanceof Error ? error : new Error('Unknown fetch error')
 

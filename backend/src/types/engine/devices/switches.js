@@ -2,10 +2,11 @@
 'use strict';
 
 const { selectSku } = require('../select.js');
+const { addFlag } = require('../ctx.js');
 // Switch selection per floor
 // Algorithm Step 3.5
 // Consumes: Requirements + PoE budget + select()
-// Produces: SelectionResult[] (access switches, core switch)
+// Produces: SelectionResult (access switches and, when needed, a core switch)
 // Rules: pure function (no I/O), constants from params.js, assumptions via ctx.
 
 function splitEvenly(total, floorCount) {
@@ -317,7 +318,6 @@ function addSingleHomingLimitation(ctx) {
     return ctx.flags;
   }
 
-  const { addFlag } = require('../ctx.js');
   addFlag(
     ctx,
     code,
@@ -325,6 +325,147 @@ function addSingleHomingLimitation(ctx) {
   );
 
   return ctx.flags;
+}
+
+function selectCoreSwitch({
+  catalog,
+  vendor,
+  requirements,
+  plan,
+  cePick,
+  ctx,
+  accessSwitches,
+  uplinksPerSwitch,
+  coreSwitchQuantity,
+}) {
+  if (uplinksPerSwitch === 0) {
+    return { ok: true, coreSwitch: null };
+  }
+
+  if (!Array.isArray(catalog) || !Array.isArray(accessSwitches)) {
+    throw new TypeError('catalog and accessSwitches must be arrays.');
+  }
+  if (!requirements || !['fiber', 'copper', undefined].includes(requirements.backbone)) {
+    throw new TypeError('requirements.backbone must be fiber or copper when provided.');
+  }
+  if (!['CE', 'HP'].includes(plan)) {
+    throw new TypeError('plan must be CE or HP.');
+  }
+  if (!ctx || !Array.isArray(ctx.unmet) || !Array.isArray(ctx.flags)) {
+    throw new TypeError('ctx from createCtx() is required.');
+  }
+  if (!Number.isInteger(uplinksPerSwitch) || uplinksPerSwitch < 1) {
+    throw new TypeError('uplinksPerSwitch must be a positive integer when a core is required.');
+  }
+  if (!Number.isInteger(coreSwitchQuantity) || coreSwitchQuantity < 1) {
+    throw new TypeError('coreSwitchQuantity must be a positive integer.');
+  }
+
+  const totalAccessSwitchUnits = accessSwitches.reduce(
+    (total, accessSwitch) => total + accessSwitch.qty,
+    0,
+  );
+  const requiredAccessPorts = Math.ceil(
+    totalAccessSwitchUnits * uplinksPerSwitch / coreSwitchQuantity,
+  );
+  const fiberBackbone = requirements.backbone === 'fiber';
+  const backbone = fiberBackbone ? 'fiber' : 'copper';
+  const pool = catalog.filter(
+    (sku) => sku.category === 'switch' && sku.vendor === vendor,
+  ).map((sku) => ({
+    ...sku,
+    status: String(sku.status ?? sku.lifecycle_status ?? '').toUpperCase(),
+  }));
+  const getCorePortCounts = (switchSku) => {
+    const specs = getSwitchSpecs(switchSku);
+    const copperPorts = specs?.copper_ports === undefined &&
+      Number.isInteger(specs?.port_count) &&
+      Number.isInteger(specs?.sfp_ports)
+      ? specs.port_count - specs.sfp_ports
+      : specs?.copper_ports;
+    const sfpPorts = specs?.sfp_ports;
+
+    if (
+      !Number.isInteger(copperPorts) || copperPorts < 0 ||
+      !Number.isInteger(sfpPorts) || sfpPorts < 0
+    ) {
+      return null;
+    }
+
+    return { copperPorts, sfpPorts };
+  };
+  const meetsCorePortRequirements = (switchSku) => {
+    const ports = getCorePortCounts(switchSku);
+    if (!ports) return false;
+
+    return ports.copperPorts + ports.sfpPorts >= requiredAccessPorts + 1 &&
+      (!fiberBackbone || ports.sfpPorts >= requiredAccessPorts);
+  };
+  const hasKnownSufficientCore = pool.some(
+    (switchSku) =>
+      ['ACTIVE', 'SUNSETTING'].includes(switchSku.status) &&
+      typeof switchSku.price === 'number' &&
+      Number.isFinite(switchSku.price) &&
+      meetsCorePortRequirements(switchSku),
+  );
+  const hasUnknownCorePorts =
+    !hasKnownSufficientCore &&
+    pool.some(
+      (switchSku) =>
+        ['ACTIVE', 'SUNSETTING'].includes(switchSku.status) &&
+        typeof switchSku.price === 'number' &&
+        Number.isFinite(switchSku.price) &&
+        getCorePortCounts(switchSku) === null,
+    );
+
+  if (hasUnknownCorePorts) {
+    addFlag(
+      ctx,
+      'CORE_SWITCH_PORTS_UNKNOWN',
+      `Some ${vendor} switches have unknown copper_ports or sfp_ports; unknown port capacity is not assumed to satisfy the core-switch requirement.`,
+    );
+  }
+
+  const coreCePick =
+    cePick?.coreSwitch?.sku ??
+    cePick?.coreSwitch ??
+    cePick?.sku ??
+    cePick;
+
+  const result = selectSku({
+    pool,
+    predicate: meetsCorePortRequirements,
+    plan: plan === 'CE' ? 'cost_efficient' : 'high_performance',
+    category: 'switch',
+    vendor,
+    ctx: { ...ctx, unmet: [] },
+    qty: coreSwitchQuantity,
+    cePick: plan === 'HP' ? coreCePick : undefined,
+  });
+
+  if (!result.ok) {
+    const reason =
+      `No purchasable ${vendor} core switch meets the ${backbone} backbone ` +
+      `port requirements (${requiredAccessPorts} access uplinks per core switch and one gateway link).`;
+    const unmet = { category: 'switch', vendor, reason };
+    ctx.unmet.push(unmet);
+    return { ok: false, unmet };
+  }
+
+  if (result.sku.vendor !== vendor) {
+    throw new Error(
+      `Core switch vendor consistency defect: expected ${vendor}, got ${result.sku.vendor}.`,
+    );
+  }
+
+  return {
+    ok: true,
+    coreSwitch: {
+      sku: result.sku,
+      qty: coreSwitchQuantity,
+      flags: result.flags ?? [],
+    },
+  };
 }
 
 function selectSwitches({
@@ -489,9 +630,26 @@ function selectSwitches({
     addSingleHomingLimitation(ctx);
   }
 
+  const coreResult = selectCoreSwitch({
+    catalog,
+    vendor,
+    requirements,
+    plan,
+    cePick,
+    ctx,
+    accessSwitches,
+    uplinksPerSwitch: accessUplinks,
+    coreSwitchQuantity,
+  });
+
+  if (!coreResult.ok) {
+    return coreResult;
+  }
+
   return {
     ok: true,
     accessSwitches,
+    coreSwitch: coreResult.coreSwitch,
     coreSwitchQuantity,
     uplinksPerFloor: accessUplinks,
     flags: ctx.flags,
@@ -500,6 +658,7 @@ function selectSwitches({
 
 module.exports = {
   selectSwitches,
+  selectCoreSwitch,
   calculatePerFloorPorts,
   applyGrowthMultiplier,
   getPoePortCapabilities,

@@ -230,7 +230,7 @@ test('uses the High-Performance AP count and passes the CE SKU through', () => {
   assert.equal(selector.calls[0].cePick, ceSku);
 });
 
-test('does not classify Wi-Fi 7 as Wi-Fi 6E', () => {
+test('allows Wi-Fi 7 with 6 GHz support to satisfy a Wi-Fi 6E requirement', () => {
   const ap7 = makeSku('AP-7', 7, true, 22);
   const selector = makeSelector([ap7]);
 
@@ -251,8 +251,9 @@ test('does not classify Wi-Fi 7 as Wi-Fi 6E', () => {
     wirelessRequirementsFn: () => makeRequirements('6', 2, 3).wireless,
   });
 
-  assert.equal(result.ok, false);
-  assert.equal(selector.calls.length, 2);
+  assert.equal(result.ok, true);
+  assert.equal(result.sku.sku, 'AP-7');
+  assert.equal(selector.calls.length, 1);
 });
 
 test('returns an unmet result when both 6E and Wi-Fi 6 selection fail', () => {
@@ -309,3 +310,4 @@ test('returns null for max power draw when the selected AP has no value', () => 
   assert.equal(result.ok, true);
   assert.equal(result.maxPowerDrawW, null);
 });
+

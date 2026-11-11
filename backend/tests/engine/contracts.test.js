@@ -5,171 +5,257 @@ const assert = require('node:assert/strict');
 
 const {
   CONTRACT_VERSION,
-  validateNormalizedInput,
-  validateRequirements,
-  validateSelectionResult,
   ValidationError,
+  validateVendorDescriptors,
+  validateBom,
+  validatePlan,
+  validateEngineResult,
 } = require('../../src/types/engine/contracts');
 
-const { normalize } = require('../../src/types/engine/normalize');
-const { createCtx } = require('../../src/types/engine/ctx');
-
-const baseline = require('../fixtures/raw-answers/input1-baseline.json');
-
-function getValidNormalizedInput() {
-  return normalize({ ...baseline }, createCtx());
+function assertRejects(fn, field) {
+  assert.throws(fn, (err) => {
+    assert.ok(err instanceof ValidationError);
+    assert.equal(err.field, field);
+    assert.ok(err.message.includes(field));
+    return true;
+  });
 }
 
-test('valid normalized input passes contract validation', () => {
-  assert.equal(validateNormalizedInput(getValidNormalizedInput()), true);
+const validVendor = () => ({
+  name: 'Omada',
+  needController: false,
+  managementModes: ['dashboard', 'cli'],
 });
 
-test('invalid contract version is rejected', () => {
-  const input = getValidNormalizedInput();
-  input.contractVersion = CONTRACT_VERSION + 1;
-
-  assert.throws(
-    () => validateNormalizedInput(input),
-    (error) =>
-      error instanceof ValidationError &&
-      error.field === 'contractVersion',
-  );
+const validBomLine = () => ({
+  category: 'gateway',
+  sku: 'TEST-GW-01',
+  name: 'Test Gateway',
+  vendor: 'Omada',
+  qty: 1,
+  unitPrice: 10000,
+  lineTotal: 10000,
+  status: 'ACTIVE',
+  isGeneric: false,
 });
 
-test('floor-area length must match the number of floors', () => {
-  const input = getValidNormalizedInput();
-  input.floorArea = [100];
-
-  assert.throws(
-    () => validateNormalizedInput(input),
-    (error) =>
-      error instanceof ValidationError &&
-      error.field === 'floorArea',
-  );
+const validBom = () => ({
+  currency: 'PHP',
+  lines: [validBomLine()],
+  total: 10000,
+  totalIsPartial: false,
 });
 
-test('negative device counts are rejected', () => {
-  const input = getValidNormalizedInput();
-  input.cameras = -1;
-
-  assert.throws(
-    () => validateNormalizedInput(input),
-    (error) =>
-      error instanceof ValidationError &&
-      error.field === 'cameras',
-  );
+const validPlan = () => ({
+  vendor: 'Omada',
+  planType: 'CE',
+  complete: true,
+  items: [{ category: 'gateway', sku: 'TEST-GW-01', qty: 1 }],
+  bom: validBom(),
+  unmet: [],
+  flags: [],
+  ledger: [],
+  optics: { links: 1, modules: 2, formFactor: 'SFP' },
+  powerProtection: { upsRecommendationLevel: 'advisory' },
+  limitations: [],
 });
 
-test('invalid location enum is rejected', () => {
-  const input = getValidNormalizedInput();
-  input.locations = 'multiple';
-
-  assert.throws(
-    () => validateNormalizedInput(input),
-    (error) =>
-      error instanceof ValidationError &&
-      error.field === 'locations',
-  );
+const validEngineResult = () => ({
+  contractVersion: CONTRACT_VERSION,
+  generatedAt: '2026-11-07T10:00:00.000Z',
+  requirements: {},
+  ledger: [],
+  flags: [],
+  plans: [validPlan()],
+  defaultVendor: {
+    CE: 'Omada',
+    HP: null,
+  },
 });
 
-test('valid partial requirements pass contract validation', () => {
+test('validateVendorDescriptors accepts valid unique vendor descriptors', () => {
   assert.equal(
-    validateRequirements({
-      edgePorts: 24,
-      poeEdgePorts: 8,
-      otherPoeLoadW: 100,
-    }),
-    true,
-  );
-});
-
-test('empty requirements object is rejected', () => {
-  assert.throws(
-    () => validateRequirements({}),
-    (error) =>
-      error instanceof ValidationError &&
-      error.field === 'reqs',
-  );
-});
-
-test('negative edge port count is rejected', () => {
-  assert.throws(
-    () => validateRequirements({ edgePorts: -1 }),
-    (error) =>
-      error instanceof ValidationError &&
-      error.field === 'edgePorts',
-  );
-});
-
-test('invalid wireless CE total is rejected', () => {
-  assert.throws(
-    () =>
-      validateRequirements({
-        wireless: {
-          CE: { total: -1 },
-        },
-      }),
-    (error) =>
-      error instanceof ValidationError &&
-      error.field === 'wireless.CE.total',
-  );
-});
-
-test('valid successful selection result passes validation', () => {
-  assert.equal(
-    validateSelectionResult({
-      ok: true,
-      sku: { sku: 'TEST-SKU' },
-      qty: 2,
-      flags: [],
-    }),
-    true,
-  );
-});
-
-test('negative selection quantity is rejected', () => {
-  assert.throws(
-    () =>
-      validateSelectionResult({
-        ok: true,
-        sku: { sku: 'TEST-SKU' },
-        qty: -1,
-        flags: [],
-      }),
-    (error) =>
-      error instanceof ValidationError &&
-      error.field === 'qty',
-  );
-});
-
-test('valid unsuccessful selection result passes validation', () => {
-  assert.equal(
-    validateSelectionResult({
-      ok: false,
-      unmet: {
-        category: 'switch',
-        vendor: 'TP-Link Omada',
-        reason: 'No compatible SKU found',
+    validateVendorDescriptors([
+      validVendor(),
+      {
+        name: 'UniFi',
+        needController: true,
+        managementModes: ['dashboard'],
       },
-    }),
-    true,
+    ]),
+    true
   );
 });
 
-test('unsuccessful selection with missing unmet details is rejected', () => {
-  assert.throws(
-    () => validateSelectionResult({ ok: false, unmet: {} }),
-    (error) =>
-      error instanceof ValidationError &&
-      error.field === 'unmet.category',
+test('validateVendorDescriptors rejects an empty vendor list', () => {
+  assertRejects(() => validateVendorDescriptors([]), 'vendors');
+});
+
+test('validateVendorDescriptors rejects duplicate vendor names', () => {
+  assertRejects(
+    () => validateVendorDescriptors([validVendor(), validVendor()]),
+    'vendors[1].name'
   );
 });
 
-test('selection result without an ok boolean is rejected', () => {
-  assert.throws(
-    () => validateSelectionResult({}),
-    (error) =>
-      error instanceof ValidationError &&
-      error.field === 'ok',
+test('validateVendorDescriptors rejects a non-boolean needController value', () => {
+  assertRejects(
+    () => validateVendorDescriptors([
+      { ...validVendor(), needController: 'false' },
+    ]),
+    'vendors[0].needController'
   );
+});
+
+test('validateVendorDescriptors rejects unsupported management modes', () => {
+  assertRejects(
+    () => validateVendorDescriptors([
+      { ...validVendor(), managementModes: ['dashboard', 'api'] },
+    ]),
+    'vendors[0].managementModes'
+  );
+});
+
+test('validateBom accepts a valid priced BOM', () => {
+  assert.equal(validateBom(validBom()), true);
+});
+
+test('validateBom accepts an unpriced line when the total is partial', () => {
+  const bom = validBom();
+  bom.lines[0].unitPrice = null;
+  bom.lines[0].lineTotal = null;
+  bom.total = null;
+  bom.totalIsPartial = true;
+
+  assert.equal(validateBom(bom), true);
+});
+
+test('validateBom rejects an unsupported line category', () => {
+  const bom = validBom();
+  bom.lines[0].category = 'router';
+
+  assertRejects(() => validateBom(bom), 'bom.lines[0].category');
+});
+
+test('validateBom rejects a non-positive line quantity', () => {
+  const bom = validBom();
+  bom.lines[0].qty = 0;
+
+  assertRejects(() => validateBom(bom), 'bom.lines[0].qty');
+});
+
+test('validateBom rejects mismatched null unit price and line total', () => {
+  const bom = validBom();
+  bom.lines[0].unitPrice = null;
+
+  assertRejects(() => validateBom(bom), 'bom.lines[0].lineTotal');
+});
+
+test('validateBom rejects a negative unit price', () => {
+  const bom = validBom();
+  bom.lines[0].unitPrice = -1;
+
+  assertRejects(() => validateBom(bom), 'bom.lines[0].unitPrice');
+});
+
+test('validateBom rejects a missing or invalid line status', () => {
+  const bom = validBom();
+  bom.lines[0].status = 'DISCONTINUED';
+
+  assertRejects(() => validateBom(bom), 'bom.lines[0].status');
+});
+
+test('validateBom rejects an unpriced line when totalIsPartial is false', () => {
+  const bom = validBom();
+  bom.lines[0].unitPrice = null;
+  bom.lines[0].lineTotal = null;
+  bom.total = null;
+  bom.totalIsPartial = false;
+
+  assertRejects(() => validateBom(bom), 'bom.totalIsPartial');
+});
+
+test('validatePlan accepts a valid plan with BOM and optional fields', () => {
+  assert.equal(validatePlan(validPlan()), true);
+});
+
+test('validatePlan accepts a plan with null optics', () => {
+  const plan = validPlan();
+  plan.optics = null;
+
+  assert.equal(validatePlan(plan), true);
+});
+
+test('validatePlan rejects an unsupported plan type', () => {
+  const plan = validPlan();
+  plan.planType = 'STANDARD';
+
+  assertRejects(() => validatePlan(plan), 'plan.planType');
+});
+
+test('validatePlan rejects an invalid plan item quantity', () => {
+  const plan = validPlan();
+  plan.items[0].qty = 1.5;
+
+  assertRejects(() => validatePlan(plan), 'plan.items[0]');
+});
+
+test('validatePlan rejects a missing BOM', () => {
+  const plan = validPlan();
+  delete plan.bom;
+
+  assertRejects(() => validatePlan(plan), 'bom');
+});
+
+test('validatePlan rejects malformed optics', () => {
+  const plan = validPlan();
+  plan.optics = { links: -1, modules: 2, formFactor: 'SFP' };
+
+  assertRejects(() => validatePlan(plan), 'plan.optics');
+});
+
+test('validatePlan rejects a non-array limitations field', () => {
+  const plan = validPlan();
+  plan.limitations = 'No limitation';
+
+  assertRejects(() => validatePlan(plan), 'plan.limitations');
+});
+
+test('validateEngineResult accepts a valid result containing a plan', () => {
+  assert.equal(validateEngineResult(validEngineResult()), true);
+});
+
+test('validateEngineResult rejects an outdated contract version', () => {
+  const result = validEngineResult();
+  result.contractVersion = CONTRACT_VERSION - 1;
+
+  assertRejects(() => validateEngineResult(result), 'contractVersion');
+});
+
+test('validateEngineResult rejects a missing generatedAt value', () => {
+  const result = validEngineResult();
+  delete result.generatedAt;
+
+  assertRejects(() => validateEngineResult(result), 'generatedAt');
+});
+
+test('validateEngineResult rejects a non-array plans field', () => {
+  const result = validEngineResult();
+  result.plans = {};
+
+  assertRejects(() => validateEngineResult(result), 'plans');
+});
+
+test('validateEngineResult rejects a missing default vendor plan key', () => {
+  const result = validEngineResult();
+  delete result.defaultVendor.HP;
+
+  assertRejects(() => validateEngineResult(result), 'defaultVendor.HP');
+});
+
+test('validateEngineResult accepts null when no default vendor is selected', () => {
+  const result = validEngineResult();
+  result.defaultVendor = { CE: null, HP: null };
+
+  assert.equal(validateEngineResult(result), true);
 });
