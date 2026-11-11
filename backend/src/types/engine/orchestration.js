@@ -500,7 +500,7 @@ const resolvedItems = selectedDeviceItems;
   // Power recommendation is advisory; it does not select or add equipment.
   plan.powerProtection = recommendPower({ input });
 
-  // BOM assembly is injected until BOM-001 provides its implementation.
+  // BOM-01
   if (typeof steps.buildBom === 'function') {
     const bom = steps.buildBom(plan, catalog);
     validateBom(bom);
@@ -556,7 +556,6 @@ const resolvedItems = selectedDeviceItems;
   }
 
   // NWP-BOM-002: advisory installation-materials summary (reference information, not BOM lines, not in the BOM total).
-  // Injected like buildBom. It reads plan.optics (set above) and the requirements; it is carried to the output untouched.
   if (typeof steps.buildInstallationMaterials === 'function') {
     plan.installationMaterials = steps.buildInstallationMaterials(plan, planRequirements);
   }
