@@ -1,4 +1,4 @@
-﻿import type { QuestionnaireData } from '../../schemas/questionnaireSchema'
+import type { QuestionnaireData } from '../../schemas/questionnaireSchema'
 
 export type ReportPlanType = 'CE' | 'HP'
 
@@ -115,9 +115,10 @@ interface EngineRequirements extends UnknownRecord {
   requiredMbps?: number
   throughputMetric?: string
   securityTier?: string
-  vlans?: number
+  vlans?: string[]
   qos?: boolean
   redundancy?: string
+  backupAdvice?: string
   upsRecommendation?: string
   upsRecommendationLevel?: string
   otherPoeLoadW?: number
@@ -220,7 +221,7 @@ function formatQuestionnaireRequirements(
       value:
         data.physicalSpace.floorAreaPerFloor == null
           ? 'Not specified'
-          : `${data.physicalSpace.floorAreaPerFloor} m²`,
+          : `${data.physicalSpace.floorAreaPerFloor} m?`,
       source: 'user',
     },
     {
@@ -301,7 +302,7 @@ function formatQuestionnaireRequirements(
     {
       label: 'Other network devices',
       value: data.devices.otherNetworkDevices.enabled
-        ? `Yes — ${formatValue(data.devices.otherNetworkDevices.description)}`
+        ? `Yes ? ${formatValue(data.devices.otherNetworkDevices.description)}`
         : 'No',
       source: 'user',
     },
@@ -340,9 +341,9 @@ function formatQuestionnaireRequirements(
     {
       label: 'Monthly IT budget',
       value: formatChoice(data.businessContext.monthlyITBudget, {
-        under_15000: 'Under ₱15,000',
-        '15000_40000': '₱15,000–₱40,000',
-        over_40000: 'Over ₱40,000',
+        under_15000: 'Under ?15,000',
+        '15000_40000': '?15,000??40,000',
+        over_40000: 'Over ?40,000',
       }),
       source: 'user',
     },
@@ -365,8 +366,127 @@ function formatQuestionnaireRequirements(
     },
   ]
 
+  // Additional physical-space details
+  const largeGroupRooms = data.physicalSpace.largeGroupRooms
+
+  if (largeGroupRooms.rooms?.length) {
+    requirements.push({
+      label: 'Large-group room details',
+      value: largeGroupRooms.rooms
+        .map(
+          (room) =>
+            `Floor ${room.floor}: ${room.capacity} people`,
+        )
+        .join('; '),
+      source: 'user',
+    })
+  }
+
+  // Existing equipment inventory
+  const equipment = data.existingNetwork.equipment
+
+  if (equipment) {
+    requirements.push(
+      {
+        label: 'Existing router or modem',
+        value: formatYesNo(equipment.routerModem),
+        source: 'user',
+      },
+      {
+        label: 'Existing switches',
+        value: formatValue(equipment.switches?.quantity),
+        source: 'user',
+      },
+      {
+        label: 'Existing Wi-Fi access points',
+        value: formatValue(equipment.wifiAccessPoints?.quantity),
+        source: 'user',
+      },
+      {
+        label: 'Cabling already run',
+        value: formatYesNo(equipment.cablingAlreadyRun),
+        source: 'user',
+      },
+      {
+        label: 'Other or unknown equipment',
+        value: formatYesNo(equipment.otherOrUnknown),
+        source: 'user',
+      },
+    )
+  }
+
+  // Application and network usage preferences
+  const applications = data.preferences.applications
+
+  const applicationLabels: Array<[string, boolean]> = [
+    ['Video conferencing', applications.videoConferencing],
+    ['VoIP calls', applications.voipCalls],
+    ['POS and payment systems', applications.posPayment],
+    ['Cloud storage', applications.cloudStorage],
+    ['Business software', applications.businessSoftware],
+    ['Video streaming', applications.videoStreaming],
+    ['Security camera viewing', applications.securityCameraViewing],
+    ['Basic browsing and email', applications.basicBrowsingEmail],
+    ['Other application usage', applications.otherEnabled],
+  ]
+
+  requirements.push(
+    ...applicationLabels.map(([label, enabled]) => ({
+      label,
+      value: formatYesNo(enabled),
+      source: 'user' as const,
+    })),
+  )
+
+  if (applications.otherEnabled && applications.other) {
+    requirements.push({
+      label: 'Other application details',
+      value: applications.other,
+      source: 'user',
+    })
+  }
+
+  // Business growth expectations
+  requirements.push({
+    label: 'Expected business growth',
+    value: formatYesNo(data.businessContext.expectedGrowth),
+    source: 'user',
+  })
+
+  if (data.businessContext.expectedGrowth && data.businessContext.growth) {
+    requirements.push(
+      {
+        label: 'Expected headcount growth',
+        value: formatChoice(
+          data.businessContext.growth.headcountGrowth,
+          {
+            '0_10': '0�10%',
+            '11_30': '11�30%',
+            '31_plus': '31% or more',
+          },
+        ),
+        source: 'user',
+      },
+      {
+        label: 'Expected new sites',
+        value: formatChoice(
+          data.businessContext.growth.newSites,
+          {
+            none: 'None',
+            one: 'One',
+            two_or_more: 'Two or more',
+          },
+        ),
+        source: 'user',
+      },
+    )
+  }
+
   return requirements
 }
+
+
+
 
 function formatEngineeringRequirements(
   requirements: EngineRequirements,
@@ -375,41 +495,139 @@ function formatEngineeringRequirements(
   const wireless = requirements.wireless
   const selectedWireless = wireless?.[planType]
 
+  const vlanNames: Record<string, string> = {
+    Corporate: 'Corporate network',
+    Guest: 'Guest network',
+    Restricted: 'Restricted network',
+    Voice: 'Voice network',
+    Cameras_IoT: 'Cameras and IoT network',
+  }
+
+  const choices: Record<string, Record<string, string>> = {
+    'Throughput metric': {
+      routing_throughput: 'Routing throughput',
+      idps_throughput: 'Intrusion prevention and detection throughput',
+    },
+    'Security tier': {
+      standard: 'Standard security',
+      advanced: 'Advanced security',
+    },
+    'Redundancy requirement': {
+      none: 'No redundancy required',
+      required: 'Redundancy required',
+      backupWan: 'Backup WAN connection',
+    },
+    'Backbone recommendation': {
+      fiber: 'Fiber backbone',
+      copper: 'Copper backbone',
+    },
+    'UPS recommendation level': {
+      prominent: 'Prominent recommendation',
+      advisory: 'Advisory recommendation',
+    },
+  }
+
   const derived: Array<[string, unknown]> = [
     ['Recommended access points', selectedWireless?.total],
     ['Access points per floor', selectedWireless?.perFloor],
     ['Required switch ports', requirements.edgePorts],
     ['PoE switch ports', requirements.poeEdgePorts],
-    ['Required gateway throughput', requirements.requiredMbps == null ? null : String(requirements.requiredMbps) + ' Mbps'],
+    [
+      'Required gateway throughput',
+      requirements.requiredMbps == null
+        ? null
+        : `${requirements.requiredMbps} Mbps`,
+    ],
     ['Throughput metric', requirements.throughputMetric],
     ['Security tier', requirements.securityTier],
     ['Recommended VLANs', requirements.vlans],
     ['Quality of Service (QoS)', requirements.qos],
     ['Redundancy requirement', requirements.redundancy],
+    ['Backup connection advice', requirements.backupAdvice],
     ['Backbone recommendation', requirements.backbone],
     ['UPS recommendation', requirements.upsRecommendation],
     ['UPS recommendation level', requirements.upsRecommendationLevel],
-    ['Additional PoE load', requirements.otherPoeLoadW],
+    [
+      'Additional PoE load',
+      requirements.otherPoeLoadW == null
+        ? null
+        : `${requirements.otherPoeLoadW} W`,
+    ],
   ]
 
   return derived
     .filter(([, value]) => value !== undefined && value !== null)
-    .map(([label, value]) => ({
-      label,
-      value: formatValue(value),
-      source: 'engine' as const,
-    }))
+    .map(([label, value]) => {
+      let formattedValue: string
+
+      if (label === 'Recommended VLANs' && Array.isArray(value)) {
+        formattedValue = formatValue(
+          value.map((vlan) => vlanNames[vlan] ?? vlan),
+        )
+      } else if (choices[label]) {
+        formattedValue = formatChoice(value, choices[label])
+      } else {
+        formattedValue = formatValue(value)
+      }
+
+      return {
+        label,
+        value: formattedValue,
+        source: 'engine' as const,
+      }
+    })
 }
+
+
+
 
 function formatLedger(entries: unknown[]): ReportAssumption[] {
   return entries.map((entry) => {
     const item = asRecord(entry)
 
     return {
-      field: formatValue(item.field ?? item.key ?? item.path),
-      value: formatValue(item.value ?? item.used ?? item.assumedValue),
-      reason: formatValue(item.reason ?? item.rationale ?? item.explanation),
+      field: formatValue(item.field),
+      value: formatValue(item.valueUsed),
+      reason: formatValue(item.reason),
     }
+  })
+}
+
+function ledgerKey(entry: unknown): string {
+  const item = asRecord(entry)
+
+  return JSON.stringify([
+    item.field,
+    item.valueUsed,
+    item.reason,
+  ])
+}
+
+function selectLedger(
+  result: EngineResult,
+  plan: EngineResult['plans'][number],
+): unknown[] {
+  const planKeys = new Set(
+    result.plans.flatMap((item) =>
+      item.ledger.map(ledgerKey),
+    ),
+  )
+
+  const shared = result.ledger.filter(
+    (entry) => !planKeys.has(ledgerKey(entry)),
+  )
+
+  const seen = new Set<string>()
+
+  return [...shared, ...plan.ledger].filter((entry) => {
+    const key = ledgerKey(entry)
+
+    if (seen.has(key)) {
+      return false
+    }
+
+    seen.add(key)
+    return true
   })
 }
 
@@ -423,6 +641,10 @@ function formatFlag(flag: unknown): string {
   return formatValue(
     item.message ?? item.description ?? item.reason ?? item.code ?? flag,
   )
+}
+
+function formatSelectedPlanFlags(flags: unknown[]): string[] {
+  return flags.map(formatFlag)
 }
 
 export function formatReportDateTime(generatedAt: string): string {
@@ -480,6 +702,7 @@ export function buildReport(
     ...formatEngineeringRequirements(result.requirements, selection.planType),
   ]
 
+
   const existingEquipmentNotice =
     questionnaireData.existingNetwork.equipmentStatus === 'yes'
       ? [
@@ -502,9 +725,11 @@ export function buildReport(
     },
     installationMaterials: selectedPlan.installationMaterials ?? null,
     topology: selectedPlan.topology ?? null,
-    assumptions: formatLedger(selectedPlan.ledger),
-    flags: [...result.flags, ...selectedPlan.flags].map(formatFlag),
-    limitations: [...existingEquipmentNotice, ...(selectedPlan.limitations ?? [])],
+    assumptions: formatLedger(selectLedger(result, selectedPlan)),
+    flags: formatSelectedPlanFlags([
+      ...result.flags,
+      ...selectedPlan.flags,
+    ]),    limitations: [...existingEquipmentNotice, ...(selectedPlan.limitations ?? [])],
     generatedAt: formatReportDateTime(result.generatedAt),
   }
 }
