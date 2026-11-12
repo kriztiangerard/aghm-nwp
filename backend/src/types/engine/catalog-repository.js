@@ -10,10 +10,10 @@
 // Every function accepts an optional `pool` (anything with connect()), for injection; by default the module's own lazy pool is used.
 //
 // The engine has no clock, so the handler passes `now` (a Date or an ISO string).
-// Configuration: DATABASE_URL (a PostgreSQL connection string, with sslmode if RDS requires it). Standard PG* variables
-// work too. A connection failure throws CatalogRepositoryError; it never produces an empty catalog.
+// Configuration lives in database.js: DATABASE_URL (local) or DATABASE_SECRET_ARN (Lambda), and DB_SSL=true for RDS.
+// A connection failure throws CatalogRepositoryError; it never produces an empty catalog.
 
-const { Pool, types } = require('pg');
+const { getPool, closePool } = require('./database.js');   // the only module that imports `pg`
 const { validateVendorDescriptors } = require('./contracts.js');
 const { toDay } = require('./lifecycle.js');
 const { buildCatalogFromRows, FIXTURE_VENDOR_ID } = require('./catalog-export.js');
@@ -45,44 +45,15 @@ class CatalogRepositoryError extends Error {
   }
 }
 
-// DECIMAL columns come back as strings by default; DATE columns as local-time Date objects. The contract wants numbers
-// and 'YYYY-MM-DD' strings.
-const typeParsers = {
-  getTypeParser(oid, format) {
-    if (oid === 1700) return (value) => Number(value);   // numeric
-    if (oid === 1082) return (value) => value;           // date, kept as 'YYYY-MM-DD'
-    return types.getTypeParser(oid, format);
-  },
-};
-
-// Created once per execution environment (module scope) and reused on warm invocations. Created lazily so that a missing
-// variable surfaces as a clear error from the call, not as an init failure at import time.
-let pool = null;
-
-function getPool(injected) {
-  if (injected) return injected;
-  if (pool) return pool;
-  if (!process.env.DATABASE_URL && !process.env.PGHOST) {
-    throw new CatalogRepositoryError('CATALOG_DB_CONFIG', 'Database is not configured: set DATABASE_URL (or PGHOST, PGUSER, PGPASSWORD, PGDATABASE).');
-  }
-  pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    max: 1,                        // one request per Lambda environment at a time
-    idleTimeoutMillis: 0,          // keep the connection for warm starts; a dead socket is retried once (see withSnapshot)
-    connectionTimeoutMillis: 5000, // fail fast instead of hanging inside the VPC
-    types: typeParsers,
-  });
-  // An idle client can be dropped by the network while Lambda is frozen; log it instead of crashing the process.
-  pool.on('error', (error) => console.error('catalog-repository: idle connection error', error.message));
-  return pool;
-}
-
 const CONNECTION_CODES = new Set(['ECONNREFUSED', 'ECONNRESET', 'ENOTFOUND', 'ETIMEDOUT', 'EPIPE', 'EAI_AGAIN', '28P01', '28000', '3D000', '57P01', '57P02', '57P03', '53300']);
 const isConnectionError = (error) => CONNECTION_CODES.has(error.code) || /Connection terminated|timeout exceeded when trying to connect|connect ECONN/i.test(error.message || '');
 const isRetryable = (error) => ['ECONNRESET', 'EPIPE'].includes(error.code) || /Connection terminated/i.test(error.message || '');
 
 function toRepositoryError(error) {
   if (error instanceof CatalogRepositoryError) return error;
+  if (error.code === 'ENOENT') {
+    return new CatalogRepositoryError('CATALOG_DB_CONFIG', `A file named in the database settings does not exist (${error.path || error.message}). This is usually the SSL certificate path (sslrootcert / PGSSLROOTCERT): check that the file exists at that path.`, error);
+  }
   if (isConnectionError(error)) {
     return new CatalogRepositoryError('CATALOG_DB_UNAVAILABLE', `Cannot reach the catalog database (${error.code || error.message}). The engine does not run on an empty catalog.`, error);
   }
@@ -99,7 +70,16 @@ async function withSnapshot(work, injectedPool) {
   for (let attempt = 1; attempt <= 2; attempt += 1) {
     let client;
     try {
-      client = await getPool(injectedPool).connect();
+      let activePool = injectedPool;
+      if (!activePool) {
+        try {
+          activePool = await getPool();
+        } catch (poolError) {
+          // The pool could not be created: missing settings, secret not readable, certificate file missing.
+          throw new CatalogRepositoryError('CATALOG_DB_CONFIG', `Database connection could not be set up: ${poolError.message}`, poolError);
+        }
+      }
+      client = await activePool.connect();
       await client.query('BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY');
       const result = await work(client);
       await client.query('COMMIT');
@@ -193,10 +173,7 @@ async function loadEngineData({ now, pool: injected } = {}) {
 
 // For scripts and local runs. Not needed in the Lambda handler.
 async function closeConnection() {
-  if (!pool) return;
-  const closing = pool;
-  pool = null;
-  await closing.end();
+  await closePool();
 }
 
 module.exports = { loadEngineData, loadCatalog, loadVendors, closeConnection, CatalogRepositoryError, TABLES };
