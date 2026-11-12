@@ -29,7 +29,9 @@ async function run(payload, dependencies = {}) {
   };
   validateRequirements(requirements);
 
-  const engineData = await (dependencies.loadEngineData || loadEngineData)();
+  const engineData = await (dependencies.loadEngineData || loadEngineData)({
+    now: dependencies.now ?? new Date(),
+  });
   return runEngine(
     normalizedInput,
     requirements,
