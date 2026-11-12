@@ -119,6 +119,50 @@ test('rows that fail validation never enter the catalog, and every exported row 
   r.catalog.forEach((sku) => assert.equal(validateCatalogSku(sku), true));
 });
 
+test('nullable gateway specifications remain unknown in the exported catalog', () => {
+  const entry = switchDevice(1, 'UNKNOWN-GATEWAY-SPECS');
+  const r = buildCatalogFromRows({
+    vendors: VENDORS,
+    lines: LINES,
+    devices: [entry.device],
+    specs: {
+      gateway: [{
+        device_id: entry.device.device_id,
+        wan_ports: 2,
+        lan_ports: 4,
+        idps_throughput_mbps: null,
+        max_vpn_tunnels: null,
+        ha_capability: null,
+      }],
+      switch: [],
+      ap: [],
+      firewall: [],
+      controller: [],
+      rack: [],
+    },
+    capabilities: [],
+    pricing: entry.pricing,
+  }, { now: NOW });
+
+  const sku = find(r, 'UNKNOWN-GATEWAY-SPECS');
+  assert.equal(sku.idps_throughput_mbps, null);
+  assert.equal(sku.max_vpn_tunnels, null);
+  assert.equal(sku.ha_capability, null);
+  assert.equal(validateCatalogSku(sku), true);
+});
+
+test('a missing SFP count does not become zero or fabricate a copper-port count', () => {
+  const entry = switchDevice(1, 'UNKNOWN-SFP-COUNT');
+  entry.spec.sfp_ports = null;
+  const r = exportOf([entry]);
+  const sku = find(r, 'UNKNOWN-SFP-COUNT');
+
+  assert.equal(sku.port_count, 8);
+  assert.equal('sfp_ports' in sku, false);
+  assert.equal('copper_ports' in sku, false);
+  assert.equal(validateCatalogSku(sku), true);
+});
+
 test('every device is accounted for: exported, rejected or excluded, never silently dropped', () => {
   const entries = [
     switchDevice(1, 'A-OK'),

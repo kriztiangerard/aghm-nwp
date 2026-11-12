@@ -45,16 +45,21 @@ const DB_CATEGORY = Object.freeze({
   controller: 'controller',
   rack: 'rack',
 });
+const NULLABLE_SPEC_FIELDS = new Set([
+  'idps_throughput_mbps',
+  'max_vpn_tunnels',
+  'ha_capability',
+]);
 
 const isNonEmptyString = (value) => typeof value === 'string' && value.trim().length > 0;
 const hasValue = (value) => value !== undefined && value !== null;
 
-// Nulls are left out of a spec block: the contract treats an absent optional field as "unknown" (the engine raises its
-// flag and never guesses), and null would fail validation on fields that are not nullable in the contract.
+// Keep explicit nulls only for fields the CatalogSku contract marks nullable; other null specs are unknown and omitted.
 function cleanBlock(row) {
   const out = {};
   Object.keys(row).forEach((key) => {
-    if (key === 'device_id' || !hasValue(row[key])) return;
+    if (key === 'device_id' || row[key] === undefined) return;
+    if (row[key] === null && !NULLABLE_SPEC_FIELDS.has(key)) return;
     out[key] = row[key];
   });
   return out;
