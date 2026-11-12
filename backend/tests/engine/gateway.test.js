@@ -1028,3 +1028,70 @@ for (const vendor of ['Vendor A', 'Vendor B']) {
     assert.equal(result.sku.sku, `${vendor}-SUFFICIENT-IDPS`);
   });
 }
+
+test('synthetic zero-price gateway remains eligible for selection', () => {
+  const syntheticCatalog = require('../fixtures/catalogs/synthetic-catalog-edgecases.json');
+  const catalog = syntheticCatalog.filter(
+    (sku) => sku.category === 'gateway',
+  );
+  const ctx = createCtx();
+
+  const result = selectGateway({
+    catalog,
+    vendor: 'Synthetic Vendor',
+    requirements: { vpnTunnelsNeeded: { CE: 0, HP: 0 } },
+    plan: 'cost_efficient',
+    ctx,
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(result.sku.sku, 'SYN-GW-002');
+  assert.equal(result.sku.price, 0);
+});
+
+test('synthetic discontinued gateway is excluded from selection', () => {
+  const syntheticCatalog = require('../fixtures/catalogs/synthetic-catalog-edgecases.json');
+  const discontinuedGateway = syntheticCatalog.filter(
+    (sku) => sku.sku === 'SYN-GW-005',
+  );
+  const ctx = createCtx();
+
+  const result = selectGateway({
+    catalog: discontinuedGateway,
+    vendor: 'Synthetic Vendor',
+    requirements: { vpnTunnelsNeeded: { CE: 0, HP: 0 } },
+    plan: 'cost_efficient',
+    ctx,
+  });
+
+  assert.equal(result.ok, false);
+  assert.equal(
+    result.unmet.reason,
+    'No purchasable (ACTIVE or SUNSETTING) SKUs available',
+  );
+});
+
+test('shared selector keeps the synthetic SUNSETTING AP eligible', () => {
+  const { selectSku } = require('../../src/types/engine/select.js');
+  const syntheticCatalog = require('../fixtures/catalogs/synthetic-catalog-edgecases.json');
+  const sunsettingAp = syntheticCatalog.find(
+    (sku) => sku.sku === 'SYN-AP-003',
+  );
+  const ctx = createCtx();
+
+  assert.ok(sunsettingAp, 'Synthetic SUNSETTING AP fixture must exist');
+  assert.equal(sunsettingAp.status, 'SUNSETTING');
+
+  const result = selectSku({
+    pool: [sunsettingAp],
+    predicate: () => true,
+    plan: 'cost_efficient',
+    category: 'access_point',
+    vendor: 'Synthetic Vendor',
+    ctx,
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(result.sku.sku, 'SYN-AP-003');
+  assert.equal(result.sku.status, 'SUNSETTING');
+});

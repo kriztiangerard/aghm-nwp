@@ -3,6 +3,9 @@ import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as amplify from 'aws-cdk-lib/aws-amplify';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as lambdaNodejs from 'aws-cdk-lib/aws-lambda-nodejs';
+import * as ec2 from 'aws-cdk-lib/aws-ec2';
+import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
 import * as path from 'path';
 import * as apigwv2 from 'aws-cdk-lib/aws-apigatewayv2';
 import { HttpLambdaIntegration } from 'aws-cdk-lib/aws-apigatewayv2-integrations';
@@ -25,59 +28,54 @@ export class AghmNwpStack extends cdk.Stack {
 
 
     // 1. BACKEND: AWS Lambda Functions
-
-    // Disabled until backend/engine-bom/ and backend/pricing-update exist
-    // with real handler code — cdk deploy will fail on Code.fromAsset()
-    // pointing at folders that don't exist yet. Uncomment once both
-    // subfolders have at least a placeholder index.handler.
-
-    /*const engineLambda = new lambda.Function(this, 'EngineFunction', {
-      runtime: lambda.Runtime.NODEJS_20_X,
-      code: lambda.Code.fromAsset(path.join(__dirname, '../backend/src/recommendation')),
-      handler: 'index.handler',
-     });
-
-    const pricingUpdateLambda = new lambda.Function(this, 'PricingUpdateFunction', {
-      runtime: lambda.Runtime.NODEJS_20_X,
-      code: lambda.Code.fromAsset(path.join(__dirname, '../backend/src/pricing')),
-      handler: 'index.handler',
-    }); */
-
-    //PLACEHOLDER LAMBDA
-    const engineLambda = new lambda.Function(this, 'EngineFunction', {
-      runtime: lambda.Runtime.NODEJS_20_X,
-      handler: 'index.handler',
-      code: lambda.Code.fromInline(`
-        exports.handler = async (event) => {
-          let payload = {};
-
-          try {
-            payload = event.body ? JSON.parse(event.body) : {};
-          } catch {
-            return {
-              statusCode: 400,
-              headers: { 'content-type': 'application/json' },
-              body: JSON.stringify({ message: 'Invalid JSON payload' })
-            };
-          }
-
-          console.log('Received questionnaire payload:', payload);
-
-          return {
-            statusCode: 501,
-            headers: { 'content-type': 'application/json' },
-            body: JSON.stringify({
-              message: 'Placeholder endpoint. Recommendation processing is not implemented yet.',
-              received: payload
-            })
-          };
-        };
-      `),
+    const vpc = ec2.Vpc.fromLookup(this, 'EngineVpc', {
+      vpcId: 'vpc-06f55cc32200b2717',
     });
+    const lambdaSecurityGroup = new ec2.SecurityGroup(this, 'EngineLambdaSecurityGroup', {
+      vpc,
+      description: 'Network access for the recommendation engine Lambda',
+      allowAllOutbound: true,
+    });
+    const databaseSecurityGroup = ec2.SecurityGroup.fromSecurityGroupId(
+      this,
+      'EngineDatabaseSecurityGroup',
+      'sg-08314c5a76cbd8cb0',
+    );
+    databaseSecurityGroup.addIngressRule(
+      lambdaSecurityGroup,
+      ec2.Port.tcp(5432),
+      'Allow the recommendation Lambda to connect to PostgreSQL',
+    );
+
+    const databaseSecret = secretsmanager.Secret.fromSecretNameV2(
+      this,
+      'EngineDatabaseSecret',
+      'aghm-nwp/database',
+    );
+    const repositoryRoot = path.join(__dirname, '..');
+    const engineLambda = new lambdaNodejs.NodejsFunction(this, 'EngineFunction', {
+      entry: path.join(repositoryRoot, 'backend', 'src', 'types', 'engine', 'lambda-handler.js'),
+      projectRoot: repositoryRoot,
+      depsLockFilePath: path.join(repositoryRoot, 'package-lock.json'),
+      runtime: lambda.Runtime.NODEJS_20_X,
+      handler: 'lambda-handler.handler',
+      timeout: cdk.Duration.seconds(30),
+      memorySize: 512,
+      vpc,
+      vpcSubnets: { subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS },
+      securityGroups: [lambdaSecurityGroup],
+      environment: {
+        DATABASE_SECRET_ARN: databaseSecret.secretArn,
+        DB_SSL: 'true',
+      },
+      bundling: {
+        loader: { '.pem': 'text' },
+      },
+    });
+    databaseSecret.grantRead(engineLambda);
 
 
-    // 1a. BACKEND: API Gateway (routes to engineLambda)
-    // Depends on engineLambda above — stays disabled until that's active.
+    // 1a. BACKEND: API Gateway routes requests to the active engine handler.
 
     const httpApi = new apigwv2.HttpApi(this, 'NwpHttpApi', {
       apiName: 'NWP Engine API',

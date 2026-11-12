@@ -1,0 +1,286 @@
+[
+  {
+    "vendor_id": 1,
+    "product_line": "Wi-Fi 6",
+    "sku": "R4W02A",
+    "price": null,
+    "name": "Aruba Instant On AP22 Wi-Fi 6 Indoor Access Point",
+    "description": "Dual-band Wi-Fi 6 indoor access point with 2x2 MIMO radios and Gigabit Ethernet uplink.",
+    "is_rack_mountable": false,
+    "u_height": 0,
+    "lifecycle_status": "active",
+    "eos_date": null,
+    "eol_date": null,
+    "category": "ap",
+    "capabilities": [
+      "ap"
+    ],
+    "ap_specs": {
+      "wifi_standard": 6,
+      "max_data_rate_mbps": 1774,
+      "supported_24ghz": true,
+      "supported_5ghz": true,
+      "supported_6ghz": false,
+      "max_power_draw_w": 10.1,
+      "power_method": "802.3af PoE or 12V DC"
+    }
+  },
+  {
+    "vendor_id": 1,
+    "product_line": "Wi-Fi 6",
+    "sku": "S1T09A",
+    "price": null,
+    "name": "HPE Networking Instant On AP21 Wi-Fi 6 Indoor Access Point",
+    "description": "Dual-radio Wi-Fi 6 indoor access point with 2x2 MIMO and dual-band connectivity.",
+    "is_rack_mountable": false,
+    "u_height": 0,
+    "lifecycle_status": "active",
+    "eos_date": null,
+    "eol_date": null,
+    "category": "ap",
+    "capabilities": [
+      "ap"
+    ],
+    "ap_specs": {
+      "wifi_standard": 6,
+      "max_data_rate_mbps": 1500,
+      "supported_24ghz": true,
+      "supported_5ghz": true,
+      "supported_6ghz": false,
+      "power_method": "802.3af/at PoE or 12V DC"
+    }
+  },
+  {
+    "vendor_id": 1,
+    "product_line": "Wi-Fi 6",
+    "sku": "R9B28A",
+    "price": null,
+    "name": "HPE Networking Instant On AP25 Wi-Fi 6 Indoor Access Point",
+    "description": "High-performance dual-band Wi-Fi 6 indoor access point with 4x4 MU-MIMO on 5 GHz and 2x2 MU-MIMO on 2.4 GHz.",
+    "is_rack_mountable": false,
+    "u_height": 0,
+    "lifecycle_status": "active",
+    "eos_date": null,
+    "eol_date": null,
+    "category": "ap",
+    "capabilities": [
+      "ap"
+    ],
+    "ap_specs": {
+      "wifi_standard": 6,
+      "max_data_rate_mbps": 5374,
+      "supported_24ghz": true,
+      "supported_5ghz": true,
+      "supported_6ghz": false,
+      "max_power_draw_w": 20.1,
+      "power_method": "802.3at PoE or 12V DC"
+    }
+  },
+  {
+    "vendor_id": 1,
+    "product_line": "Wi-Fi 6",
+    "sku": "S1T37A",
+    "price": null,
+    "name": "HPE Networking Instant On AP27 Wi-Fi 6 Outdoor Access Point",
+    "description": "Rugged IP67-rated outdoor dual-band Wi-Fi 6 access point with 2x2 MIMO radios.",
+    "is_rack_mountable": false,
+    "u_height": 0,
+    "lifecycle_status": "active",
+    "eos_date": null,
+    "eol_date": null,
+    "category": "ap",
+    "capabilities": [
+      "ap"
+    ],
+    "ap_specs": {
+      "wifi_standard": 6,
+      "max_data_rate_mbps": 1774,
+      "supported_24ghz": true,
+      "supported_5ghz": true,
+      "supported_6ghz": false,
+      "max_power_draw_w": 14.6,
+      "power_method": "802.3at PoE"
+    }
+  },
+  {
+    "vendor_id": 1,
+    "product_line": "Wi-Fi 6E",
+    "sku": "S1T23A",
+    "price": null,
+    "name": "HPE Networking Instant On AP32 Wi-Fi 6E Indoor Access Point",
+    "description": "Tri-band Wi-Fi 6E indoor access point with 2x2 MIMO radios and 2.5 GbE uplink. Supports 2.4 GHz, 5 GHz, and 6 GHz bands, with two active bands selectable at a time.",
+    "is_rack_mountable": false,
+    "u_height": 0,
+    "lifecycle_status": "active",
+    "eos_date": null,
+    "eol_date": null,
+    "category": "ap",
+    "capabilities": [
+      "ap"
+    ],
+    "ap_specs": {
+      "wifi_standard": 6,
+      "max_data_rate_mbps": 3600,
+      "supported_24ghz": true,
+      "supported_5ghz": true,
+      "supported_6ghz": true,
+      "max_power_draw_w": 12.9,
+      "power_method": "802.3at PoE or 12V DC"
+    }
+  },
+  {
+    "vendor_id": 1,
+    "product_line": "Wi-Fi 6",
+    "sku": "S1U76A",
+    "price": null,
+    "name": "HPE Networking Instant On AP22D Wi-Fi 6 Indoor Access Point",
+    "description": "Dual-band Wi-Fi 6 desktop and wall-mount access point with 2.5 GbE uplink, four 1 GbE downlink ports, and two PoE-out ports.",
+    "is_rack_mountable": false,
+    "u_height": 0,
+    "lifecycle_status": "active",
+    "eos_date": null,
+    "eol_date": null,
+    "category": "ap",
+    "capabilities": [
+      "ap"
+    ],
+    "ap_specs": {
+      "wifi_standard": 6,
+      "max_data_rate_mbps": 1774,
+      "supported_24ghz": true,
+      "supported_5ghz": true,
+      "supported_6ghz": false,
+      "max_power_draw_w": 51,
+      "power_method": "802.3bt PoE full functionality, 802.3at PoE limited functionality, or 48V DC"
+    }
+  },
+  {
+    "vendor_id": 1,
+    "product_line": "Wi-Fi 5",
+    "sku": "R2W96A",
+    "price": null,
+    "name": "Aruba Instant On AP11 Wi-Fi 5 Indoor Access Point",
+    "description": "Dual-band Wi-Fi 5 indoor access point with 2x2 MIMO radios and Gigabit Ethernet uplink.",
+    "is_rack_mountable": false,
+    "u_height": 0,
+    "lifecycle_status": "active",
+    "eos_date": null,
+    "eol_date": null,
+    "category": "ap",
+    "capabilities": [
+      "ap"
+    ],
+    "ap_specs": {
+      "wifi_standard": 5,
+      "max_data_rate_mbps": 1167,
+      "supported_24ghz": true,
+      "supported_5ghz": true,
+      "supported_6ghz": false,
+      "power_method": "802.3af PoE or 12V DC"
+    }
+  },
+  {
+    "vendor_id": 1,
+    "product_line": "Wi-Fi 5",
+    "sku": "R2X16A",
+    "price": null,
+    "name": "Aruba Instant On AP11D Wi-Fi 5 Desktop/Wall Access Point",
+    "description": "Dual-band Wi-Fi 5 desktop and wall-mount access point with one Gigabit Ethernet uplink, three Gigabit Ethernet downlink ports, and PoE output on one port.",
+    "is_rack_mountable": false,
+    "u_height": 0,
+    "lifecycle_status": "active",
+    "eos_date": null,
+    "eol_date": null,
+    "category": "ap",
+    "capabilities": [
+      "ap"
+    ],
+    "ap_specs": {
+      "wifi_standard": 5,
+      "max_data_rate_mbps": 1167,
+      "supported_24ghz": true,
+      "supported_5ghz": true,
+      "supported_6ghz": false,
+      "max_power_draw_w": 25.3,
+      "power_method": "802.3af/at PoE or 48V DC"
+    }
+  },
+  {
+    "vendor_id": 1,
+    "product_line": "Wi-Fi 5",
+    "sku": "R2X01A",
+    "price": null,
+    "name": "Aruba Instant On AP12 Wi-Fi 5 Indoor Access Point",
+    "description": "Dual-band Wi-Fi 5 indoor access point with 3x3 MU-MIMO on 5 GHz and 2x2 MIMO on 2.4 GHz.",
+    "is_rack_mountable": false,
+    "u_height": 0,
+    "lifecycle_status": "active",
+    "eos_date": null,
+    "eol_date": null,
+    "category": "ap",
+    "capabilities": [
+      "ap"
+    ],
+    "ap_specs": {
+      "wifi_standard": 5,
+      "max_data_rate_mbps": 1600,
+      "supported_24ghz": true,
+      "supported_5ghz": true,
+      "supported_6ghz": false,
+      "max_power_draw_w": 13.0,
+      "power_method": "802.3af PoE or 12V DC"
+    }
+  },
+  {
+    "vendor_id": 1,
+    "product_line": "Wi-Fi 5",
+    "sku": "R2X06A",
+    "price": null,
+    "name": "Aruba Instant On AP15 Wi-Fi 5 Indoor Access Point",
+    "description": "Dual-band Wi-Fi 5 indoor access point with 4x4 MU-MIMO on 5 GHz and 2x2 MIMO on 2.4 GHz.",
+    "is_rack_mountable": false,
+    "u_height": 0,
+    "lifecycle_status": "active",
+    "eos_date": null,
+    "eol_date": null,
+    "category": "ap",
+    "capabilities": [
+      "ap"
+    ],
+    "ap_specs": {
+      "wifi_standard": 5,
+      "max_data_rate_mbps": 2033,
+      "supported_24ghz": true,
+      "supported_5ghz": true,
+      "supported_6ghz": false,
+      "max_power_draw_w": 14.4,
+      "power_method": "802.3af PoE or 12V DC"
+    }
+  },
+  {
+    "vendor_id": 1,
+    "product_line": "Wi-Fi 5",
+    "sku": "R2X11A",
+    "price": null,
+    "name": "Aruba Instant On AP17 Wi-Fi 5 Outdoor Access Point",
+    "description": "Rugged IP55-rated outdoor dual-band Wi-Fi 5 access point with 2x2 MIMO radios and Gigabit Ethernet uplink.",
+    "is_rack_mountable": false,
+    "u_height": 0,
+    "lifecycle_status": "active",
+    "eos_date": null,
+    "eol_date": null,
+    "category": "ap",
+    "capabilities": [
+      "ap"
+    ],
+    "ap_specs": {
+      "wifi_standard": 5,
+      "max_data_rate_mbps": 1167,
+      "supported_24ghz": true,
+      "supported_5ghz": true,
+      "supported_6ghz": false,
+      "max_power_draw_w": 13.5,
+      "power_method": "802.3af PoE"
+    }
+  }
+]

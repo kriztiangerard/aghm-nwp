@@ -16,11 +16,11 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
-const { validateNormalizedInput, validateRequirements } = require('../src/engine/contracts');
-const { createCtx } = require('../src/engine/ctx');
+const { validateNormalizedInput, validateRequirements } = require('../src/types/engine/contracts');
+const { createCtx } = require('../src/types/engine/ctx');
 
 const ROOT = path.join(__dirname, '..');
-const ENGINE_DIR = path.join(ROOT, 'src', 'engine');
+const ENGINE_DIR = path.join(ROOT, 'src', 'types', 'engine');
 const FIXTURES_DIR = path.join(ROOT, 'tests', 'fixtures');
 
 // ---- Steps: align file and fn with the scaffold stubs (one-time edit) ----------------

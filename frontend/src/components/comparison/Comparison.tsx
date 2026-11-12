@@ -1,20 +1,29 @@
 import React, { useMemo, useState } from "react";
+import { Button } from "@/components/ui/button"; // NWP-COMPARE-002
 import { PlanCard } from "./plancard";
 import { EmptyPlanCard, EmptyState, LoadingState } from "./plan-states";
 import {
   PLAN_TIERS,
   VENDOR_NAMES,
   type DefaultVendors,
+  type NetworkPlanData, // NWP-COMPARE-002
   type PlanTier,
   type VendorName,
   type VendorPlansPayload,
 } from "./types";
 
+// NWP-COMPARE-002
+export interface PlanChoice {
+  tier: PlanTier;
+  vendor: VendorName;
+}
+
 interface ComparisonProps {
   plansData?: VendorPlansPayload; // undefined = still loading
   defaultVendors?: DefaultVendors;
+  /** NWP-COMPARE-002: called with the chosen tier/vendor and that plan's data. */
+  onContinue?: (choice: PlanChoice, plan: NetworkPlanData) => void;
 }
-
 
 const generationKeyOf = (plansData?: VendorPlansPayload): string => {
   if (!plansData) return "loading";
@@ -27,17 +36,29 @@ const generationKeyOf = (plansData?: VendorPlansPayload): string => {
   return "empty";
 };
 
+// The key remounts ComparisonView for every new generation, which also resets
+// the selection below.
 export const Comparison: React.FC<ComparisonProps> = ({
   plansData,
   defaultVendors,
+  onContinue,
 }) => {
   const generationKey = generationKeyOf(plansData);
   return (
-    <ComparisonView key={generationKey} plansData={plansData} defaultVendors={defaultVendors} />
+    <ComparisonView
+      key={generationKey}
+      plansData={plansData}
+      defaultVendors={defaultVendors}
+      onContinue={onContinue}
+    />
   );
 };
 
-const ComparisonView: React.FC<ComparisonProps> = ({ plansData, defaultVendors }) => {
+const ComparisonView: React.FC<ComparisonProps> = ({
+  plansData,
+  defaultVendors,
+  onContinue,
+}) => {
   const vendorsByTier = useMemo(() => {
     const result = {} as Record<PlanTier, VendorName[]>;
     for (const tier of PLAN_TIERS) {
@@ -50,6 +71,10 @@ const ComparisonView: React.FC<ComparisonProps> = ({ plansData, defaultVendors }
     "Cost-Efficient": null,
     "High-Performance": null,
   });
+
+  // NWP-COMPARE-002: the selection is held by tier (the card), not by vendor,
+  // so it follows the vendor dropdown. In-memory only: no storage, no router state.
+  const [selectedTier, setSelectedTier] = useState<PlanTier | null>(null);
 
   const shownVendor = (tier: PlanTier): VendorName | undefined => {
     const list = vendorsByTier[tier];
@@ -64,7 +89,29 @@ const ComparisonView: React.FC<ComparisonProps> = ({ plansData, defaultVendors }
     "Cost-Efficient": shownVendor("Cost-Efficient"),
     "High-Performance": shownVendor("High-Performance"),
   };
-  // NWP-COMPARE-002 reads `shown` (and adds selectedTier) from this component.
+
+  // NWP-COMPARE-002: derived from the selected tier and that card's current vendor.
+  const selectedVendor = selectedTier ? shown[selectedTier] : undefined;
+  const selectedPlan =
+    selectedTier && selectedVendor
+      ? plansData?.[selectedVendor]?.[selectedTier]
+      : undefined;
+  const canContinue =
+    selectedTier !== null && selectedVendor !== undefined && selectedPlan?.complete === true;
+
+  // NWP-COMPARE-002: keep the selection on this card, but clear it when the
+  // newly chosen vendor's plan is incomplete.
+  const handleVendorChange = (tier: PlanTier, vendor: VendorName) => {
+    setChoice((c) => ({ ...c, [tier]: vendor }));
+    if (selectedTier === tier && plansData?.[vendor]?.[tier]?.complete !== true) {
+      setSelectedTier(null);
+    }
+  };
+
+  const handleContinue = () => {
+    if (!canContinue || !selectedTier || !selectedVendor || !selectedPlan) return;
+    onContinue?.({ tier: selectedTier, vendor: selectedVendor }, selectedPlan);
+  };
 
   const isLoading = plansData === undefined;
   const hasAnyPlan = PLAN_TIERS.some((t) => vendorsByTier[t].length > 0);
@@ -78,8 +125,11 @@ const ComparisonView: React.FC<ComparisonProps> = ({ plansData, defaultVendors }
         tier={tier}
         selectedVendor={vendor}
         availableVendors={vendorsByTier[tier]}
-        onVendorChange={(v) => setChoice((c) => ({ ...c, [tier]: v }))}
+        onVendorChange={(v) => handleVendorChange(tier, v)}
         planData={plan}
+        isSelected={selectedTier === tier}
+        onSelect={() => setSelectedTier(tier)}
+        selectable={plan.complete}
       />
     );
   };
@@ -101,10 +151,22 @@ const ComparisonView: React.FC<ComparisonProps> = ({ plansData, defaultVendors }
       ) : !hasAnyPlan ? (
         <EmptyState />
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
-          {renderCard("Cost-Efficient")}
-          {renderCard("High-Performance")}
-        </div>
+        <>
+          <div
+            role="radiogroup"
+            aria-label="Network plans"
+            className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch"
+          >
+            {renderCard("Cost-Efficient")}
+            {renderCard("High-Performance")}
+          </div>
+
+          <div className="flex justify-end">
+            <Button type="button" size="lg" disabled={!canContinue} onClick={handleContinue}>
+              Continue to final report
+            </Button>
+          </div>
+        </>
       )}
     </section>
   );

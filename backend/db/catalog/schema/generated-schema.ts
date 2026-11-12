@@ -21,7 +21,11 @@ export const generatedDeviceSchemas = z.union([z.intersection(z.object({ "device
 /**IDS/IPS throughput in Mbps. null or omitted = unknown; the engine raises a flag and never guesses.*/
 "idps_throughput_mbps": z.union([z.number().int().gte(0).describe("IDS/IPS throughput in Mbps. null or omitted = unknown; the engine raises a flag and never guesses."), z.null().describe("IDS/IPS throughput in Mbps. null or omitted = unknown; the engine raises a flag and never guesses.")]).describe("IDS/IPS throughput in Mbps. null or omitted = unknown; the engine raises a flag and never guesses.").optional(), "max_concurrent_sessions": z.number().int().gte(0).optional(), "wan_ports": z.number().int().gte(0).optional(), "lan_ports": z.number().int().gte(0).optional(), "max_power_draw_w": z.number().gte(0).optional() }).describe("Present only when this gateway/router is ALSO capability-tagged as a firewall (dual-role device, e.g. UniFi UDM-Pro). Omit entirely for a plain gateway with no firewall role — don't send null, just leave the key out.").optional(),
 /**Present only when this gateway/router has an integrated switch (e.g. Omada ER7212PC with built-in PoE ports). Omit entirely for a plain gateway. The engine counts ports from this block, so gateway_router_specs.lan_ports must be 0 whenever switch_specs is present (enforced below).*/
-"switch_specs": z.object({ "port_count": z.number().int().gte(0), "poe_ports": z.number().int().gte(0).optional(), "poe_budget_w": z.number().int().gte(0).optional(), "switching_capacity_gbps": z.number().gte(0).optional(), "layer": z.union([z.literal(2), z.literal(3)]), "max_power_draw_w": z.number().gte(0).optional(),
+"switch_specs": z.object({ "port_count": z.number().int().gte(0),
+/**Number of copper Ethernet ports. When omitted, the engine can derive it from port_count minus sfp_ports only when both values are known.*/
+"copper_ports": z.number().int().gte(0).describe("Number of copper Ethernet ports. When omitted, the engine can derive it from port_count minus sfp_ports only when both values are known.").optional(), "poe_ports": z.number().int().gte(0).optional(), "poe_budget_w": z.number().int().gte(0).optional(),
+/**Highest PoE standard supplied by the switch's PoE ports. Omit when unknown; the engine does not guess.*/
+"poe_standard": z.enum(["af","at","bt3"]).describe("Highest PoE standard supplied by the switch's PoE ports. Omit when unknown; the engine does not guess.").optional(), "switching_capacity_gbps": z.number().gte(0).optional(), "layer": z.union([z.literal(2), z.literal(3)]), "max_power_draw_w": z.number().gte(0).optional(),
 /**Number of SFP-family ports. A subset of the total port count, not additional to it.*/
 "sfp_ports": z.number().int().gte(0).describe("Number of SFP-family ports. A subset of the total port count, not additional to it.").optional(),
 /**Form factor of the SFP ports. Required when sfp_ports > 0.*/
@@ -49,7 +53,11 @@ export const generatedDeviceSchemas = z.union([z.intersection(z.object({ "device
 /**Role tags written to the DeviceCapability junction at seed time (capability_desc values; the seed script resolves each to a capability_id). Fixed vocabulary so a typo can't create a new capability. Tag every role a multi-role device performs so the engine knows it replaces separate devices. Optional for single-role devices.*/
 "capabilities": z.array(z.enum(["router","switch","controller","firewall","ap"])).refine((arr) => arr.every((item, i) => arr.indexOf(item) == i), "All items must be unique!").describe("Role tags written to the DeviceCapability junction at seed time (capability_desc values; the seed script resolves each to a capability_id). Fixed vocabulary so a typo can't create a new capability. Tag every role a multi-role device performs so the engine knows it replaces separate devices. Optional for single-role devices.").optional() }).describe("Fields common to every device row, regardless of category — matches the Device table."), z.object({ "category": z.literal("switch"),
 /**Switch specifications table.*/
-"switch_specs": z.object({ "port_count": z.number().int().gte(0), "poe_ports": z.number().int().gte(0).optional(), "poe_budget_w": z.number().int().gte(0).optional(), "switching_capacity_gbps": z.number().gte(0).optional(), "layer": z.union([z.literal(2), z.literal(3)]), "max_power_draw_w": z.number().gte(0).optional(),
+"switch_specs": z.object({ "port_count": z.number().int().gte(0),
+/**Number of copper Ethernet ports. When omitted, the engine can derive it from port_count minus sfp_ports only when both values are known.*/
+"copper_ports": z.number().int().gte(0).describe("Number of copper Ethernet ports. When omitted, the engine can derive it from port_count minus sfp_ports only when both values are known.").optional(), "poe_ports": z.number().int().gte(0).optional(), "poe_budget_w": z.number().int().gte(0).optional(),
+/**Highest PoE standard supplied by the switch's PoE ports. Omit when unknown; the engine does not guess.*/
+"poe_standard": z.enum(["af","at","bt3"]).describe("Highest PoE standard supplied by the switch's PoE ports. Omit when unknown; the engine does not guess.").optional(), "switching_capacity_gbps": z.number().gte(0).optional(), "layer": z.union([z.literal(2), z.literal(3)]), "max_power_draw_w": z.number().gte(0).optional(),
 /**Number of SFP-family ports. A subset of the total port count, not additional to it.*/
 "sfp_ports": z.number().int().gte(0).describe("Number of SFP-family ports. A subset of the total port count, not additional to it.").optional(),
 /**Form factor of the SFP ports. Required when sfp_ports > 0.*/
@@ -64,6 +72,8 @@ export const generatedDeviceSchemas = z.union([z.intersection(z.object({ "device
 "ap_specs": z.object({
 /**e.g. 6 for Wi-Fi 6, 7 for Wi-Fi 7*/
 "wifi_standard": z.number().int().describe("e.g. 6 for Wi-Fi 6, 7 for Wi-Fi 7"), "max_concurrent_clients": z.number().int().gte(0).optional(), "max_data_rate_mbps": z.number().int().gte(0).optional(), "supported_24ghz": z.boolean(), "supported_5ghz": z.boolean(), "supported_6ghz": z.boolean(), "max_power_draw_w": z.number().gte(0).optional(),
+/**Minimum PoE standard required by the access point. Omit when unknown; the engine does not guess.*/
+"poe_standard": z.enum(["af","at","bt3"]).describe("Minimum PoE standard required by the access point. Omit when unknown; the engine does not guess.").optional(),
 /**e.g. PoE+, PoE++, DC adapter*/
 "power_method": z.string().describe("e.g. PoE+, PoE++, DC adapter").optional() }).describe("AP specifications table.") })), z.intersection(z.object({ "device_id": z.number().int().optional(), "vendor_id": z.number().int(), "sku": z.string(),
 /**Unit price. null = unknown/price on request (excluded from Cost-Efficient ranking); 0 = genuinely free.*/

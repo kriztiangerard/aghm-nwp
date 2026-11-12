@@ -29,13 +29,13 @@ export const VendorSelect: React.FC<VendorSelectProps> = ({
         htmlFor={id}
         className="text-xs font-medium text-muted-foreground mb-1.5 block"
       >
-        Vendor for {tier} plan
+        Vendor
       </label>
       <Select
         value={selectedVendor}
         onValueChange={(value) => onVendorChange(value as VendorName)}
       >
-        <SelectTrigger id={id} className="w-full">
+        <SelectTrigger id={id} className="w-full" aria-label={`Vendor for ${tier} plan`}>
           <SelectValue placeholder="Choose a vendor..." />
         </SelectTrigger>
         <SelectContent>

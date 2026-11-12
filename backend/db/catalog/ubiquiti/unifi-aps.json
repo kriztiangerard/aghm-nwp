@@ -21,8 +21,7 @@
       "supported_6ghz": true,
       "power_method": "PoE++"
     },
-    "capabilities": ["ap"],
-    "source": "https://techspecs.ui.com/unifi/wifi/u7-pro-xgs"
+    "capabilities": ["ap"]
   },
   {
     "vendor_id": 3,
@@ -46,8 +45,7 @@
       "supported_6ghz": true,
       "power_method": "PoE+"
     },
-    "capabilities": ["ap"],
-    "source": "https://techspecs.ui.com/unifi/wifi/u7-pro-xg"
+    "capabilities": ["ap"]
   },
   {
     "vendor_id": 3,
@@ -72,8 +70,7 @@
       "max_power_draw_w": 25,
       "power_method": "PoE+"
     },
-    "capabilities": ["ap"],
-    "source": "https://techspecs.ui.com/unifi/wifi/u7-pro-max"
+    "capabilities": ["ap"]
   },
   {
     "vendor_id": 3,
@@ -98,8 +95,7 @@
       "max_power_draw_w": 21,
       "power_method": "PoE+"
     },
-    "capabilities": ["ap"],
-    "source": "https://techspecs.ui.com/unifi/wifi/u7-pro"
+    "capabilities": ["ap"]
   },
   {
     "vendor_id": 3,
@@ -123,8 +119,7 @@
       "supported_6ghz": false,
       "power_method": "PoE"
     },
-    "capabilities": ["ap"],
-    "source": "https://techspecs.ui.com/unifi/wifi/u7-lr"
+    "capabilities": ["ap"]
   },
   {
     "vendor_id": 3,
@@ -148,8 +143,7 @@
       "supported_6ghz": false,
       "power_method": "PoE"
     },
-    "capabilities": ["ap"],
-    "source": "https://techspecs.ui.com/unifi/wifi/u7-lite"
+    "capabilities": ["ap"]
   },
   {
     "vendor_id": 3,
@@ -173,8 +167,7 @@
       "supported_6ghz": true,
       "power_method": "PoE+"
     },
-    "capabilities": ["ap"],
-    "source": "https://techspecs.ui.com/unifi/wifi/u7-pro-xg-wall"
+    "capabilities": ["ap"]
   },
   {
     "vendor_id": 3,
@@ -198,8 +191,7 @@
       "supported_6ghz": true,
       "power_method": "PoE+"
     },
-    "capabilities": ["ap"],
-    "source": "https://techspecs.ui.com/unifi/wifi/u7-pro-wall"
+    "capabilities": ["ap"]
   },
   {
     "vendor_id": 3,
@@ -224,8 +216,7 @@
       "max_power_draw_w": 13,
       "power_method": "PoE; PoE+ required for PoE output"
     },
-    "capabilities": ["ap"],
-    "source": "https://techspecs.ui.com/unifi/wifi/u7-iw"
+    "capabilities": ["ap"]
   },
   {
     "vendor_id": 3,
@@ -250,8 +241,7 @@
       "max_power_draw_w": 44,
       "power_method": "PoE++"
     },
-    "capabilities": ["ap"],
-    "source": "https://techspecs.ui.com/unifi/wifi/e7-campus-indoor"
+    "capabilities": ["ap"]
   },
   {
     "vendor_id": 3,
@@ -276,8 +266,7 @@
       "max_power_draw_w": 43,
       "power_method": "PoE++"
     },
-    "capabilities": ["ap"],
-    "source": "https://techspecs.ui.com/unifi/wifi/e7"
+    "capabilities": ["ap"]
   },
   {
     "vendor_id": 3,
@@ -302,8 +291,7 @@
       "max_power_draw_w": 51,
       "power_method": "PoE++"
     },
-    "capabilities": ["ap"],
-    "source": "https://techspecs.ui.com/unifi/wifi/e7-audience-indoor"
+    "capabilities": ["ap"]
   },
   {
     "vendor_id": 3,
@@ -327,8 +315,7 @@
       "supported_6ghz": true,
       "power_method": "PoE+"
     },
-    "capabilities": ["ap"],
-    "source": "https://techspecs.ui.com/unifi/wifi/u6-enterprise"
+    "capabilities": ["ap"]
   },
   {
     "vendor_id": 3,
@@ -352,8 +339,7 @@
       "supported_6ghz": true,
       "power_method": "PoE+; PoE++ required for PoE output"
     },
-    "capabilities": ["ap"],
-    "source": "https://techspecs.ui.com/unifi/wifi/u6-enterprise-iw"
+    "capabilities": ["ap"]
   },
   {
     "vendor_id": 3,
@@ -377,8 +363,7 @@
       "supported_6ghz": false,
       "power_method": "PoE"
     },
-    "capabilities": ["ap"],
-    "source": "https://techspecs.ui.com/unifi/wifi/u6-pro"
+    "capabilities": ["ap"]
   },
   {
     "vendor_id": 3,
@@ -402,8 +387,7 @@
       "supported_6ghz": false,
       "power_method": "PoE+"
     },
-    "capabilities": ["ap"],
-    "source": "https://techspecs.ui.com/unifi/wifi/u6-lr"
+    "capabilities": ["ap"]
   },
   {
     "vendor_id": 3,
@@ -427,8 +411,7 @@
       "supported_6ghz": false,
       "power_method": "PoE"
     },
-    "capabilities": ["ap"],
-    "source": "https://techspecs.ui.com/unifi/wifi/u6-plus"
+    "capabilities": ["ap"]
   },
   {
     "vendor_id": 3,
@@ -453,8 +436,7 @@
       "max_power_draw_w": 13,
       "power_method": "PoE; PoE+ required for PoE output"
     },
-    "capabilities": ["ap"],
-    "source": "https://techspecs.ui.com/unifi/wifi/u6-iw"
+    "capabilities": ["ap"]
   },
   {
     "vendor_id": 3,
@@ -478,8 +460,7 @@
       "supported_6ghz": false,
       "power_method": "PoE"
     },
-    "capabilities": ["ap"],
-    "source": "https://techspecs.ui.com/unifi/wifi/uap-ac-pro"
+    "capabilities": ["ap"]
   },
   {
     "vendor_id": 3,
@@ -503,8 +484,7 @@
       "supported_6ghz": false,
       "power_method": "PoE"
     },
-    "capabilities": ["ap"],
-    "source": "https://techspecs.ui.com/unifi/wifi/unifi-ac-lr"
+    "capabilities": ["ap"]
   },
   {
     "vendor_id": 3,
@@ -528,8 +508,7 @@
       "supported_6ghz": false,
       "power_method": "PoE"
     },
-    "capabilities": ["ap"],
-    "source": "https://techspecs.ui.com/unifi/wifi/uap-ac-lite"
+    "capabilities": ["ap"]
   },
   {
     "vendor_id": 3,
@@ -553,8 +532,7 @@
       "supported_6ghz": false,
       "power_method": "PoE; PoE+ required for PoE passthrough"
     },
-    "capabilities": ["ap"],
-    "source": "https://techspecs.ui.com/unifi/wifi/uap-iw-hd"
+    "capabilities": ["ap"]
   },
   {
     "vendor_id": 3,
@@ -578,7 +556,6 @@
       "supported_6ghz": false,
       "power_method": "PoE; PoE+ required for PoE passthrough"
     },
-    "capabilities": ["ap"],
-    "source": "https://techspecs.ui.com/unifi/wifi/uap-ac-iw"
+    "capabilities": ["ap"]
   }
 ]

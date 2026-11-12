@@ -84,8 +84,17 @@
       "description": "Switch specifications table.",
       "properties": {
         "port_count": { "type": "integer", "minimum": 0 },
+        "copper_ports": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of copper Ethernet ports. When omitted, the engine can derive it from port_count minus sfp_ports only when both values are known."
+        },
         "poe_ports": { "type": "integer", "minimum": 0 },
         "poe_budget_w": { "type": "integer", "minimum": 0 },
+        "poe_standard": {
+          "$ref": "#/$defs/poeStandard",
+          "description": "Highest PoE standard supplied by the switch's PoE ports. Omit when unknown; the engine does not guess."
+        },
         "switching_capacity_gbps": { "type": "number", "minimum": 0 },
         "layer": { "type": "integer", "enum": [2, 3] },
         "max_power_draw_w": { "type": "number", "minimum": 0 },
@@ -115,6 +124,10 @@
         "supported_5ghz": { "type": "boolean" },
         "supported_6ghz": { "type": "boolean" },
         "max_power_draw_w": { "type": "number", "minimum": 0 },
+        "poe_standard": {
+          "$ref": "#/$defs/poeStandard",
+          "description": "Minimum PoE standard required by the access point. Omit when unknown; the engine does not guess."
+        },
         "power_method": { "type": "string", "description": "e.g. PoE+, PoE++, DC adapter" }
       },
       "required": ["wifi_standard", "supported_24ghz", "supported_5ghz", "supported_6ghz"]
@@ -182,6 +195,8 @@
       "enum": ["SFP", "SFP+", "SFP28", "QSFP+", "QSFP28"],
       "description": "Physical SFP-family form factor of a switch or gateway port. SFP modules themselves are not catalogued; they appear on the Installation Materials Summary."
     },
+
+    "poeStandard": { "type": "string", "enum": ["af", "at", "bt3"] },
 
     "gatewayRouterDevice": {
       "allOf": [

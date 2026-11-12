@@ -1,7 +1,7 @@
 'use strict';
 // NWP-ENGINE-001 — hand-off shapes between steps. Frozen at the end of Day 1.
 // A change needs a pull request approved by the producer and consumer owners; bump CONTRACT_VERSION if incompatible.
-const CONTRACT_VERSION = 3; // 3: CatalogSku gains required name, optional price provenance (price_source, is_stale, price_updated_at), enclosure form_factor, the controller category and managed-device limits, sfp_form_factor and capabilities. Requirements types backbone ('fiber'|'copper') and adds horizontalCablingOptions. Adds the VendorDescriptor, Bom, BomLine, Plan and EngineResult shapes with validators. 2: Corrections to the requirements and selection result shapes, plus new fields in normalized input. CatalogSku now lists the Appendix A fields and validateCatalogSku was added.
+const CONTRACT_VERSION = 3; // 3: CatalogSku gains required name, optional price provenance (price_source, is_stale, price_updated_at), enclosure form_factor, the controller category and managed-device limits, sfp_form_factor and capabilities. Requirements types backbone ('fiber'|'copper') and adds horizontalCablingOptions. Adds the VendorDescriptor, Bom, BomLine, Plan and EngineResult shapes with validators. Additive, no bump: CatalogSku gains optional poe_standard. 2: Corrections to the requirements and selection result shapes, plus new fields in normalized input. CatalogSku now lists the Appendix A fields and validateCatalogSku was added.
 
 /**
  * @typedef {Object} NormalizedInput   // output of NWP-ENGINE-002
@@ -57,12 +57,15 @@ const CONTRACT_VERSION = 3; // 3: CatalogSku gains required name, optional price
  * @property {number|string} [wifi_gen]
  * @property {number} [max_draw_w]
  * @property {number} [poe_ports] @property {number} [poe_budget_w]
+ * @property {'af'|'at'|'bt3'} [poe_standard]       // same keys as POE_CLASS_W in params.js. Switch (or gateway with an integrated switch): the highest PoE standard its PoE ports supply. Access point: the minimum standard it requires. Absent = unknown, the engine raises a flag and never guesses
  * @property {number} [copper_ports] @property {number} [sfp_ports] @property {string} [sfp_speed]
  * @property {'SFP'|'SFP+'|'SFP28'|'QSFP+'|'QSFP28'} [sfp_form_factor]   // read with sfp_ports by NWP-ENGINE-012
+  * @property {'af'|'at'|'bt3'} [poe_standard]   // switch, or a gateway with an integrated switch: highest PoE standard its PoE ports supply; access_point: minimum standard it needs; absent = unknown (the engine flags it)
  * @property {number} [routing_throughput_mbps]
  * @property {number|null} [idps_throughput_mbps]   // nullable: absent or null = unknown, the engine raises a flag and never guesses
  * @property {boolean} [dual_wan] @property {boolean} [site_to_site_vpn]
- * @property {boolean|null} [ha_capability]         // gateways: supports a device-level HA pair (VRRP or hot standby with a second gateway); not WAN link failover (see dual_wan); absent or null = unknown * @property {number|null} [max_vpn_tunnels]        // nullable: same rule as idps_throughput_mbps
+ * @property {boolean|null} [ha_capability]         // gateways: supports a device-level HA pair (VRRP or hot standby with a second gateway); not WAN link failover (see dual_wan); absent or null = unknown
+ * @property {number|null} [max_vpn_tunnels]        // nullable: same rule as idps_throughput_mbps
  * // rack_units: for devices, the U height (0 = not rack-mounted, absent = unknown); for enclosures, the U capacity (required, 1 or more)
  * @property {number} [rack_units]
  * // Enclosures
@@ -82,7 +85,7 @@ const CONTRACT_VERSION = 3; // 3: CatalogSku gains required name, optional price
  * @typedef {Object} VendorDescriptor   // passed to the engine with the catalog snapshot, in plan order (NWP-ENGINE-015)
  * @property {string} name
  * @property {boolean} needController   // Vendor.need_controller
- * @property {('dashboard'|'cli')[]} managementModes
+ * @property {('dashboard'|'cli')[]} managementModes   // Vendor.management_modes; the management styles the vendor ecosystem supports
  */
 
 /**
@@ -455,6 +458,7 @@ const VALID_FORM_FACTORS = new Set(['rack', 'wall']);
 const VALID_CONTROLLER_TYPES = new Set(['hardware', 'software', 'cloud', 'integrated']);
 const VALID_SFP_FORM_FACTORS = new Set(['SFP', 'SFP+', 'SFP28', 'QSFP+', 'QSFP28']);
 const VALID_PRICE_SOURCES = new Set(['synchronized', 'manual']);
+const VALID_POE_STANDARDS = new Set(['af', 'at', 'bt3']);   // keys of POE_CLASS_W in params.js; keep the two in step
 const CONTROLLER_REQUIRED_LIMITS = ['max_managed_aps', 'max_managed_switches', 'max_managed_gateways'];
 
 // Checks the core fields and the type of every Appendix A field that is present.
@@ -522,6 +526,9 @@ function validateCatalogSku(sku) {
     }
     if (sku.sfp_form_factor !== undefined && !VALID_SFP_FORM_FACTORS.has(sku.sfp_form_factor)) {
         throw new ValidationError('sfp_form_factor', 'Must be one of SFP, SFP+, SFP28, QSFP+, QSFP28 when present.');
+    }
+    if (sku.poe_standard !== undefined && !VALID_POE_STANDARDS.has(sku.poe_standard)) {
+        throw new ValidationError('poe_standard', 'Must be one of af, at, bt3 when present.');
     }
     if (sku.capabilities !== undefined
         && (!Array.isArray(sku.capabilities)
