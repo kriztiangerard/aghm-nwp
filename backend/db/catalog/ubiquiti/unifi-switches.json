@@ -38,6 +38,7 @@
     "switch_specs": {
       "port_count": 31,
       "poe_ports": 24,
+      "poe_budget_w": 2250,
       "layer": 3,
       "switching_capacity_gbps": 460,
       "max_power_draw_w": 150
@@ -51,7 +52,7 @@
     "sku": "ECS-48S-PoE",
     "price": null,
     "name": "Enterprise Campus 48S PoE",
-    "description": "Enterprise Campus switch with 1 x 1 GbE RJ45, 32 x 2.5 GbE PoE+++, 16 x 10 GbE PoE+++, 4 x 25G SFP28, and 2 x 100G QSFP28 ports.",
+    "description": "Enterprise Campus switch with 1 x 1 GbE RJ45, 32 x 2.5 GbE PoE+++, 16 x 10 GbE PoE+++, 4 x 25G SFP28, and 2 x 100G QSFP28 ports. PoE availability depends on the power supply and operating mode.",
     "is_rack_mountable": true,
     "u_height": 1,
     "lifecycle_status": "active",
@@ -62,6 +63,7 @@
     "switch_specs": {
       "port_count": 55,
       "poe_ports": 48,
+      "poe_budget_w": 2150,
       "layer": 3,
       "switching_capacity_gbps": 680
     },
