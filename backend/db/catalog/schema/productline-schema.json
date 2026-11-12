@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://nwp.local/schemas/product-line.schema.json",
+  "title": "NWP Product Lines",
+  "description": "Seed rows for the product_line table. line_rank orders lines within one vendor and one category (1 = entry tier, higher = more capable). The High-Performance plan picks its SKU from the next line up from the Cost-Efficient pick. JSON Schema cannot express uniqueness, so the seed script and the table's UNIQUE constraints enforce: (vendor_id, category, name) is unique and (vendor_id, category, line_rank) is unique.",
+  "type": "array",
+  "items": { "$ref": "#/$defs/productLine" },
+
+  "$defs": {
+    "productLine": {
+      "type": "object",
+      "properties": {
+        "vendor_id": { "type": "integer" },
+        "category": {
+          "type": "string",
+          "enum": ["gateway_router", "ap", "switch"],
+          "description": "Same values as the device JSON's category field. Only categories the High-Performance rule applies to."
+        },
+        "name": { "type": "string", "minLength": 1 },
+        "line_rank": { "type": "integer", "minimum": 1 },
+        "source_note": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Basis for this line's rank, so the ladder can be defended and cited."
+        }
+      },
+      "required": ["vendor_id", "category", "name", "line_rank", "source_note"],
+      "additionalProperties": false
+    }
+  }
+}

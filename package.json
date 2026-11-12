@@ -5,22 +5,40 @@
     "build": "tsc",
     "watch": "tsc -w",
     "test": "jest",
-    "cdk": "cdk"
+    "cdk": "cdk",
+    "generate:device-schemas": "tsx backend/scripts/generate-device-schema.ts",
+    "seed:devices": "tsx backend/scripts/seed-omada-devices.ts",
+    "seed:unifi-devices": "tsx backend/scripts/seed-unifi-devices.ts",
+    "insert:unifi-productlines": "tsx backend/scripts/insert-unifi-productlines.ts"
   },
   "devDependencies": {
     "@swc/core": "^1.15.0",
     "@swc/jest": "^0.2.39",
-    "@types/jest": "^30",
-    "@types/node": "^24.13.3",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^24.13.5",
+    "@types/pg": "^8.23.1",
+    "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1",
     "aws-cdk": "2.1138.0",
     "jest": "^30",
     "tsx": "^4.23.0",
     "typescript": "~7.0.2"
   },
   "dependencies": {
+    "@aws-sdk/client-secrets-manager": "^3.1000.0",
     "@tailwindcss/vite": "^4.3.3",
     "aws-cdk-lib": "^2.265.0",
     "constructs": "^10.5.0",
-    "tailwindcss": "^4.3.3"
+    "dotenv": "^18.0.4",
+    "json-schema-to-zod": "^2.8.1",
+    "pg": "^8.23.0",
+    "tailwindcss": "^4.3.3",
+    "zod": "^4.5.4"
+  },
+  "allowScripts": {
+    "@parcel/watcher@2.6.0": true,
+    "esbuild@0.28.2": true,
+    "unrs-resolver@1.12.2": true,
+    "@swc/core@1.16.1": true
   }
 }

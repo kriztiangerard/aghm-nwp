@@ -46,6 +46,13 @@ Open `.env` and configure the required environment variables.
 
 **Important:** Do not commit `.env` to the repository. Environment files may contain credentials, API keys, database information, or other sensitive configuration.
 
+### Seed the Hardware Catalog
+With the catalog tables available and `DATABASE_URL` configured, run:
+
+- `npm run seed:devices`
+
+The seeder upserts router, switch, and access-point records by SKU, resolves capability descriptions, and reports inserted, updated, and skipped counts. Invalid catalog entries are logged and skipped so the remaining entries can still be processed.
+
 ### 5. Run the Application
 Run the application using the appropriate `npm` script:
 
@@ -83,7 +90,6 @@ The NWP Story ID should identify the specific story or task being worked on.
 | `test/`    | Tests                     | `test/BOM-10-validation`                  |
 | `docs/`    | Documentation             | `docs/OTHER-26-update-readme`             |
 | `chore/`   | Maintenance/configuration | `chore/INFRA-04-update-dependencies`      |
- 
 ### Branch Naming Rules
 - Always include the applicable NWP Story ID (see Notion board for appropriate prefix to use). Remove the NWP prefix.
 - If there is no associated story for the branch, do not make your own. Just write the short description instead.
@@ -123,14 +129,14 @@ Push your branch to GitHub.
 
 #### PR Title Format:
 
-`[NWP-Story-ID]` Short description of changes
+`[NWP-TYPE-Story-ID]` Short description of changes
 
 ##### Example:
 
-`[NWP-123]` Add device recommendation logic
+`[NWP-ENGINE-123]` Add device recommendation logic
 
 ### 7. Request Review
-- The PR requires approval from both Gerard and Angel before it can be merged.
+- The PR requires approval from the assigned member for QA and testing.
 
 ### 8. Wait for Approval
 - Do not merge the PR yourself.

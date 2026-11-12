@@ -1,0 +1,25 @@
+[
+  {
+    "vendor_id": 0,
+    "sku": "",
+    "price": 0,
+    "price_updated_at": "",
+    "name": "",
+    "description": "",
+    "image_key": "",
+    "is_rack_mountable": false,
+    "u_height": 0,
+    "lifecycle_status": "active",
+    "eos_date": null,
+    "eol_date": null,
+    "category": "firewall",
+    "firewall_specs": {
+      "firewall_throughputs_mbps": 0,
+      "vpn_throughput_mbps": 0,
+      "max_concurrent_sessions": 0,
+      "wan_ports": 0,
+      "lan_ports": 0,
+      "max_power_draw_w": 0
+    }
+  }
+]
