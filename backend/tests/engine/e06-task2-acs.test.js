@@ -2,8 +2,8 @@
 // NWP-ENGINE-006 acceptance criteria, proven end to end through buildCatalogFromRows (the export the repository uses).
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { buildCatalogFromRows } = require('../catalog-export.js');
-const { validateCatalogSku } = require('../contracts.js');
+const { buildCatalogFromRows } = require('../../src/types/engine/catalog-export.js');
+const { validateCatalogSku } = require('../../src/types/engine/contracts.js');
 
 const NOW = '2026-11-12';
 const VENDORS = [
