@@ -11,7 +11,7 @@ function getApSpecs(sku) {
 
 function getWifiStandard(sku) {
   const specs = getApSpecs(sku);
-  return Number(specs.wifi_standard ?? specs.wifiStandard);
+  return Number(specs.wifi_standard ?? specs.wifi_gen ?? specs.wifiStandard);
 }
 
 function supports6Ghz(sku) {
@@ -19,9 +19,25 @@ function supports6Ghz(sku) {
   return (specs.supported_6ghz ?? specs.supported6Ghz) === true;
 }
 
+function getPoeStandard(sku) {
+  const specs = getApSpecs(sku);
+  const explicitStandard = specs.poe_standard ?? specs.poeStandard;
+
+  if (['af', 'at', 'bt3'].includes(explicitStandard)) {
+    return explicitStandard;
+  }
+
+  const powerMethod = String(specs.power_method ?? specs.powerMethod ?? '');
+  if (/802\.3bt|poe\+\+/i.test(powerMethod)) return 'bt3';
+  if (/802\.3at|poe\+/i.test(powerMethod)) return 'at';
+  if (/802\.3af/i.test(powerMethod)) return 'af';
+
+  return undefined;
+}
+
 function getMaxPowerDrawW(sku) {
   const specs = getApSpecs(sku);
-  return specs.max_power_draw_w ?? specs.maxPowerDrawW ?? null;
+  return specs.max_power_draw_w ?? specs.max_draw_w ?? specs.maxPowerDrawW ?? null;
 }
 
 function matchesGeneration(sku, target) {
@@ -32,7 +48,9 @@ function matchesGeneration(sku, target) {
   }
 
   if (target === '6E') {
-    return standard === 6 && supports6Ghz(sku);
+    // Previous version:
+    // return standard === 6 && supports6Ghz(sku);
+    return standard >= 6 && supports6Ghz(sku);
   }
 
   if (target === '6') {
@@ -42,9 +60,31 @@ function matchesGeneration(sku, target) {
   return false;
 }
 
+function normalizeApSku(sku, vendor) {
+  const normalized = {
+    ...sku,
+    vendor: sku.vendor ?? vendor,
+    category: 'access_point',
+    status: String(
+      sku.status ?? sku.lifecycle_status ?? ''
+    ).toUpperCase(),
+  };
+
+  const maxPowerDrawW = getMaxPowerDrawW(normalized);
+  if (maxPowerDrawW !== null && maxPowerDrawW !== undefined) {
+    normalized.max_power_draw_w = maxPowerDrawW;
+  }
+
+  const poeStandard = getPoeStandard(normalized);
+  if (poeStandard) normalized.poe_standard = poeStandard;
+
+  return normalized;
+}
+
 function selectAccessPoints({
   catalog,
   vendor,
+  vendorId,
   requirements,
   plan,
   cePick,
@@ -87,11 +127,20 @@ function selectAccessPoints({
       );
     }
 
-    const pool = catalog.filter(
-      (sku) =>
-        sku.vendor === vendor &&
-        sku.category === 'access_point'
-    );
+    const pool = catalog
+      .filter((sku) => {
+        const isAp =
+          sku.category === 'ap' ||
+          sku.category === 'access_point';
+
+        const matchesVendor =
+          vendorId !== undefined
+            ? Number(sku.vendor_id ?? sku.vendorId) === Number(vendorId)
+            : sku.vendor === vendor;
+
+        return isAp && matchesVendor;
+      })
+      .map((sku) => normalizeApSku(sku, vendor));
 
     return selectSku({
       pool,
@@ -158,4 +207,7 @@ function selectAccessPoints({
 
 module.exports = {
   selectAccessPoints,
+  normalizeApSku,
+  matchesGeneration,
+  getPoeStandard,
 };

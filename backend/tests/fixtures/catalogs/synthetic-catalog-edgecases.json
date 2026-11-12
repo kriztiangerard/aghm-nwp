@@ -147,7 +147,7 @@
     "status": "ACTIVE",
     "price": 18000,
     "currency": "USD",
-    "name": "Standard PoE Switch",
+    "name": "Standard PoE+ Switch",
     "description": "Standard valid 8-port PoE switch.",
     "capabilities": [
       "switch"
@@ -188,7 +188,7 @@
     "status": "ACTIVE",
     "price": 21000,
     "currency": "USD",
-    "name": "Low Budget PoE Switch",
+    "name": "Low Budget PoE+ Switch",
     "description": "Edge case: enough PoE ports (24) but too little PoE budget (90 W).",
     "capabilities": [
       "switch"
@@ -251,7 +251,7 @@
     "status": "ACTIVE",
     "price": null,
     "currency": "USD",
-    "name": "Price-on-Request Core Switch",
+    "name": "Price-on-Request PoE+ Core Switch",
     "description": "Edge case: price is null (price on request), requires SFP conditional block validation.",
     "capabilities": [
       "switch"
@@ -260,8 +260,8 @@
     "u_height": 1,
     "port_count": 24,
     "layer": 3,
-    "poe_ports": 0,
-    "poe_budget_w": 0,
+    "poe_ports": 24,
+    "poe_budget_w": 370,
     "sfp_ports": 4,
     "sfp_form_factor": "SFP+"
   },
@@ -274,7 +274,7 @@
     "status": "ACTIVE",
     "price": 48000,
     "currency": "USD",
-    "name": "PoE Core Switch",
+    "name": "PoE+ Core Switch",
     "description": "Top-line switch that satisfies a PoE requirement with a 370 W budget.",
     "capabilities": [
       "switch"
@@ -343,6 +343,29 @@
     "currency": "USD",
     "name": "Standard Wi-Fi 6E AP",
     "description": "Wi-Fi 6E Access Point: wifi_standard 6 with the 6 GHz band.",
+    "capabilities": [
+      "ap"
+    ],
+    "is_rack_mountable": false,
+    "u_height": 0,
+    "wifi_standard": 6,
+    "supported_24ghz": true,
+    "supported_5ghz": true,
+    "supported_6ghz": true,
+    "max_power_draw_w": 15,
+    "power_method": "PoE+"
+  },
+  {
+    "sku": "SYN-AP-005",
+    "vendor": "Synthetic Vendor",
+    "category": "access_point",
+    "line": "Synthetic AP Sunset 6E",
+    "line_rank": 1,
+    "status": "SUNSETTING",
+    "price": 6000,
+    "currency": "USD",
+    "name": "Sunsetting Wi-Fi 6E AP",
+    "description": "Sunsetting Wi-Fi 6E access point for lifecycle selection coverage.",
     "capabilities": [
       "ap"
     ],

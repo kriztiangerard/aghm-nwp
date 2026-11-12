@@ -112,7 +112,7 @@ const validRequirements = () => ({
   backupAdvice: 'cellular failover',
   vpnTunnelsNeeded: { CE: 0, HP: 0 },
   requiredMbps: 300,
-  throughputMetric: 'routing',
+  throughputMetric: 'routing_throughput',
   wireless: {
     standard: 'wifi6',
     ceiling: 40,
@@ -130,6 +130,36 @@ const validRequirements = () => ({
 
 test('validateRequirements accepts a valid object', () => {
   assert.equal(validateRequirements(validRequirements()), true);
+});
+
+test('validateRequirements accepts routing throughput metric', () => {
+  assert.equal(
+    validateRequirements({
+      ...validRequirements(),
+      throughputMetric: 'routing_throughput',
+    }),
+    true
+  );
+});
+
+test('validateRequirements accepts IDPS throughput metric', () => {
+  assert.equal(
+    validateRequirements({
+      ...validRequirements(),
+      throughputMetric: 'idps_throughput',
+    }),
+    true
+  );
+});
+
+test('validateRequirements rejects unsupported throughput metric', () => {
+  assertRejects(
+    () => validateRequirements({
+      ...validRequirements(),
+      throughputMetric: 'routing',
+    }),
+    'throughputMetric'
+  );
 });
 
 test('validateRequirements accepts a single slice, since stories 003, 004 and 005 each return one', () => {

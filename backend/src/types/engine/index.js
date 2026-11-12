@@ -1,38 +1,45 @@
 'use strict';
 
-// NWP-ENGINE-001 — pipeline runner.
-// NWP-ENGINE-014 (stretch) extends this into the vendor x plan loop.
-
 const { createCtx } = require('./ctx');
 const { normalize } = require('./normalize');
+const { normalizeRequestAnswers } = require('./network-config');
+const { deriveNetworkRequirements } = require('./requirements/network');
+const { wirelessRequirements } = require('./requirements/wireless');
+const { deriveConnectivityRequirements } = require('./requirements/connectivity');
+const { deriveDeviceRequirements } = require('./requirements/devices');
+const { recommendPower } = require('./devices/power');
+const { runEngine } = require('./orchestration');
+const { loadEngineData } = require('./catalog-repository');
+const { validateRequirements } = require('./contracts');
 
-function run(rawAnswers) {
+async function run(payload, dependencies = {}) {
   const ctx = createCtx();
+  const normalizedInput = normalize(normalizeRequestAnswers(payload), ctx);
 
-  try {
-    const normalizedInput = normalize(rawAnswers, ctx);
+  const network = deriveNetworkRequirements(normalizedInput, ctx);
+  const wireless = wirelessRequirements(normalizedInput, ctx);
+  const connectivity = deriveConnectivityRequirements(normalizedInput, network, ctx);
+  const devices = deriveDeviceRequirements(normalizedInput, ctx);
+  const requirements = {
+    ...network,
+    wireless,
+    ...connectivity,
+    ...devices,
+    ...recommendPower({ input: normalizedInput }),
+  };
+  validateRequirements(requirements);
 
-    return {
-      normalizedInput,
-      plans: [],
-      defaultVendor: null,
-      ledger: ctx.ledger,
-      errors: [],
-    };
-  } catch (error) {
-    return {
-      normalizedInput: null,
-      plans: [],
-      defaultVendor: null,
-      ledger: ctx.ledger,
-      errors: [
-        {
-          message: error.message,
-          name: error.name,
-        },
-      ],
-    };
-  }
+  const engineData = await (dependencies.loadEngineData || loadEngineData)({
+    now: dependencies.now ?? new Date(),
+  });
+  return runEngine(
+    normalizedInput,
+    requirements,
+    engineData.catalog,
+    engineData.vendors,
+    undefined,
+    ctx,
+  );
 }
 
 module.exports = { run };

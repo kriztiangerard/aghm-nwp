@@ -120,3 +120,33 @@ describe('NWP-ENGINE-010: PoE budget calculation', () => {
     );
   });
 });
+
+test('rejects the synthetic SUNSETTING AP when its power draw is missing', () => {
+  const syntheticCatalog = require('../fixtures/catalogs/synthetic-catalog-edgecases.json');
+  const legacyAp = syntheticCatalog.find(
+    (sku) => sku.sku === 'SYN-AP-003',
+  );
+
+  assert.ok(legacyAp, 'Synthetic AP fixture must exist');
+  assert.equal(legacyAp.status, 'SUNSETTING');
+  assert.equal(legacyAp.max_power_draw_w, undefined);
+
+  assert.throws(
+    () => computePoeBudget({
+      requirements: {
+        otherPoeLoadW: 0,
+        wireless: { CE: { perFloor: [1] } },
+      },
+      apSelection: {
+        ok: true,
+        sku: legacyAp,
+        maxPowerDrawW: null,
+      },
+      plan: 'CE',
+    }),
+    {
+      name: 'TypeError',
+      message: 'Selected AP must have a valid max_power_draw_w',
+    },
+  );
+});
