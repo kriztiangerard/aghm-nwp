@@ -2,7 +2,7 @@
 // Uses a fake pool; no database is needed. Nothing here opens a real connection.
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { loadEngineData, loadCatalog, loadVendors, CatalogRepositoryError } = require('../catalog-repository.js');
+const { loadEngineData, loadCatalog, loadVendors, CatalogRepositoryError } = require('../../src/types/engine/catalog-repository.js');
 
 const NOW = '2026-11-11';
 
