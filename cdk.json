@@ -1,5 +1,5 @@
 {
-  "app": "npx tsc && npx tsx bin/aghm-nwp.ts",
+  "app": "npx tsx bin/aghm-nwp.ts",
   "watch": {
     "include": [
       "**"

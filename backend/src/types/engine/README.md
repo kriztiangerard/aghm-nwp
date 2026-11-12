@@ -1,11 +1,17 @@
 # Recommendation engine (Lambda: Engine / BOM)
 
-This folder is the deployable asset for the Engine Lambda (`Code.fromAsset('backend/src/engine')`, handler `lambda-handler.handler`).
+This folder contains the Engine Lambda entrypoint at `backend/src/types/engine/lambda-handler.js`. CDK bundles that entrypoint with handler `lambda-handler.handler`.
 Tests and fixtures live outside it, in `backend/tests/`, so they are not zipped.
 
+The handler accepts the frontend NetworkConfiguration (or legacy Q-numbered raw answers), normalizes it, derives requirements, loads vendor descriptors and canonical CatalogSku JSON from PostgreSQL, runs the vendor/plan orchestration, then timestamps and validates the result.
+
+Before deploying, apply `backend/migrations/002_engine_catalog.sql` and populate `vendor.management_modes` and `engine_catalog_sku.catalog_sku`. The SKU JSON must satisfy `contracts.js` and contain the selector-specific fields required for that category. These canonical records are intentionally not synthesized from incomplete legacy device rows; verify the DB catalog and selector fields before enabling the endpoint.
+
+The DB URL is fetched at runtime from the Secrets Manager secret `aghm-nwp/database`; `DB_SSL=true` and the bundled RDS CA are used for TLS. CDK imports the configured VPC and database security group. Ensure the Lambda security group can connect to PostgreSQL on port 5432 and private subnets can reach Secrets Manager (through NAT or a VPC endpoint). Deploy with `CDK_DEFAULT_ACCOUNT` set in `ap-southeast-1` so CDK can look up the VPC.
+
 ## Rules
-1. **Zero npm runtime dependencies.** Node built-ins only. Tests use `node --test`.
-2. **Pure functions.** No database or network calls inside engine logic. Only `catalog-repository.js` may touch the database.
+1. **Keep runtime dependencies minimal.** The Lambda bundles `pg` and the AWS Secrets Manager client; tests use `node --test`.
+2. **Pure engine steps.** No database or network calls inside requirement, selection, or assembly steps. Only `catalog-repository.js` loads DB records.
 3. **One file per story.** Two people do not edit the same file. `params.js`, `contracts.js`, `index.js` belong to NWP-ENGINE-001 (Track A); change them by pull request.
 4. **Constants come from `params.js`.** Use integer arithmetic before `ceil()`.
 5. **Never drop silently.** Record assumptions with `addLedger`, advisories with `addFlag`, and gaps with `addUnmet`.
