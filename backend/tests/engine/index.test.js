@@ -19,16 +19,35 @@ const engineData = {
 };
 
 test('run normalizes questionnaire answers, derives requirements, and invokes orchestration', async () => {
+  const now = new Date('2026-11-12T00:00:00.000Z');
+  let loadOptions;
   const result = await run(rawAnswers, {
-    loadEngineData: async () => engineData,
+    now,
+    loadEngineData: async (options) => {
+      loadOptions = options;
+      return engineData;
+    },
   });
 
+  assert.equal(loadOptions.now, now);
   assert.equal(result.requirements.wireless.CE.total > 0, true);
   assert.equal(result.requirements.vpnTunnelsNeeded.CE, 0);
   assert.equal(result.requirements.vpnTunnelsNeeded.HP, 2);
   assert.equal(result.plans.length, 2);
   assert.deepEqual(result.plans.map(({ planType }) => planType), ['CE', 'HP']);
   assert.equal(validateEngineResult(finalizeEngineResult(result, new Date().toISOString())), true);
+});
+
+test('run supplies a lifecycle date to the catalog loader by default', async () => {
+  let loadOptions;
+  await run(rawAnswers, {
+    loadEngineData: async (options) => {
+      loadOptions = options;
+      return engineData;
+    },
+  });
+
+  assert.ok(loadOptions.now instanceof Date);
 });
 
 test('run accepts the frontend NetworkConfiguration request shape', async () => {

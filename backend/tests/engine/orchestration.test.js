@@ -307,6 +307,41 @@ test('buildPlan marks the plan incomplete when gateway selection is unmet', () =
         item.vendor === omadaVendor.name,
     ),
   );
+  assert.equal(plan.unmet[0].reason, 'No suitable gateway available.');
+});
+
+test('buildPlan uses the no-current-model message when a required category has no current SKU', () => {
+  const { buildPlan } = require('../../src/types/engine/orchestration');
+  const ctx = createCtx();
+  const catalogWithoutCurrentGateway = catalog.map((sku) =>
+    sku.category === 'gateway'
+      ? { ...sku, status: 'DISCONTINUED' }
+      : sku,
+  );
+
+  const plan = buildPlan(
+    omadaVendor,
+    'CE',
+    requirements,
+    input,
+    catalogWithoutCurrentGateway,
+    ctx,
+    {
+      selectGateway: () => ({
+        ok: false,
+        unmet: {
+          category: 'gateway',
+          vendor: omadaVendor.name,
+          reason: 'No purchasable (ACTIVE or SUNSETTING) SKUs available',
+        },
+      }),
+    },
+  );
+
+  const expectedReason =
+    `No current model found in ${omadaVendor.name}'s catalog for this requirement`;
+  assert.equal(plan.unmet[0].reason, expectedReason);
+  assert.equal(ctx.unmet[0].reason, expectedReason);
 });
 test('buildPlan propagates unexpected gateway selector errors', () => {
   const { buildPlan } = require('../../src/types/engine/orchestration');

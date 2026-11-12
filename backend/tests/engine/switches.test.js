@@ -148,6 +148,20 @@ test('PoE++ supports 802.3af, 802.3at, and 802.3bt', () => {
   assert.equal(supportsPoeRequirement(sku, 'bt3'), true);
 });
 
+test('uses poe_standard in preference to the description', () => {
+  const sku = {
+    name: 'Managed PoE+ Switch',
+    description: 'Supports PoE+ ports',
+    switch_specs: { poe_ports: 8, poe_standard: 'bt3' },
+  };
+
+  assert.deepEqual(getPoePortCapabilities(sku), {
+    af: 8,
+    at: 8,
+    bt3: 8,
+  });
+});
+
 test('rejects unknown PoE standards when documentation is absent', () => {
   const sku = {
     name: 'Managed Gigabit Switch',

@@ -60,6 +60,7 @@ const CONTRACT_VERSION = 3; // 3: CatalogSku gains required name, optional price
  * @property {'af'|'at'|'bt3'} [poe_standard]       // same keys as POE_CLASS_W in params.js. Switch (or gateway with an integrated switch): the highest PoE standard its PoE ports supply. Access point: the minimum standard it requires. Absent = unknown, the engine raises a flag and never guesses
  * @property {number} [copper_ports] @property {number} [sfp_ports] @property {string} [sfp_speed]
  * @property {'SFP'|'SFP+'|'SFP28'|'QSFP+'|'QSFP28'} [sfp_form_factor]   // read with sfp_ports by NWP-ENGINE-012
+  * @property {'af'|'at'|'bt3'} [poe_standard]   // switch, or a gateway with an integrated switch: highest PoE standard its PoE ports supply; access_point: minimum standard it needs; absent = unknown (the engine flags it)
  * @property {number} [routing_throughput_mbps]
  * @property {number|null} [idps_throughput_mbps]   // nullable: absent or null = unknown, the engine raises a flag and never guesses
  * @property {boolean} [dual_wan] @property {boolean} [site_to_site_vpn]

@@ -63,9 +63,11 @@ function flatRowToCatalogSku(row) {
     }
 
     // Copper port count. A switch block states port_count including SFP ports; a gateway states lan_ports.
-    const sfp = hasValue(row.sfp_ports) ? row.sfp_ports : 0;
+    // Change: no longer assumes missing SFP count as 0; copper_ports are derived from port_count - sfp_ports only when the latter is known.
     if (hasValue(row.port_count)) {
-        out.copper_ports = Math.max(row.port_count - sfp, 0);
+        if (hasValue(row.sfp_ports)) {
+            out.copper_ports = Math.max(row.port_count - row.sfp_ports, 0);
+        }
         out.port_count = row.port_count;                       // kept as an extra for the topology step
     } else if (hasValue(row.lan_ports)) {
         out.copper_ports = row.lan_ports;
