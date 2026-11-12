@@ -8,7 +8,7 @@
 // Env overrides:
 //   CATALOG_DIR        directory holding unifi-routers.json, unifi-switches.json, unifi-aps.json
 //   SCHEMA_PATH        path to device-schemas.json
-//   PRODUCT_LINES_PATH path to product_lines.json (006-11 is skipped if the file is absent)
+//   PRODUCT_LINES_PATH path to unifi-productlines.json (006-11 is skipped if the file is absent)
 
 const { describe, it, before } = require('node:test');
 const assert = require('node:assert/strict');
@@ -19,7 +19,7 @@ const addFormats = require('ajv-formats');
 
 const CATALOG_DIR = process.env.CATALOG_DIR || path.resolve(__dirname, '../../db/catalog/ubiquiti');
 const SCHEMA_PATH = process.env.SCHEMA_PATH || path.resolve(__dirname, '../../db/catalog/schema/device-schemas.json');
-const PRODUCT_LINES_PATH = process.env.PRODUCT_LINES_PATH || path.resolve(CATALOG_DIR, 'product_lines.json');
+const PRODUCT_LINES_PATH = process.env.PRODUCT_LINES_PATH || path.resolve(CATALOG_DIR, 'unifi-productlines.json');
 
 const FILES = [
   { file: 'unifi-routers.json', category: 'gateway_router', def: 'gatewayRouterDevice' },
@@ -90,7 +90,7 @@ describe('AC2 separate files per category', () => {
   });
 
   it('006-11 every product_line resolves in product_lines.json', (t) => {
-    if (!fs.existsSync(PRODUCT_LINES_PATH)) return t.skip('product_lines.json not found');
+    if (!fs.existsSync(PRODUCT_LINES_PATH)) return t.skip('unifi-productlines.json not found');
     const lines = readJson(PRODUCT_LINES_PATH);
     const known = new Set(lines.map((l) => `${l.vendor_id}|${l.category}|${l.name}`));
     const bad = [];
