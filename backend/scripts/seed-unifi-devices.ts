@@ -143,25 +143,35 @@ async function resolveCapabilityId(
   return capabilityId;
 }
 
+// Synchronize device capabilities with the incoming JSON entry.
 async function linkCapabilities(
   client: PoolClient,
   deviceId: number,
   capabilities: string[] = []
 ): Promise<void> {
+  const capabilityIds: number[] = [];
+
   for (const capabilityName of capabilities) {
     const capabilityId = await resolveCapabilityId(
       client,
       capabilityName
     );
 
+    capabilityIds.push(capabilityId);
+  }
+
+  await client.query(
+    `DELETE FROM device_capability
+     WHERE device_id = $1
+       AND NOT (capability_id = ANY($2::int[]))`,
+    [deviceId, capabilityIds]
+  );
+
+  for (const capabilityId of capabilityIds) {
     await client.query(
       `INSERT INTO device_capability (device_id, capability_id)
-       SELECT $1, $2
-       WHERE NOT EXISTS (
-         SELECT 1
-         FROM device_capability
-         WHERE device_id = $1 AND capability_id = $2
-       )`,
+       VALUES ($1, $2)
+       ON CONFLICT (device_id, capability_id) DO NOTHING`,
       [deviceId, capabilityId]
     );
   }
@@ -177,6 +187,7 @@ async function upsertDevice(
       vendor_id,
       sku,
       price,
+      price_updated_at,
       name,
       description,
       is_rack_mountable,
@@ -186,10 +197,11 @@ async function upsertDevice(
       eol_date,
       product_line_id
     )
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
     ON CONFLICT (vendor_id, sku)
     DO UPDATE SET
       price = EXCLUDED.price,
+      price_updated_at = EXCLUDED.price_updated_at,
       name = EXCLUDED.name,
       description = EXCLUDED.description,
       is_rack_mountable = EXCLUDED.is_rack_mountable,
@@ -203,6 +215,7 @@ async function upsertDevice(
       device.vendor_id,
       device.sku,
       device.price,
+      device.price_updated_at ?? null,
       device.name,
       device.description,
       device.is_rack_mountable,
@@ -385,11 +398,60 @@ async function upsertFirewallSpecs(
   );
 }
 
+// Remove specification rows that no longer match the incoming device.
+async function cleanupStaleSpecifications(
+  client: PoolClient,
+  deviceId: number,
+  device: any
+): Promise<void> {
+  const subtypeTables = {
+    gateway_router: "gateway_router_specifications",
+    switch: "switch_specifications",
+    ap: "ap_specifications",
+  } as const;
+
+  for (const [category, table] of Object.entries(subtypeTables)) {
+    if (category !== device.category) {
+      await client.query(
+        `DELETE FROM ${table} WHERE device_id = $1`,
+        [deviceId]
+      );
+    }
+  }
+
+  if (device.category !== "gateway_router" || !device.firewall_specs) {
+    await client.query(
+      `DELETE FROM firewall_specifications WHERE device_id = $1`,
+      [deviceId]
+    );
+  }
+}
+
 async function upsertDeviceWithSpecs(
   client: PoolClient,
   device: any,
   productLineId: number
 ): Promise<DeviceResult> {
+  // Lock an existing device before cleaning up its related rows.
+  const existing = await client.query(
+    `SELECT device_id
+     FROM device
+     WHERE vendor_id = $1
+       AND sku = $2
+     FOR UPDATE`,
+    [device.vendor_id, device.sku]
+  );
+
+  const existingDeviceId = existing.rows[0]?.device_id;
+
+  if (existingDeviceId) {
+    await cleanupStaleSpecifications(
+      client,
+      existingDeviceId,
+      device
+    );
+  }
+
   const result = await upsertDevice(client, device, productLineId);
   const deviceId = result.deviceId;
 
