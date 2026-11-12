@@ -1,0 +1,67 @@
+[
+  {
+    "vendor_id": 1,
+    "product_line": "Secure Gateway",
+    "sku": "S0G33A",
+    "price": null,
+    "name": "Aruba Instant On SG1004 Secure Gateway",
+    "description": "4-port Gigabit Secure Gateway with firewall, IDS/IPS, and VPN capabilities.",
+    "is_rack_mountable": false,
+    "u_height": 0,
+    "lifecycle_status": "active",
+    "eos_date": null,
+    "eol_date": null,
+    "category": "gateway_router",
+    "capabilities": [
+      "router",
+      "firewall"
+    ],
+    "gateway_router_specs": {
+      "wan_ports": 1,
+      "lan_ports": 3,
+      "max_throughput_mbps": 980,
+      "vpn_supported": true
+    },
+    "firewall_specs": {
+      "firewall_throughputs_mbps": 980,
+      "vpn_throughput_mbps": 930,
+      "max_concurrent_sessions": 16384
+    }
+  },
+  {
+    "vendor_id": 1,
+    "product_line": "Secure Gateway",
+    "sku": "S0G34A",
+    "price": null,
+    "name": "Aruba Instant On SG2505P Secure Gateway",
+    "description": "5-port SmartRate Secure Gateway with four PoE ports, firewall, IDS/IPS, and VPN capabilities.",
+    "is_rack_mountable": true,
+    "u_height": 0,
+    "lifecycle_status": "active",
+    "eos_date": null,
+    "eol_date": null,
+    "category": "gateway_router",
+    "capabilities": [
+      "router",
+      "firewall",
+      "switch"
+    ],
+    "gateway_router_specs": {
+      "wan_ports": 1,
+      "lan_ports": 0,
+      "max_throughput_mbps": 2400,
+      "vpn_supported": true
+    },
+    "firewall_specs": {
+      "firewall_throughputs_mbps": 2300,
+      "vpn_throughput_mbps": 2300,
+      "max_concurrent_sessions": 16384
+    },
+    "switch_specs": {
+      "port_count": 4,
+      "poe_ports": 4,
+      "poe_budget_w": 64,
+      "layer": 2
+    }
+  }
+]
