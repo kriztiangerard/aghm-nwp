@@ -136,6 +136,20 @@ export const deviceSchemas = generatedDeviceSchemas.superRefine((device, ctx) =>
     }
   }
 
+  if (
+    (device.category === 'gateway_router' ||
+      device.category === 'switch' ||
+      device.category === 'ap') &&
+    (typeof device.product_line !== 'string' ||
+      device.product_line.length === 0)
+  ) {
+    ctx.addIssue({
+      code: 'custom',
+      path: ['product_line'],
+      message: 'Required for gateway_router, switch, and ap devices.',
+    })
+  }
+
   if (device.category === 'gateway_router') {
     requireSfpFormFactor(device.gateway_router_specs, ['gateway_router_specs'])
 
