@@ -9,6 +9,13 @@ Before deploying, apply `backend/migrations/002_engine_catalog.sql` and populate
 
 The DB URL is fetched at runtime from the Secrets Manager secret `aghm-nwp/database`; `DB_SSL=true` and the bundled RDS CA are used for TLS. CDK imports the configured VPC and database security group. Ensure the Lambda security group can connect to PostgreSQL on port 5432 and private subnets can reach Secrets Manager (through NAT or a VPC endpoint). Deploy with `CDK_DEFAULT_ACCOUNT` set in `ap-southeast-1` so CDK can look up the VPC.
 
+## Request and catalog behavior
+
+- `database.js` holds the pool cache at module scope. `getPool()` creates the pool lazily on the first repository access, not while the Lambda module is initialized or in the handler body. Warm invocations in the same Lambda environment reuse that cached pool.
+- `loadEngineData()` reads the catalog and vendor descriptors once per engine request, together in one read-only repeatable-read transaction. This is one repository load per request, not one SQL statement; the load runs several queries to collect catalog rows.
+- A failed database connection becomes a `CatalogRepositoryError` with code `CATALOG_DB_UNAVAILABLE`; an empty device table is rejected as `CATALOG_EMPTY`. Neither case is treated as an empty catalog. The Lambda handler logs unexpected errors and currently returns a generic `500` response (`Internal error.`), rather than exposing the repository error details to the client.
+- Failed required category selections use `noCurrentModelUnmet()` in orchestration when the selector reports no purchasable SKU and the vendor/category has no `ACTIVE` or `SUNSETTING` model. The resulting reason is exactly: `No current model found in [vendor]'s catalog for this requirement`. When a current model exists, or the failure has another cause, the selector's existing reason is preserved. Selector behavior is not changed for this rule.
+
 ## Rules
 1. **Keep runtime dependencies minimal.** The Lambda bundles `pg` and the AWS Secrets Manager client; tests use `node --test`.
 2. **Pure engine steps.** No database or network calls inside requirement, selection, or assembly steps. Only `catalog-repository.js` loads DB records.
