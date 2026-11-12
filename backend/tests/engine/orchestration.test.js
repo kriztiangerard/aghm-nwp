@@ -241,7 +241,10 @@ test('buildPlan keeps UPS recommendations advisory and excludes UPS equipment', 
     const plan = buildPlan(
       omadaVendor,
       'CE',
-      requirements,
+      {
+        ...requirements,
+        upsRecommendationLevel: expectedLevel,
+      },
       {
         ...input,
         power,
@@ -258,10 +261,11 @@ test('buildPlan keeps UPS recommendations advisory and excludes UPS equipment', 
       },
     );
 
-    assert.deepEqual(plan.powerProtection, {
-      upsRecommendation: 'UPS recommended for network equipment.',
-      upsRecommendationLevel: expectedLevel,
-    });
+    assert.equal(plan.powerProtection.level, expectedLevel);
+    assert.equal(typeof plan.powerProtection.text, 'string');
+    assert.equal(plan.powerProtection.estimatedLoadW, null);
+    assert.equal(plan.powerProtection.minUpsRatingW, null);
+    assert.ok(Array.isArray(plan.powerProtection.assumptions));
 
     assert.equal(plan.complete, true);
     assert.deepEqual(plan.items, [
@@ -994,7 +998,10 @@ test('buildPlan keeps UPS power protection advisory and out of selected equipmen
     const plan = buildPlan(
       omadaVendor,
       'CE',
-      requirements,
+      {
+        ...requirements,
+        upsRecommendationLevel: expectedLevel,
+      },
       {
         ...input,
         power,
@@ -1011,10 +1018,11 @@ test('buildPlan keeps UPS power protection advisory and out of selected equipmen
       },
     );
 
-    assert.deepEqual(plan.powerProtection, {
-      upsRecommendation: 'UPS recommended for network equipment.',
-      upsRecommendationLevel: expectedLevel,
-    });
+    assert.equal(plan.powerProtection.level, expectedLevel);
+    assert.equal(typeof plan.powerProtection.text, 'string');
+    assert.equal(plan.powerProtection.estimatedLoadW, null);
+    assert.equal(plan.powerProtection.minUpsRatingW, null);
+    assert.ok(Array.isArray(plan.powerProtection.assumptions));
 
     assert.equal(
       plan.items.some(item => item.category === 'ups' || item.category === 'power_protection'),
@@ -1615,6 +1623,45 @@ test('buildPlan emits BOM advisories from the real builder and catalog provenanc
   assert.ok(
     assembled.plans[0].flags.some((flag) => flag.code === 'BOM_PRICE_STALE'),
   );
+});
+
+test('runEngine keeps the BOM total unchanged when power protection is prominent', () => {
+  const expectedBom = {
+    ...validTestBom,
+    total: 12345,
+  };
+
+  const result = runEngine(
+    {
+      ...input,
+      power: 'frequent',
+    },
+    {
+      ...requirements,
+      upsRecommendationLevel: 'prominent',
+    },
+    catalog,
+    [omadaVendor],
+    {
+      ...mockSteps,
+      buildBom: () => ({ ...expectedBom }),
+    },
+  );
+
+  assert.ok(result.plans.length > 0);
+
+  for (const plan of result.plans) {
+    assert.equal(plan.powerProtection.level, 'prominent');
+    assert.equal(plan.bom.total, expectedBom.total);
+    assert.deepEqual(plan.bom, expectedBom);
+
+    assert.equal(
+      plan.items.some(
+        item => item.category === 'ups' || item.category === 'power_protection',
+      ),
+      false,
+    );
+  }
 });
 
 test('buildPlan rejects invalid BOM output from the injected builder', () => {
