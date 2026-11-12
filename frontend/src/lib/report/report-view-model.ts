@@ -221,7 +221,7 @@ function formatQuestionnaireRequirements(
       value:
         data.physicalSpace.floorAreaPerFloor == null
           ? 'Not specified'
-          : `${data.physicalSpace.floorAreaPerFloor} m?`,
+          : `${data.physicalSpace.floorAreaPerFloor} m²`,
       source: 'user',
     },
     {
@@ -302,7 +302,7 @@ function formatQuestionnaireRequirements(
     {
       label: 'Other network devices',
       value: data.devices.otherNetworkDevices.enabled
-        ? `Yes ? ${formatValue(data.devices.otherNetworkDevices.description)}`
+        ? `Yes – ${formatValue(data.devices.otherNetworkDevices.description)}`
         : 'No',
       source: 'user',
     },
@@ -341,9 +341,9 @@ function formatQuestionnaireRequirements(
     {
       label: 'Monthly IT budget',
       value: formatChoice(data.businessContext.monthlyITBudget, {
-        under_15000: 'Under ?15,000',
-        '15000_40000': '?15,000??40,000',
-        over_40000: 'Over ?40,000',
+        under_15000: 'Under ₱15,000',
+        '15000_40000': '₱15,000–₱40,000',
+        over_40000: 'Over ₱40,000',
       }),
       source: 'user',
     },
@@ -460,8 +460,8 @@ function formatQuestionnaireRequirements(
         value: formatChoice(
           data.businessContext.growth.headcountGrowth,
           {
-            '0_10': '0�10%',
-            '11_30': '11�30%',
+            '0_10': '0–10%',
+            '11_30': '11–30%',
             '31_plus': '31% or more',
           },
         ),
@@ -536,7 +536,9 @@ function formatEngineeringRequirements(
       'Required gateway throughput',
       requirements.requiredMbps == null
         ? null
-        : `${requirements.requiredMbps} Mbps`,
+        : requirements.requiredMbps >= 1000
+          ? `${requirements.requiredMbps / 1000} Gbps`
+          : `${requirements.requiredMbps} Mbps`,
     ],
     ['Throughput metric', requirements.throughputMetric],
     ['Security tier', requirements.securityTier],
