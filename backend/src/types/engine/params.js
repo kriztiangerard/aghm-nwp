@@ -15,11 +15,11 @@ module.exports = Object.freeze({
   UPS_LOAD_RATIO: 0.8,                     // UNSOURCED: keep load <= 80% of UPS rating
   WALL_CABINET_MAX_U: 9,                   // PARAM: "not sure" housing threshold
   GENERIC_VENDOR_NAME: 'Generic',          // PARAM: name of the placeholder Vendor row that owns the generic racks and enclosures; must match the seeded Vendor.name
-  BUDGET_BAND_PLAN_CAP_PHP: null, // PARAM: ENGINE-017 plan-total cap by monthlyBudgetBand; team must define
   Q17_POE_DEFAULTS: {                      // UNSOURCED: verify against datasheets
     door_controller: true, smart_sensor: true, pos_terminal: false, network_printer: false, other: true,
   },
   BUDGET_BAND_EDGES_PHP: { entryMax: 15000, mainstreamMax: 40000 },
+  BUDGET_BAND_PLAN_CAP_PHP: null, // PARAM: team must define plan-total caps; null disables budget filtering.
   // Q10 fallback bands: NOT YET DEFINED. Do not invent values (decision D6).
   Q10_FALLBACK_BANDS: null,
 });
