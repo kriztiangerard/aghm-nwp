@@ -14,6 +14,7 @@ const {
 } = require('./contracts');
 const { createCtx, addLedger, addFlag } = require('./ctx');
 const { assembleEngineResult } = require('./steps/assemble');
+const { noCurrentModelUnmet } = require('./lifecycle');
 
 const { selectGateway } = require('./devices/gateway');
 const { selectAccessPoints } = require('./devices/aps');
@@ -138,22 +139,30 @@ function createEmptyPlan(vendor, planType, catalog) {
   };
 }
 
-function recordUnmetIfMissing(ctx, unmet, vendor) {
-  const vendorUnmet = {
-    ...unmet,
-    vendor,
-  };
+function recordUnmetIfMissing(ctx, unmet, vendor, catalog) {
+  const hasCurrentModel = catalog.some(
+    (sku) =>
+      sku.vendor === vendor &&
+      sku.category === unmet.category &&
+      ['ACTIVE', 'SUNSETTING'].includes(sku.status),
+  );
+  const isMissingCurrentModel =
+    unmet.category !== 'enclosure' &&
+    !hasCurrentModel &&
+    unmet.reason.startsWith('No purchasable');
+  const vendorUnmet = isMissingCurrentModel
+    ? noCurrentModelUnmet(unmet.category, vendor).unmet
+    : { ...unmet, vendor };
 
-  const alreadyRecorded = ctx.unmet.some(
+  const existingIndex = ctx.unmet.findIndex(
     (item) =>
       item.category === vendorUnmet.category &&
-      item.vendor === vendorUnmet.vendor &&
-      item.reason === vendorUnmet.reason,
+      item.vendor === vendorUnmet.vendor,
   );
 
-  if (!alreadyRecorded) {
-    ctx.unmet.push(vendorUnmet);
-  }
+  if (existingIndex === -1) ctx.unmet.push(vendorUnmet);
+  else ctx.unmet[existingIndex] = vendorUnmet;
+  return vendorUnmet;
 }
 
 function assertSelectedVendor(selection, vendor, category) {
@@ -246,7 +255,7 @@ function buildPlan(vendor, planType, reqs, input, catalog, ctx, steps = {}) {
     qty: gatewayResult.qty,
   });
   } else {
-    recordUnmetIfMissing(ctx, gatewayResult.unmet, vendor.name);
+    recordUnmetIfMissing(ctx, gatewayResult.unmet, vendor.name, catalog);
     plan.complete = false;
   }
 
@@ -279,7 +288,7 @@ function buildPlan(vendor, planType, reqs, input, catalog, ctx, steps = {}) {
     qty: apResult.qty,
   });
     } else {
-      recordUnmetIfMissing(ctx, apResult.unmet, vendor.name);
+      recordUnmetIfMissing(ctx, apResult.unmet, vendor.name, catalog);
       plan.complete = false;
     }
   }
@@ -414,7 +423,7 @@ function buildPlan(vendor, planType, reqs, input, catalog, ctx, steps = {}) {
         );
       }
 
-      recordUnmetIfMissing(ctx, switchResult.unmet, vendor.name);
+      recordUnmetIfMissing(ctx, switchResult.unmet, vendor.name, catalog);
       plan.complete = false;
     }
   }
@@ -443,7 +452,7 @@ function buildPlan(vendor, planType, reqs, input, catalog, ctx, steps = {}) {
           qty: controllerResult.qty,
         });
       } else {
-        recordUnmetIfMissing(ctx, controllerResult.unmet, vendor.name);
+        recordUnmetIfMissing(ctx, controllerResult.unmet, vendor.name, catalog);
         plan.complete = false;
       }
     }
@@ -493,7 +502,7 @@ const resolvedItems = selectedDeviceItems;
       });
     }
   } else {
-    recordUnmetIfMissing(ctx, enclosureResult.unmet, vendor.name);
+    recordUnmetIfMissing(ctx, enclosureResult.unmet, vendor.name, catalog);
     plan.complete = false;
   }
 
