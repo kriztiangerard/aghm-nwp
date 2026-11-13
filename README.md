@@ -1,10 +1,9 @@
 > [!WARNING]
 > # This repository is no longer in use. Do NOT make changes here.
-> Do not make any changes to the source code here. Make sure you are using the new split repos.
+> This repository is only kept for reference. Do not make any changes to the source code here. Make sure you are using the new split repos.
 > ### Links
 > - Frontend: https://github.com/kriztiangerard/aghm-nwp-frontend
 > - Backend: https://github.com/kriztiangerard/aghm-nwp-backend
-> This repository is only for reference.
 
 # Network Planning Calculator
 
